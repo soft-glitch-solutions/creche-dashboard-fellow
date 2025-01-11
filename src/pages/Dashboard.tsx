@@ -1,5 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { Users, DollarSign, FileText } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 const Dashboard = () => {
   const stats = [
