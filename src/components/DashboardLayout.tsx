@@ -11,6 +11,7 @@ import {
   Settings,
   HelpCircle,
   Menu,
+  FileInput,
 } from "lucide-react";
 
 const DashboardLayout = () => {
@@ -19,6 +20,7 @@ const DashboardLayout = () => {
 
   const menuItems = [
     { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
+    { icon: FileInput, label: "Applications", path: "/dashboard/applications" },
     { icon: Users, label: "Students", path: "/dashboard/students" },
     { icon: DollarSign, label: "Finance", path: "/dashboard/finance" },
     { icon: FileText, label: "Reports", path: "/dashboard/reports" },
