@@ -16,6 +16,7 @@ import {
   Network,
   User,
   Image,
+  X,
 } from "lucide-react";
 import {
   Collapsible,
@@ -28,6 +29,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 
 const DashboardLayout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -50,93 +56,111 @@ const DashboardLayout = () => {
     { icon: Network, label: "Integrations", path: "/dashboard/admin/integrations" },
   ];
 
+  const SidebarContent = () => (
+    <div className="flex flex-col h-full">
+      <div className="p-4 flex justify-between items-center">
+        <h2
+          className={cn(
+            "font-bold text-primary transition-all duration-300",
+            isSidebarOpen ? "text-xl" : "text-xs"
+          )}
+        >
+          {isSidebarOpen ? "Creche Spots" : "CS"}
+        </h2>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+          className="hidden md:flex"
+        >
+          <Menu className="h-4 w-4" />
+        </Button>
+      </div>
+
+      <nav className="mt-8 flex-1">
+        {menuItems.map((item) => (
+          <Button
+            key={item.label}
+            variant="ghost"
+            className={cn(
+              "w-full justify-start gap-4 mb-2",
+              !isSidebarOpen && "justify-center px-2"
+            )}
+            onClick={() => navigate(item.path)}
+          >
+            <item.icon className="h-5 w-5" />
+            {isSidebarOpen && <span>{item.label}</span>}
+          </Button>
+        ))}
+      </nav>
+
+      <div className="mt-auto mb-4">
+        <Collapsible
+          open={isAdminOpen}
+          onOpenChange={setIsAdminOpen}
+          className="w-full"
+        >
+          <CollapsibleTrigger asChild>
+            <Button
+              variant="ghost"
+              className={cn(
+                "w-full justify-start gap-4",
+                !isSidebarOpen && "justify-center px-2"
+              )}
+            >
+              <Lock className="h-5 w-5" />
+              {isSidebarOpen && <span>Admin</span>}
+            </Button>
+          </CollapsibleTrigger>
+          <CollapsibleContent className="space-y-2">
+            {adminItems.map((item) => (
+              <Button
+                key={item.label}
+                variant="ghost"
+                className={cn(
+                  "w-full justify-start gap-4 pl-8",
+                  !isSidebarOpen && "justify-center px-2"
+                )}
+                onClick={() => navigate(item.path)}
+              >
+                <item.icon className="h-5 w-5" />
+                {isSidebarOpen && <span>{item.label}</span>}
+              </Button>
+            ))}
+          </CollapsibleContent>
+        </Collapsible>
+      </div>
+    </div>
+  );
+
   return (
     <div className="min-h-screen bg-gray-50 flex">
-      {/* Sidebar */}
+      {/* Desktop Sidebar */}
       <aside
         className={cn(
-          "bg-white border-r border-gray-200 transition-all duration-300 flex flex-col",
+          "bg-white border-r border-gray-200 transition-all duration-300 hidden md:flex flex-col",
           isSidebarOpen ? "w-64" : "w-20"
         )}
       >
-        <div className="p-4 flex justify-between items-center">
-          <h2
-            className={cn(
-              "font-bold text-primary transition-all duration-300",
-              isSidebarOpen ? "text-xl" : "text-xs"
-            )}
-          >
-            {isSidebarOpen ? "Creche Spots" : "CS"}
-          </h2>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-          >
-            <Menu className="h-4 w-4" />
-          </Button>
-        </div>
-
-        <nav className="mt-8 flex-1">
-          {menuItems.map((item) => (
-            <Button
-              key={item.label}
-              variant="ghost"
-              className={cn(
-                "w-full justify-start gap-4 mb-2",
-                !isSidebarOpen && "justify-center px-2"
-              )}
-              onClick={() => navigate(item.path)}
-            >
-              <item.icon className="h-5 w-5" />
-              {isSidebarOpen && <span>{item.label}</span>}
-            </Button>
-          ))}
-        </nav>
-
-        {/* Admin Section */}
-        <div className="mt-auto mb-4">
-          <Collapsible
-            open={isAdminOpen}
-            onOpenChange={setIsAdminOpen}
-            className="w-full"
-          >
-            <CollapsibleTrigger asChild>
-              <Button
-                variant="ghost"
-                className={cn(
-                  "w-full justify-start gap-4",
-                  !isSidebarOpen && "justify-center px-2"
-                )}
-              >
-                <Lock className="h-5 w-5" />
-                {isSidebarOpen && <span>Admin</span>}
-              </Button>
-            </CollapsibleTrigger>
-            <CollapsibleContent className="space-y-2">
-              {adminItems.map((item) => (
-                <Button
-                  key={item.label}
-                  variant="ghost"
-                  className={cn(
-                    "w-full justify-start gap-4 pl-8",
-                    !isSidebarOpen && "justify-center px-2"
-                  )}
-                  onClick={() => navigate(item.path)}
-                >
-                  <item.icon className="h-5 w-5" />
-                  {isSidebarOpen && <span>{item.label}</span>}
-                </Button>
-              ))}
-            </CollapsibleContent>
-          </Collapsible>
-        </div>
+        <SidebarContent />
       </aside>
+
+      {/* Mobile Sidebar */}
+      <Sheet>
+        <SheetTrigger asChild>
+          <Button variant="ghost" size="icon" className="md:hidden fixed top-4 left-4 z-50">
+            <Menu className="h-5 w-5" />
+          </Button>
+        </SheetTrigger>
+        <SheetContent side="left" className="w-64 p-0">
+          <SidebarContent />
+        </SheetContent>
+      </Sheet>
 
       {/* Main content */}
       <main className="flex-1">
         {/* Top navigation bar */}
-        <div className="bg-white border-b border-gray-200 h-16 px-8 flex items-center justify-end">
+        <div className="bg-white border-b border-gray-200 h-16 px-4 md:px-8 flex items-center justify-end">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="rounded-full">
@@ -161,7 +185,7 @@ const DashboardLayout = () => {
         </div>
 
         {/* Page content */}
-        <div className="p-8">
+        <div className="p-4 md:p-8">
           <Outlet />
         </div>
       </main>

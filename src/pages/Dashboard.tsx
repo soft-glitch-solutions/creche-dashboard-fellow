@@ -30,37 +30,37 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-gray-600 mt-2">Welcome to your Creche dashboard</p>
+        <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Dashboard</h1>
+        <p className="text-sm md:text-base text-gray-600 mt-2">Welcome to your Creche dashboard</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
         {/* Applications Card */}
         <Card className="border-2 border-secondary/20">
           <CardHeader>
-            <CardTitle className="text-xl text-secondary">
+            <CardTitle className="text-lg md:text-xl text-secondary">
               My Applications
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between">
-              <span className="flex items-center gap-2">
+              <span className="flex items-center gap-2 text-sm md:text-base">
                 <Mail className="h-4 w-4" />
                 Received
               </span>
               <span className="font-bold">{applications.received}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="flex items-center gap-2">
+              <span className="flex items-center gap-2 text-sm md:text-base">
                 <Clock className="h-4 w-4" />
                 Pending
               </span>
               <span className="font-bold">{applications.pending}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="flex items-center gap-2">
+              <span className="flex items-center gap-2 text-sm md:text-base">
                 <Users className="h-4 w-4" />
                 To be contacted
               </span>
@@ -72,24 +72,24 @@ const Dashboard = () => {
         {/* Creche Profile Card */}
         <Card className="border-2 border-primary/20">
           <CardHeader>
-            <CardTitle className="text-xl text-primary">
+            <CardTitle className="text-lg md:text-xl text-primary">
               My Creche Profile
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <div className="flex justify-between">
+              <div className="flex justify-between text-sm md:text-base">
                 <span>Daily fee:</span>
                 <span className="font-bold">{crecheProfile.dailyFee}</span>
               </div>
-              <div className="flex justify-between">
+              <div className="flex justify-between text-sm md:text-base">
                 <span>Monthly fee:</span>
                 <span className="font-bold">{crecheProfile.monthlyFee}</span>
               </div>
             </div>
             <div className="space-y-2">
-              <h4 className="font-semibold">Capacity:</h4>
-              <div className="grid grid-cols-2 gap-2 text-sm">
+              <h4 className="font-semibold text-sm md:text-base">Capacity:</h4>
+              <div className="grid grid-cols-2 gap-2 text-xs md:text-sm">
                 <div>Grade R: {crecheProfile.capacity.gradeR}</div>
                 <div>Grade 0: {crecheProfile.capacity.grade0}</div>
                 <div>After-care: {crecheProfile.capacity.afterCare}</div>
@@ -101,25 +101,25 @@ const Dashboard = () => {
         {/* Students Card */}
         <Card className="border-2 border-accent/20">
           <CardHeader>
-            <CardTitle className="text-xl text-accent">My Students</CardTitle>
+            <CardTitle className="text-lg md:text-xl text-accent">My Students</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between">
-              <span className="flex items-center gap-2">
+              <span className="flex items-center gap-2 text-sm md:text-base">
                 <GraduationCap className="h-4 w-4" />
                 Grade R
               </span>
               <span className="font-bold">{students.gradeR}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="flex items-center gap-2">
+              <span className="flex items-center gap-2 text-sm md:text-base">
                 <Building className="h-4 w-4" />
                 Grade 0
               </span>
               <span className="font-bold">{students.grade0}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="flex items-center gap-2">
+              <span className="flex items-center gap-2 text-sm md:text-base">
                 <Clock className="h-4 w-4" />
                 After-care
               </span>
