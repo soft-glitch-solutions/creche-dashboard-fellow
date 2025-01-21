@@ -10,6 +10,7 @@ import Students from "./pages/Students";
 import Finance from "./pages/Finance";
 import Settings from "./pages/Settings";
 import Help from "./pages/Help";
+import Reports from "./pages/Reports";
 import DashboardLayout from "./components/DashboardLayout";
 
 const queryClient = new QueryClient();
@@ -28,6 +29,7 @@ const App = () => (
             <Route path="applications" element={<Applications />} />
             <Route path="students" element={<Students />} />
             <Route path="finance" element={<Finance />} />
+            <Route path="reports" element={<Reports />} />
             <Route path="settings" element={<Settings />} />
             <Route path="help" element={<Help />} />
           </Route>
