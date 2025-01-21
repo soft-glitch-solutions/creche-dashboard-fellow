@@ -1,8 +1,7 @@
 import { useState } from "react";
-import { Outlet } from "react-router-dom";
+import { Outlet, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
   Users,
@@ -15,12 +14,20 @@ import {
   Building2,
   Lock,
   Network,
+  User,
+  Image,
 } from "lucide-react";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const DashboardLayout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -127,8 +134,36 @@ const DashboardLayout = () => {
       </aside>
 
       {/* Main content */}
-      <main className="flex-1 p-8">
-        <Outlet />
+      <main className="flex-1">
+        {/* Top navigation bar */}
+        <div className="bg-white border-b border-gray-200 h-16 px-8 flex items-center justify-end">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="rounded-full">
+                <img
+                  src="https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_640.png"
+                  alt="Profile"
+                  className="w-8 h-8 rounded-full"
+                />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuItem onClick={() => navigate("/dashboard/profile")}>
+                <User className="mr-2 h-4 w-4" />
+                <span>Profile Settings</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate("/dashboard/profile/picture")}>
+                <Image className="mr-2 h-4 w-4" />
+                <span>Change Profile Picture</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+
+        {/* Page content */}
+        <div className="p-8">
+          <Outlet />
+        </div>
       </main>
     </div>
   );
