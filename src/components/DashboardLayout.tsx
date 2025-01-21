@@ -16,6 +16,8 @@ import {
   Network,
   User,
   Image,
+  Bell,
+  LifeBuoy,
   X,
 } from "lucide-react";
 import {
@@ -34,11 +36,85 @@ import {
   SheetContent,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const DashboardLayout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
+  const [supportTitle, setSupportTitle] = useState("");
+  const [supportMessage, setSupportMessage] = useState("");
   const navigate = useNavigate();
+  const { toast } = useToast();
+
+  // Simulated notifications data - in a real app, this would come from your backend
+  const notifications = [
+    {
+      id: 1,
+      title: "New Application",
+      message: "You have received a new application",
+      time: "5 minutes ago"
+    },
+    {
+      id: 2,
+      title: "Payment Received",
+      message: "Payment successfully processed",
+      time: "1 hour ago"
+    }
+  ];
+
+  const handleSupportSubmit = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        toast({
+          title: "Error",
+          description: "You must be logged in to submit a support request",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      const { error } = await supabase
+        .from('support_requests')
+        .insert([
+          {
+            user_id: user.id,
+            title: supportTitle,
+            category: 'General',
+            message: supportMessage,
+          }
+        ]);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Your support request has been submitted",
+      });
+
+      setSupportTitle("");
+      setSupportMessage("");
+    } catch (error) {
+      console.error('Error submitting support request:', error);
+      toast({
+        title: "Error",
+        description: "Failed to submit support request",
+        variant: "destructive"
+      });
+    }
+  };
 
   const menuItems = [
     { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
@@ -160,7 +236,73 @@ const DashboardLayout = () => {
       {/* Main content */}
       <main className="flex-1">
         {/* Top navigation bar */}
-        <div className="bg-white border-b border-gray-200 h-16 px-4 md:px-8 flex items-center justify-end">
+        <div className="bg-white border-b border-gray-200 h-16 px-4 md:px-8 flex items-center justify-end gap-4">
+          {/* Notifications Dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="relative">
+                <Bell className="h-5 w-5" />
+                <span className="absolute top-0 right-0 h-2 w-2 bg-red-500 rounded-full" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-80">
+              <div className="p-2">
+                <h3 className="font-semibold mb-2">Notifications</h3>
+                <div className="space-y-2">
+                  {notifications.map((notification) => (
+                    <div
+                      key={notification.id}
+                      className="p-2 hover:bg-gray-100 rounded-md transition-colors"
+                    >
+                      <div className="font-medium text-sm">{notification.title}</div>
+                      <div className="text-sm text-gray-500">{notification.message}</div>
+                      <div className="text-xs text-gray-400 mt-1">{notification.time}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {/* Support Dialog */}
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button variant="ghost" size="icon">
+                <LifeBuoy className="h-5 w-5" />
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>Submit Support Request</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 mt-4">
+                <div className="space-y-2">
+                  <Label htmlFor="title">Title</Label>
+                  <Input
+                    id="title"
+                    value={supportTitle}
+                    onChange={(e) => setSupportTitle(e.target.value)}
+                    placeholder="Brief description of your issue"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="message">Message</Label>
+                  <Textarea
+                    id="message"
+                    value={supportMessage}
+                    onChange={(e) => setSupportMessage(e.target.value)}
+                    placeholder="Detailed explanation of your issue"
+                    className="min-h-[100px]"
+                  />
+                </div>
+                <Button onClick={handleSupportSubmit} className="w-full">
+                  Submit Request
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+
+          {/* Profile Dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="rounded-full">
