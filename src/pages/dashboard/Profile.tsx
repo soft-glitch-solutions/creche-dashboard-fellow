@@ -1,16 +1,18 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { User, Mail, Phone, MapPin, FileText } from "lucide-react";
 
 const Profile = () => {
   const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(true);
   const [profileData, setProfileData] = useState({
     firstName: "",
     lastName: "",
@@ -19,6 +21,55 @@ const Profile = () => {
     bio: "",
     suburb: "",
   });
+
+  useEffect(() => {
+    loadUserProfile();
+  }, []);
+
+  const loadUserProfile = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Please log in to view your profile",
+        });
+        navigate('/login');
+        return;
+      }
+
+      // Fetch user profile data from the users table
+      const { data: userData, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+
+      if (error) throw error;
+
+      if (userData) {
+        setProfileData({
+          firstName: userData.first_name || "",
+          lastName: userData.last_name || "",
+          email: userData.email || user.email,
+          phoneNumber: userData.phone_number || "",
+          bio: userData.bio || "",
+          suburb: userData.suburb || "",
+        });
+      }
+    } catch (error) {
+      console.error("Error loading profile:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to load profile data",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -35,14 +86,12 @@ const Profile = () => {
     setIsLoading(true);
 
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const { data: { user } } = await supabase.auth.getUser();
 
       if (!user) throw new Error("No user found");
 
       const { error } = await supabase
-        .from("users")
+        .from('users')
         .update({
           first_name: profileData.firstName,
           last_name: profileData.lastName,
@@ -50,7 +99,7 @@ const Profile = () => {
           bio: profileData.bio,
           suburb: profileData.suburb,
         })
-        .eq("id", user.id);
+        .eq('id', user.id);
 
       if (error) throw error;
 
@@ -69,6 +118,14 @@ const Profile = () => {
       setIsLoading(false);
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="text-center">Loading profile...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto p-4 space-y-6">
@@ -123,6 +180,7 @@ const Profile = () => {
                 value={profileData.email}
                 onChange={handleInputChange}
                 placeholder="your.email@example.com"
+                disabled
               />
             </div>
 

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -18,7 +18,7 @@ import {
   Image,
   Bell,
   LifeBuoy,
-  X,
+  LogOut,
 } from "lucide-react";
 import {
   Collapsible,
@@ -29,6 +29,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -54,10 +55,55 @@ const DashboardLayout = () => {
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [supportTitle, setSupportTitle] = useState("");
   const [supportMessage, setSupportMessage] = useState("");
+  const [user, setUser] = useState(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  // Simulated notifications data - in a real app, this would come from your backend
+  useEffect(() => {
+    // Check authentication status when component mounts
+    checkUser();
+    
+    // Subscribe to auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!session) {
+        navigate('/login');
+      } else {
+        setUser(session.user);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [navigate]);
+
+  const checkUser = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      navigate('/login');
+    } else {
+      setUser(user);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      
+      toast({
+        title: "Logged out",
+        description: "You have been successfully logged out",
+      });
+      navigate('/login');
+    } catch (error) {
+      console.error('Error logging out:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to log out. Please try again.",
+      });
+    }
+  };
+
   const notifications = [
     {
       id: 1,
@@ -237,7 +283,6 @@ const DashboardLayout = () => {
       <main className="flex-1">
         {/* Top navigation bar */}
         <div className="bg-white border-b border-gray-200 h-16 px-4 md:px-8 flex items-center justify-end gap-4">
-          {/* Notifications Dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="relative">
@@ -321,6 +366,11 @@ const DashboardLayout = () => {
               <DropdownMenuItem onClick={() => navigate("/dashboard/profile/picture")}>
                 <Image className="mr-2 h-4 w-4" />
                 <span>Change Profile Picture</span>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleLogout}>
+                <LogOut className="mr-2 h-4 w-4" />
+                <span>Logout</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
