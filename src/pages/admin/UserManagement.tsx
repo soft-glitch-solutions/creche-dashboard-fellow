@@ -11,13 +11,15 @@ import { useToast } from "@/hooks/use-toast";
 interface User {
   id: string;
   email: string;
-  first_name: string;
-  last_name: string;
+  first_name: string | null;
+  last_name: string | null;
   role: {
     role_name: string;
-  };
+  } | null;
   creches: {
-    name: string;
+    creche: {
+      name: string;
+    };
   }[];
   title?: string;
 }
@@ -34,7 +36,7 @@ const UserManagement = () => {
 
   const fetchUsers = async () => {
     try {
-      const { data: users, error } = await supabase
+      const { data: usersData, error } = await supabase
         .from('users')
         .select(`
           *,
@@ -44,7 +46,9 @@ const UserManagement = () => {
 
       if (error) throw error;
 
-      setUsers(users || []);
+      if (usersData) {
+        setUsers(usersData as User[]);
+      }
     } catch (error) {
       console.error('Error fetching users:', error);
       toast({
@@ -128,7 +132,7 @@ const UserManagement = () => {
                       </TableCell>
                       <TableCell>{user.title || 'N/A'}</TableCell>
                       <TableCell>
-                        <Badge variant={getStatusBadgeVariant(user.role?.role_name)}>
+                        <Badge variant={getStatusBadgeVariant(user.role?.role_name || '')}>
                           {user.role?.role_name || 'User'}
                         </Badge>
                       </TableCell>
