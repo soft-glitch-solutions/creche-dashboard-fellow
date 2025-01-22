@@ -5,9 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { User, Mail, Phone, MapPin, FileText } from "lucide-react";
+import { User, Mail, Phone, MapPin, FileText, Building2, UserCog } from "lucide-react";
 
 const Profile = () => {
   const { toast } = useToast();
@@ -20,6 +21,8 @@ const Profile = () => {
     phoneNumber: "",
     bio: "",
     suburb: "",
+    role: "",
+    creche: "",
   });
 
   useEffect(() => {
@@ -40,10 +43,14 @@ const Profile = () => {
         return;
       }
 
-      // Fetch user profile data from the users table
+      // Fetch user profile data including role and creche information
       const { data: userData, error } = await supabase
         .from('users')
-        .select('*')
+        .select(`
+          *,
+          role:roles(role_name),
+          creches:user_creche(creche:creches(name))
+        `)
         .eq('id', user.id)
         .single();
 
@@ -57,6 +64,8 @@ const Profile = () => {
           phoneNumber: userData.phone_number || "",
           bio: userData.bio || "",
           suburb: userData.suburb || "",
+          role: userData.role?.role_name || "User",
+          creche: userData.creches?.[0]?.creche?.name || "Not assigned",
         });
       }
     } catch (error) {
@@ -136,109 +145,137 @@ const Profile = () => {
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="grid gap-6 md:grid-cols-2">
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <User className="h-5 w-5" />
-              Personal Information
+              <UserCog className="h-5 w-5" />
+              Role & Organization
             </CardTitle>
           </CardHeader>
-          <CardContent className="grid gap-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="firstName">First Name</Label>
-                <Input
-                  id="firstName"
-                  name="firstName"
-                  value={profileData.firstName}
-                  onChange={handleInputChange}
-                  placeholder="Enter your first name"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="lastName">Last Name</Label>
-                <Input
-                  id="lastName"
-                  name="lastName"
-                  value={profileData.lastName}
-                  onChange={handleInputChange}
-                  placeholder="Enter your last name"
-                />
+          <CardContent className="space-y-4">
+            <div>
+              <Label>Current Role</Label>
+              <div className="mt-1">
+                <Badge variant="secondary" className="text-sm">
+                  {profileData.role}
+                </Badge>
               </div>
             </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="email" className="flex items-center gap-2">
-                <Mail className="h-4 w-4" />
-                Email Address
-              </Label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                value={profileData.email}
-                onChange={handleInputChange}
-                placeholder="your.email@example.com"
-                disabled
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="phoneNumber" className="flex items-center gap-2">
-                <Phone className="h-4 w-4" />
-                Phone Number
-              </Label>
-              <Input
-                id="phoneNumber"
-                name="phoneNumber"
-                value={profileData.phoneNumber}
-                onChange={handleInputChange}
-                placeholder="Enter your phone number"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="suburb" className="flex items-center gap-2">
-                <MapPin className="h-4 w-4" />
-                Suburb
-              </Label>
-              <Input
-                id="suburb"
-                name="suburb"
-                value={profileData.suburb}
-                onChange={handleInputChange}
-                placeholder="Enter your suburb"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="bio" className="flex items-center gap-2">
-                <FileText className="h-4 w-4" />
-                Bio
-              </Label>
-              <Textarea
-                id="bio"
-                name="bio"
-                value={profileData.bio}
-                onChange={handleInputChange}
-                placeholder="Tell us about yourself"
-                className="min-h-[100px]"
-              />
+            <div>
+              <Label>Assigned Creche</Label>
+              <div className="mt-1">
+                <Badge variant="outline" className="text-sm">
+                  {profileData.creche}
+                </Badge>
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        <div className="flex justify-end gap-4">
-          <Button
-            type="submit"
-            disabled={isLoading}
-            className="w-full md:w-auto"
-          >
-            {isLoading ? "Saving..." : "Save Changes"}
-          </Button>
-        </div>
-      </form>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <User className="h-5 w-5" />
+                Personal Information
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="firstName">First Name</Label>
+                  <Input
+                    id="firstName"
+                    name="firstName"
+                    value={profileData.firstName}
+                    onChange={handleInputChange}
+                    placeholder="Enter your first name"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="lastName">Last Name</Label>
+                  <Input
+                    id="lastName"
+                    name="lastName"
+                    value={profileData.lastName}
+                    onChange={handleInputChange}
+                    placeholder="Enter your last name"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="email" className="flex items-center gap-2">
+                  <Mail className="h-4 w-4" />
+                  Email Address
+                </Label>
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  value={profileData.email}
+                  onChange={handleInputChange}
+                  placeholder="your.email@example.com"
+                  disabled
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="phoneNumber" className="flex items-center gap-2">
+                  <Phone className="h-4 w-4" />
+                  Phone Number
+                </Label>
+                <Input
+                  id="phoneNumber"
+                  name="phoneNumber"
+                  value={profileData.phoneNumber}
+                  onChange={handleInputChange}
+                  placeholder="Enter your phone number"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="suburb" className="flex items-center gap-2">
+                  <MapPin className="h-4 w-4" />
+                  Suburb
+                </Label>
+                <Input
+                  id="suburb"
+                  name="suburb"
+                  value={profileData.suburb}
+                  onChange={handleInputChange}
+                  placeholder="Enter your suburb"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="bio" className="flex items-center gap-2">
+                  <FileText className="h-4 w-4" />
+                  Bio
+                </Label>
+                <Textarea
+                  id="bio"
+                  name="bio"
+                  value={profileData.bio}
+                  onChange={handleInputChange}
+                  placeholder="Tell us about yourself"
+                  className="min-h-[100px]"
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          <div className="flex justify-end">
+            <Button
+              type="submit"
+              disabled={isLoading}
+            >
+              {isLoading ? "Saving..." : "Save Changes"}
+            </Button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 };
