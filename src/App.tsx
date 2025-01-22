@@ -15,6 +15,7 @@ import DashboardLayout from "./components/DashboardLayout";
 import UserManagement from "./pages/admin/UserManagement";
 import CrecheManagement from "./pages/admin/CrecheManagement";
 import Integrations from "./pages/admin/Integrations";
+import Profile from "./pages/dashboard/Profile";
 
 const queryClient = new QueryClient();
 
@@ -29,6 +30,7 @@ const App = () => (
           <Route path="/login" element={<Login />} />
           <Route path="/dashboard" element={<DashboardLayout />}>
             <Route index element={<Dashboard />} />
+            <Route path="profile" element={<Profile />} />
             <Route path="applications" element={<Applications />} />
             <Route path="students" element={<Students />} />
             <Route path="finance" element={<Finance />} />

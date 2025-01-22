@@ -53,7 +53,7 @@ const Profile = () => {
         setProfileData({
           firstName: userData.first_name || "",
           lastName: userData.last_name || "",
-          email: userData.email || user.email,
+          email: userData.email || user.email || "",
           phoneNumber: userData.phone_number || "",
           bio: userData.bio || "",
           suburb: userData.suburb || "",
@@ -110,9 +110,9 @@ const Profile = () => {
     } catch (error) {
       console.error("Error updating profile:", error);
       toast({
+        variant: "destructive",
         title: "Error",
         description: "Failed to update profile. Please try again.",
-        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
