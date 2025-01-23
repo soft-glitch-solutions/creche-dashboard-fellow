@@ -4,9 +4,12 @@ import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Eye, Link as LinkIcon, Trash2 } from "lucide-react";
+import { Eye, Link as LinkIcon, Trash2, UserPlus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Label } from "@/components/ui/label";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface User {
   id: string;
@@ -22,12 +25,17 @@ interface User {
     };
   }[];
   title?: string;
+  phone_number?: string;
+  profile_picture_url?: string;
+  bio?: string;
 }
 
 const UserManagement = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [isUserDetailsOpen, setIsUserDetailsOpen] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -72,6 +80,11 @@ const UserManagement = () => {
     }
   };
 
+  const handleViewUser = (user: User) => {
+    setSelectedUser(user);
+    setIsUserDetailsOpen(true);
+  };
+
   const filteredUsers = users.filter(user => 
     user.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     user.first_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -82,7 +95,10 @@ const UserManagement = () => {
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">User Management</h1>
-        <Button>Add new contact</Button>
+        <Button className="flex items-center gap-2">
+          <UserPlus className="h-4 w-4" />
+          Add new user
+        </Button>
       </div>
 
       <Card>
@@ -105,9 +121,9 @@ const UserManagement = () => {
                 <TableRow>
                   <TableHead>Name</TableHead>
                   <TableHead>Email</TableHead>
-                  <TableHead>Company</TableHead>
+                  <TableHead>Creche</TableHead>
                   <TableHead>Title</TableHead>
-                  <TableHead>Status</TableHead>
+                  <TableHead>Role</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -138,7 +154,11 @@ const UserManagement = () => {
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
-                          <Button variant="ghost" size="icon">
+                          <Button 
+                            variant="ghost" 
+                            size="icon"
+                            onClick={() => handleViewUser(user)}
+                          >
                             <Eye className="h-4 w-4" />
                           </Button>
                           <Button variant="ghost" size="icon">
@@ -157,6 +177,59 @@ const UserManagement = () => {
           </div>
         </CardContent>
       </Card>
+
+      <Sheet open={isUserDetailsOpen} onOpenChange={setIsUserDetailsOpen}>
+        <SheetContent className="w-[400px] sm:w-[540px]">
+          <SheetHeader>
+            <SheetTitle>User Details</SheetTitle>
+          </SheetHeader>
+          {selectedUser && (
+            <div className="mt-6 space-y-6">
+              <div className="flex items-center space-x-4">
+                <Avatar className="h-20 w-20">
+                  <AvatarImage src={selectedUser.profile_picture_url} />
+                  <AvatarFallback>
+                    {selectedUser.first_name?.[0]}{selectedUser.last_name?.[0]}
+                  </AvatarFallback>
+                </Avatar>
+                <div>
+                  <h2 className="text-2xl font-bold">
+                    {selectedUser.first_name} {selectedUser.last_name}
+                  </h2>
+                  <p className="text-muted-foreground">{selectedUser.title}</p>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <Label>Email</Label>
+                  <p className="mt-1">{selectedUser.email}</p>
+                </div>
+                <div>
+                  <Label>Phone</Label>
+                  <p className="mt-1">{selectedUser.phone_number || 'N/A'}</p>
+                </div>
+                <div>
+                  <Label>Creche</Label>
+                  <p className="mt-1">{selectedUser.creches?.[0]?.creche?.name || 'Not assigned'}</p>
+                </div>
+                <div>
+                  <Label>Role</Label>
+                  <Badge variant={getStatusBadgeVariant(selectedUser.role?.role_name || '')} className="mt-1">
+                    {selectedUser.role?.role_name || 'User'}
+                  </Badge>
+                </div>
+                {selectedUser.bio && (
+                  <div>
+                    <Label>Bio</Label>
+                    <p className="mt-1 text-sm text-muted-foreground">{selectedUser.bio}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </SheetContent>
+      </Sheet>
     </div>
   );
 };
