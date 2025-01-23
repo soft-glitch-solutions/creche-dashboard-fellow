@@ -14,6 +14,7 @@ import Reports from "./pages/Reports";
 import DashboardLayout from "./components/DashboardLayout";
 import UserManagement from "./pages/admin/UserManagement";
 import CrecheManagement from "./pages/admin/CrecheManagement";
+import CrecheDetails from "./pages/admin/CrecheDetails";
 import Integrations from "./pages/admin/Integrations";
 import Profile from "./pages/dashboard/Profile";
 
@@ -40,6 +41,7 @@ const App = () => (
             {/* Admin Routes */}
             <Route path="admin/users" element={<UserManagement />} />
             <Route path="admin/creches" element={<CrecheManagement />} />
+            <Route path="admin/creches/:id" element={<CrecheDetails />} />
             <Route path="admin/integrations" element={<Integrations />} />
           </Route>
         </Routes>
