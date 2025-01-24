@@ -21,6 +21,7 @@ import {
   Building2,
   Eye,
   PenSquare,
+  Calendar,
 } from "lucide-react";
 
 const Dashboard = () => {
@@ -33,10 +34,31 @@ const Dashboard = () => {
     monthlyFee: "",
     weeklyFee: "",
   });
+  const [upcomingEvents, setUpcomingEvents] = useState([]);
 
   useEffect(() => {
     loadUserCreche();
+    loadUpcomingEvents();
   }, []);
+
+  const loadUpcomingEvents = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: events, error } = await supabase
+        .from('events')
+        .select('*')
+        .gte('start', new Date().toISOString())
+        .order('start', { ascending: true })
+        .limit(5);
+
+      if (error) throw error;
+      setUpcomingEvents(events || []);
+    } catch (error) {
+      console.error('Error loading events:', error);
+    }
+  };
 
   const loadUserCreche = async () => {
     try {
@@ -45,7 +67,6 @@ const Dashboard = () => {
 
       console.log("Loading creche for user:", user.id);
 
-      // First get all creches for this user
       const { data: userCreches, error: userCrecheError } = await supabase
         .from('user_creche')
         .select('creche_id')
@@ -59,7 +80,6 @@ const Dashboard = () => {
       console.log("User creches:", userCreches);
 
       if (userCreches && userCreches.length > 0) {
-        // For now, we'll just use the first creche
         const firstCrecheId = userCreches[0].creche_id;
 
         const { data: creche, error: crecheError } = await supabase
@@ -130,27 +150,27 @@ const Dashboard = () => {
     }
   };
 
-  const applications = {
-    received: 5,
-    pending: 10,
-    toBeContacted: 3,
-  };
-
-  const students = {
-    gradeR: 15,
-    grade0: 12,
-    afterCare: 20,
+  const formatEventDate = (date) => {
+    return new Date(date).toLocaleDateString('en-US', {
+      month: 'long',
+      day: 'numeric',
+    });
   };
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-sm md:text-base text-gray-600 mt-2">Welcome to your Creche dashboard</p>
+      <div className="flex items-center space-x-4 bg-white rounded-lg p-4 shadow-sm">
+        <img
+          src="/lovable-uploads/b36d0e6b-5fa8-43e2-b837-5d0b3de9e849.png"
+          alt="Creche Logo"
+          className="w-16 h-16"
+        />
+        <h1 className="text-3xl font-bold text-gray-900">
+          {crecheData?.name || "Loading..."}
+        </h1>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-        {/* Applications Card */}
         <Card className="border-2 border-secondary/20">
           <CardHeader>
             <CardTitle className="text-lg md:text-xl text-secondary">
@@ -163,26 +183,25 @@ const Dashboard = () => {
                 <Mail className="h-4 w-4" />
                 Received
               </span>
-              <span className="font-bold">{applications.received}</span>
+              <span className="font-bold">5</span>
             </div>
             <div className="flex items-center justify-between">
               <span className="flex items-center gap-2 text-sm md:text-base">
                 <Clock className="h-4 w-4" />
                 Pending
               </span>
-              <span className="font-bold">{applications.pending}</span>
+              <span className="font-bold">10</span>
             </div>
             <div className="flex items-center justify-between">
               <span className="flex items-center gap-2 text-sm md:text-base">
                 <Users className="h-4 w-4" />
                 To be contacted
               </span>
-              <span className="font-bold">{applications.toBeContacted}</span>
+              <span className="font-bold">3</span>
             </div>
           </CardContent>
         </Card>
 
-        {/* Creche Profile Card */}
         {crecheData && (
           <Card className="border-2 border-primary/20">
             <CardHeader className="flex flex-row items-center justify-between">
@@ -268,7 +287,6 @@ const Dashboard = () => {
           </Card>
         )}
 
-        {/* Students Card */}
         <Card className="border-2 border-accent/20">
           <CardHeader>
             <CardTitle className="text-lg md:text-xl text-accent">My Students</CardTitle>
@@ -279,25 +297,68 @@ const Dashboard = () => {
                 <GraduationCap className="h-4 w-4" />
                 Grade R
               </span>
-              <span className="font-bold">{students.gradeR}</span>
+              <span className="font-bold">15</span>
             </div>
             <div className="flex items-center justify-between">
               <span className="flex items-center gap-2 text-sm md:text-base">
                 <Building2 className="h-4 w-4" />
                 Grade 0
               </span>
-              <span className="font-bold">{students.grade0}</span>
+              <span className="font-bold">12</span>
             </div>
             <div className="flex items-center justify-between">
               <span className="flex items-center gap-2 text-sm md:text-base">
                 <Clock className="h-4 w-4" />
                 After-care
               </span>
-              <span className="font-bold">{students.afterCare}</span>
+              <span className="font-bold">20</span>
             </div>
           </CardContent>
         </Card>
       </div>
+
+      <Card className="border-2 border-primary/20">
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle className="text-lg md:text-xl text-primary flex items-center gap-2">
+            <Calendar className="h-5 w-5" />
+            Upcoming Events
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {upcomingEvents.length > 0 ? (
+              upcomingEvents.map((event) => (
+                <div
+                  key={event.id}
+                  className="flex items-start space-x-4 p-3 hover:bg-gray-50 rounded-lg transition-colors"
+                >
+                  <div className="flex-shrink-0 w-16 text-center">
+                    <div className="text-2xl font-bold text-primary">
+                      {formatEventDate(event.start).split(' ')[1]}
+                    </div>
+                    <div className="text-sm text-gray-500">
+                      {formatEventDate(event.start).split(' ')[0]}
+                    </div>
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="font-semibold">{event.title}</h4>
+                    <p className="text-sm text-gray-500">{event.description}</p>
+                    {event.location && (
+                      <p className="text-sm text-gray-500 mt-1">
+                        📍 {event.location}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="text-center text-gray-500">
+                No upcoming events scheduled
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };
