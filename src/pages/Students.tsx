@@ -1,18 +1,69 @@
+import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Mail, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
+
+interface Student {
+  id: string;
+  name: string;
+  class: string;
+  parent_name: string;
+  disabilities_allergies: string | null;
+}
 
 const Students = () => {
-  const students = [
-    {
-      studentNo: "NDXDEL003",
-      classes: "Grade 0: Aftercare",
-      teacher: "Ms Honey",
-      guardian: "Ms Naicker",
-      notes: "Halal",
+  const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [userCreche, setUserCreche] = useState<string | null>(null);
+
+  // First, get the user's creche
+  useEffect(() => {
+    const getUserCreche = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: userCrecheData } = await supabase
+          .from('user_creche')
+          .select('creche_id')
+          .eq('user_id', user.id);
+        
+        if (userCrecheData && userCrecheData.length > 0) {
+          setUserCreche(userCrecheData[0].creche_id);
+          console.log("User's creche:", userCrecheData[0].creche_id);
+        }
+      }
+    };
+
+    getUserCreche();
+  }, []);
+
+  // Then fetch students for that creche
+  const { data: students = [], isLoading } = useQuery({
+    queryKey: ['students', userCreche],
+    queryFn: async () => {
+      if (!userCreche) return [];
+      
+      const { data, error } = await supabase
+        .from('students')
+        .select('*')
+        .eq('creche_id', userCreche);
+
+      if (error) {
+        console.error('Error fetching students:', error);
+        return [];
+      }
+
+      return data || [];
     },
-  ];
+    enabled: !!userCreche
+  });
+
+  const filteredStudents = students.filter(student => 
+    student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (student.class && student.class.toLowerCase().includes(searchTerm.toLowerCase()))
+  );
 
   return (
     <div className="space-y-6">
@@ -28,6 +79,8 @@ const Students = () => {
                 <Input
                   placeholder="Sort/Filter"
                   className="pl-9"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
             </div>
@@ -36,7 +89,7 @@ const Students = () => {
               className="border-2 border-primary text-primary hover:bg-primary hover:text-white"
             >
               <Mail className="mr-2 h-4 w-4" />
-              Email Broadcast: 20 people
+              Email Broadcast: {students.length} students
             </Button>
           </div>
 
@@ -53,33 +106,42 @@ const Students = () => {
               </div>
 
               {/* Student Rows */}
-              {students.map((student, index) => (
-                <div 
-                  key={index}
-                  className="grid grid-cols-5 gap-4 py-2 border-b hover:bg-gray-50 cursor-pointer"
-                >
-                  <div className="underline">{student.studentNo}</div>
-                  <div>{student.classes}</div>
-                  <div>{student.teacher}</div>
-                  <div>{student.guardian}</div>
-                  <div>{student.notes}</div>
-                </div>
-              ))}
+              {isLoading ? (
+                <div className="py-4 text-center">Loading students...</div>
+              ) : filteredStudents.length === 0 ? (
+                <div className="py-4 text-center">No students found</div>
+              ) : (
+                filteredStudents.map((student) => (
+                  <div 
+                    key={student.id}
+                    className="grid grid-cols-5 gap-4 py-2 border-b hover:bg-gray-50 cursor-pointer"
+                    onClick={() => setSelectedStudent(student)}
+                  >
+                    <div className="underline">{student.id.slice(0, 8)}</div>
+                    <div>{student.class || 'Not assigned'}</div>
+                    <div>Assigned Teacher</div>
+                    <div>{student.parent_name || 'Not specified'}</div>
+                    <div>{student.disabilities_allergies || 'None'}</div>
+                  </div>
+                ))
+              )}
             </div>
           </Card>
         </div>
 
-        {/* Student Details Panel */}
-        <Card className="w-full lg:w-80 p-6 space-y-6">
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-primary">Student name:</h3>
-            <h3 className="text-lg font-semibold text-primary">Parent info:</h3>
-            <h3 className="text-lg font-semibold text-primary">Assigned classes:</h3>
-            <h3 className="text-lg font-semibold text-primary">Diet & Allergies:</h3>
-            <h3 className="text-lg font-semibold text-primary">Medical notes:</h3>
-            <h3 className="text-lg font-semibold text-primary">Doctor info:</h3>
-          </div>
-        </Card>
+        {/* Student Details Panel - Only show when a student is selected */}
+        {selectedStudent && (
+          <Card className="w-full lg:w-80 p-6 space-y-6">
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-primary">Student name: {selectedStudent.name}</h3>
+              <h3 className="text-lg font-semibold text-primary">Parent info: {selectedStudent.parent_name}</h3>
+              <h3 className="text-lg font-semibold text-primary">Assigned classes: {selectedStudent.class}</h3>
+              <h3 className="text-lg font-semibold text-primary">Diet & Allergies: {selectedStudent.disabilities_allergies || 'None specified'}</h3>
+              <h3 className="text-lg font-semibold text-primary">Medical notes: Not specified</h3>
+              <h3 className="text-lg font-semibold text-primary">Doctor info: Not specified</h3>
+            </div>
+          </Card>
+        )}
       </div>
     </div>
   );
