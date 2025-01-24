@@ -15,7 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 
 const CrecheDetails = () => {
   const { id } = useParams();
@@ -24,26 +24,42 @@ const CrecheDetails = () => {
   const { data: creche, isLoading } = useQuery({
     queryKey: ["creche", id],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data: crecheData, error: crecheError } = await supabase
         .from("creches")
-        .select(`
-          *,
-          staff:staff(count),
-          students:students(count)
-        `)
+        .select("*")
         .eq("id", id)
         .single();
 
-      if (error) {
-        toast({
-          title: "Error fetching creche details",
-          description: error.message,
-          variant: "destructive",
-        });
-        throw error;
-      }
+      if (crecheError) throw crecheError;
 
-      return data;
+      // Fetch staff count
+      const { count: staffCount, error: staffError } = await supabase
+        .from("staff")
+        .select("*", { count: true })
+        .eq("creche_id", id);
+
+      if (staffError) throw staffError;
+
+      // Fetch students count
+      const { count: studentsCount, error: studentsError } = await supabase
+        .from("students")
+        .select("*", { count: true })
+        .eq("creche_id", id);
+
+      if (studentsError) throw studentsError;
+
+      return {
+        ...crecheData,
+        staffCount: staffCount || 0,
+        studentsCount: studentsCount || 0
+      };
+    },
+    onError: (error) => {
+      toast({
+        title: "Error fetching creche details",
+        description: error.message,
+        variant: "destructive",
+      });
     },
   });
 
@@ -118,11 +134,11 @@ const CrecheDetails = () => {
             <div className="space-y-4">
               <div>
                 <label className="text-sm text-muted-foreground">Total Students</label>
-                <p className="font-medium">{creche.students?.count || 0}</p>
+                <p className="font-medium">{creche.studentsCount}</p>
               </div>
               <div>
                 <label className="text-sm text-muted-foreground">Total Staff</label>
-                <p className="font-medium">{creche.staff?.count || 0}</p>
+                <p className="font-medium">{creche.staffCount}</p>
               </div>
               <div>
                 <label className="text-sm text-muted-foreground">Monthly Fee</label>

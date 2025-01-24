@@ -1,8 +1,113 @@
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, Mail, Clock, GraduationCap, Building } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import {
+  Users,
+  Mail,
+  Clock,
+  GraduationCap,
+  Building2,
+  Eye,
+  PenSquare,
+} from "lucide-react";
 
 const Dashboard = () => {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const [crecheData, setCrecheData] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editForm, setEditForm] = useState({
+    dailyFee: "",
+    monthlyFee: "",
+    weeklyFee: "",
+  });
+
+  useEffect(() => {
+    loadUserCreche();
+  }, []);
+
+  const loadUserCreche = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: userCreche, error: userCrecheError } = await supabase
+        .from('user_creche')
+        .select('creche_id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (userCrecheError) throw userCrecheError;
+
+      if (userCreche) {
+        const { data: creche, error: crecheError } = await supabase
+          .from('creches')
+          .select('*')
+          .eq('id', userCreche.creche_id)
+          .single();
+
+        if (crecheError) throw crecheError;
+
+        setCrecheData(creche);
+        setEditForm({
+          dailyFee: creche.price?.toString() || "",
+          monthlyFee: creche.monthly_price?.toString() || "",
+          weeklyFee: creche.weekly_price?.toString() || "",
+        });
+      }
+    } catch (error) {
+      console.error('Error loading creche:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to load creche data",
+      });
+    }
+  };
+
+  const handleQuickEdit = async () => {
+    try {
+      if (!crecheData) return;
+
+      const { error } = await supabase
+        .from('creches')
+        .update({
+          price: parseFloat(editForm.dailyFee) || null,
+          monthly_price: parseFloat(editForm.monthlyFee) || null,
+          weekly_price: parseFloat(editForm.weeklyFee) || null,
+        })
+        .eq('id', crecheData.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Creche prices updated successfully",
+      });
+      setIsEditing(false);
+      loadUserCreche();
+    } catch (error) {
+      console.error('Error updating creche:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to update creche prices",
+      });
+    }
+  };
+
   const applications = {
     received: 5,
     pending: 10,
@@ -13,20 +118,6 @@ const Dashboard = () => {
     gradeR: 15,
     grade0: 12,
     afterCare: 20,
-  };
-
-  const crecheProfile = {
-    dailyFee: "R250",
-    monthlyFee: "R3500",
-    services: ["Full day care", "After-care", "Meals included"],
-    facilities: ["Playground", "Nap room", "Learning center"],
-    address: "123 Sunshine Street, Happy Valley",
-    capacity: {
-      gradeR: 20,
-      grade0: 15,
-      afterCare: 25,
-    },
-    contact: "+27 12 345 6789",
   };
 
   return (
@@ -71,28 +162,83 @@ const Dashboard = () => {
 
         {/* Creche Profile Card */}
         <Card className="border-2 border-primary/20">
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-lg md:text-xl text-primary">
               My Creche Profile
             </CardTitle>
+            <div className="flex gap-2">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => navigate(`/dashboard/creche/${crecheData?.id}`)}
+              >
+                <Eye className="h-4 w-4" />
+              </Button>
+              <Dialog open={isEditing} onOpenChange={setIsEditing}>
+                <DialogTrigger asChild>
+                  <Button variant="ghost" size="icon">
+                    <PenSquare className="h-4 w-4" />
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Quick Edit Prices</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4 mt-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="dailyFee">Daily Fee</Label>
+                      <Input
+                        id="dailyFee"
+                        value={editForm.dailyFee}
+                        onChange={(e) => setEditForm(prev => ({ ...prev, dailyFee: e.target.value }))}
+                        type="number"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="weeklyFee">Weekly Fee</Label>
+                      <Input
+                        id="weeklyFee"
+                        value={editForm.weeklyFee}
+                        onChange={(e) => setEditForm(prev => ({ ...prev, weeklyFee: e.target.value }))}
+                        type="number"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="monthlyFee">Monthly Fee</Label>
+                      <Input
+                        id="monthlyFee"
+                        value={editForm.monthlyFee}
+                        onChange={(e) => setEditForm(prev => ({ ...prev, monthlyFee: e.target.value }))}
+                        type="number"
+                      />
+                    </div>
+                    <Button onClick={handleQuickEdit} className="w-full">
+                      Save Changes
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </div>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <div className="flex justify-between text-sm md:text-base">
                 <span>Daily fee:</span>
-                <span className="font-bold">{crecheProfile.dailyFee}</span>
+                <span className="font-bold">R{crecheData?.price || 0}</span>
+              </div>
+              <div className="flex justify-between text-sm md:text-base">
+                <span>Weekly fee:</span>
+                <span className="font-bold">R{crecheData?.weekly_price || 0}</span>
               </div>
               <div className="flex justify-between text-sm md:text-base">
                 <span>Monthly fee:</span>
-                <span className="font-bold">{crecheProfile.monthlyFee}</span>
+                <span className="font-bold">R{crecheData?.monthly_price || 0}</span>
               </div>
             </div>
             <div className="space-y-2">
               <h4 className="font-semibold text-sm md:text-base">Capacity:</h4>
               <div className="grid grid-cols-2 gap-2 text-xs md:text-sm">
-                <div>Grade R: {crecheProfile.capacity.gradeR}</div>
-                <div>Grade 0: {crecheProfile.capacity.grade0}</div>
-                <div>After-care: {crecheProfile.capacity.afterCare}</div>
+                <div>Total: {crecheData?.capacity || 0}</div>
               </div>
             </div>
           </CardContent>
@@ -113,7 +259,7 @@ const Dashboard = () => {
             </div>
             <div className="flex items-center justify-between">
               <span className="flex items-center gap-2 text-sm md:text-base">
-                <Building className="h-4 w-4" />
+                <Building2 className="h-4 w-4" />
                 Grade 0
               </span>
               <span className="font-bold">{students.grade0}</span>
