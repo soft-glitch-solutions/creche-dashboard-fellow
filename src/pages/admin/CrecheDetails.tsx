@@ -24,13 +24,19 @@ const CrecheDetails = () => {
   const { data: creche, isLoading } = useQuery({
     queryKey: ["creche", id],
     queryFn: async () => {
+      console.log("Fetching creche details for id:", id);
+
       const { data: crecheData, error: crecheError } = await supabase
         .from("creches")
         .select("*")
         .eq("id", id)
-        .single();
+        .maybeSingle();
 
       if (crecheError) throw crecheError;
+
+      if (!crecheData) {
+        throw new Error("Creche not found");
+      }
 
       // Fetch staff count
       const { count: staffCount, error: staffError } = await supabase
@@ -54,13 +60,16 @@ const CrecheDetails = () => {
         studentsCount: studentsCount || 0
       };
     },
-    onError: (error) => {
-      toast({
-        title: "Error fetching creche details",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
+    meta: {
+      onError: (error) => {
+        console.error("Error in creche query:", error);
+        toast({
+          title: "Error fetching creche details",
+          description: error.message,
+          variant: "destructive",
+        });
+      }
+    }
   });
 
   if (isLoading) {

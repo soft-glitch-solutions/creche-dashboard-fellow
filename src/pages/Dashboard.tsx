@@ -43,28 +43,50 @@ const Dashboard = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { data: userCreche, error: userCrecheError } = await supabase
+      console.log("Loading creche for user:", user.id);
+
+      // First get all creches for this user
+      const { data: userCreches, error: userCrecheError } = await supabase
         .from('user_creche')
         .select('creche_id')
-        .eq('user_id', user.id)
-        .single();
+        .eq('user_id', user.id);
 
-      if (userCrecheError) throw userCrecheError;
+      if (userCrecheError) {
+        console.error("Error fetching user creches:", userCrecheError);
+        throw userCrecheError;
+      }
 
-      if (userCreche) {
+      console.log("User creches:", userCreches);
+
+      if (userCreches && userCreches.length > 0) {
+        // For now, we'll just use the first creche
+        const firstCrecheId = userCreches[0].creche_id;
+
         const { data: creche, error: crecheError } = await supabase
           .from('creches')
           .select('*')
-          .eq('id', userCreche.creche_id)
+          .eq('id', firstCrecheId)
           .single();
 
-        if (crecheError) throw crecheError;
+        if (crecheError) {
+          console.error("Error fetching creche details:", crecheError);
+          throw crecheError;
+        }
+
+        console.log("Loaded creche data:", creche);
 
         setCrecheData(creche);
         setEditForm({
           dailyFee: creche.price?.toString() || "",
           monthlyFee: creche.monthly_price?.toString() || "",
           weeklyFee: creche.weekly_price?.toString() || "",
+        });
+      } else {
+        console.log("No creches found for user");
+        toast({
+          variant: "destructive",
+          title: "No creche assigned",
+          description: "You are not assigned to any creche",
         });
       }
     } catch (error) {
@@ -161,88 +183,90 @@ const Dashboard = () => {
         </Card>
 
         {/* Creche Profile Card */}
-        <Card className="border-2 border-primary/20">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-lg md:text-xl text-primary">
-              My Creche Profile
-            </CardTitle>
-            <div className="flex gap-2">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => navigate(`/dashboard/creche/${crecheData?.id}`)}
-              >
-                <Eye className="h-4 w-4" />
-              </Button>
-              <Dialog open={isEditing} onOpenChange={setIsEditing}>
-                <DialogTrigger asChild>
-                  <Button variant="ghost" size="icon">
-                    <PenSquare className="h-4 w-4" />
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Quick Edit Prices</DialogTitle>
-                  </DialogHeader>
-                  <div className="space-y-4 mt-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="dailyFee">Daily Fee</Label>
-                      <Input
-                        id="dailyFee"
-                        value={editForm.dailyFee}
-                        onChange={(e) => setEditForm(prev => ({ ...prev, dailyFee: e.target.value }))}
-                        type="number"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="weeklyFee">Weekly Fee</Label>
-                      <Input
-                        id="weeklyFee"
-                        value={editForm.weeklyFee}
-                        onChange={(e) => setEditForm(prev => ({ ...prev, weeklyFee: e.target.value }))}
-                        type="number"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="monthlyFee">Monthly Fee</Label>
-                      <Input
-                        id="monthlyFee"
-                        value={editForm.monthlyFee}
-                        onChange={(e) => setEditForm(prev => ({ ...prev, monthlyFee: e.target.value }))}
-                        type="number"
-                      />
-                    </div>
-                    <Button onClick={handleQuickEdit} className="w-full">
-                      Save Changes
+        {crecheData && (
+          <Card className="border-2 border-primary/20">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle className="text-lg md:text-xl text-primary">
+                My Creche Profile
+              </CardTitle>
+              <div className="flex gap-2">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => navigate(`/dashboard/creche/${crecheData.id}`)}
+                >
+                  <Eye className="h-4 w-4" />
+                </Button>
+                <Dialog open={isEditing} onOpenChange={setIsEditing}>
+                  <DialogTrigger asChild>
+                    <Button variant="ghost" size="icon">
+                      <PenSquare className="h-4 w-4" />
                     </Button>
-                  </div>
-                </DialogContent>
-              </Dialog>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm md:text-base">
-                <span>Daily fee:</span>
-                <span className="font-bold">R{crecheData?.price || 0}</span>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Quick Edit Prices</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4 mt-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="dailyFee">Daily Fee</Label>
+                        <Input
+                          id="dailyFee"
+                          value={editForm.dailyFee}
+                          onChange={(e) => setEditForm(prev => ({ ...prev, dailyFee: e.target.value }))}
+                          type="number"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="weeklyFee">Weekly Fee</Label>
+                        <Input
+                          id="weeklyFee"
+                          value={editForm.weeklyFee}
+                          onChange={(e) => setEditForm(prev => ({ ...prev, weeklyFee: e.target.value }))}
+                          type="number"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="monthlyFee">Monthly Fee</Label>
+                        <Input
+                          id="monthlyFee"
+                          value={editForm.monthlyFee}
+                          onChange={(e) => setEditForm(prev => ({ ...prev, monthlyFee: e.target.value }))}
+                          type="number"
+                        />
+                      </div>
+                      <Button onClick={handleQuickEdit} className="w-full">
+                        Save Changes
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
               </div>
-              <div className="flex justify-between text-sm md:text-base">
-                <span>Weekly fee:</span>
-                <span className="font-bold">R{crecheData?.weekly_price || 0}</span>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm md:text-base">
+                  <span>Daily fee:</span>
+                  <span className="font-bold">R{crecheData?.price || 0}</span>
+                </div>
+                <div className="flex justify-between text-sm md:text-base">
+                  <span>Weekly fee:</span>
+                  <span className="font-bold">R{crecheData?.weekly_price || 0}</span>
+                </div>
+                <div className="flex justify-between text-sm md:text-base">
+                  <span>Monthly fee:</span>
+                  <span className="font-bold">R{crecheData?.monthly_price || 0}</span>
+                </div>
               </div>
-              <div className="flex justify-between text-sm md:text-base">
-                <span>Monthly fee:</span>
-                <span className="font-bold">R{crecheData?.monthly_price || 0}</span>
+              <div className="space-y-2">
+                <h4 className="font-semibold text-sm md:text-base">Capacity:</h4>
+                <div className="grid grid-cols-2 gap-2 text-xs md:text-sm">
+                  <div>Total: {crecheData?.capacity || 0}</div>
+                </div>
               </div>
-            </div>
-            <div className="space-y-2">
-              <h4 className="font-semibold text-sm md:text-base">Capacity:</h4>
-              <div className="grid grid-cols-2 gap-2 text-xs md:text-sm">
-                <div>Total: {crecheData?.capacity || 0}</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Students Card */}
         <Card className="border-2 border-accent/20">
