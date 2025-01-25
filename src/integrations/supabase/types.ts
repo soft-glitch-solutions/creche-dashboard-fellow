@@ -435,6 +435,114 @@ export type Database = {
         }
         Relationships: []
       }
+      invoice_items: {
+        Row: {
+          discount: number | null
+          id: string
+          invoice_id: string | null
+          quantity: number
+          title: string
+          total_price: number
+          unit_price: number
+        }
+        Insert: {
+          discount?: number | null
+          id?: string
+          invoice_id?: string | null
+          quantity: number
+          title: string
+          total_price: number
+          unit_price: number
+        }
+        Update: {
+          discount?: number | null
+          id?: string
+          invoice_id?: string | null
+          quantity?: number
+          title?: string
+          total_price?: number
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_items_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invoices: {
+        Row: {
+          created_at: string | null
+          creche_id: string | null
+          id: string
+          prepared_by: string | null
+          prepared_for: string | null
+          status: string | null
+          student_id: string | null
+          subtotal: number | null
+          tax_amount: number | null
+          tax_rate: number | null
+          title: string
+          total_amount: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          creche_id?: string | null
+          id?: string
+          prepared_by?: string | null
+          prepared_for?: string | null
+          status?: string | null
+          student_id?: string | null
+          subtotal?: number | null
+          tax_amount?: number | null
+          tax_rate?: number | null
+          title: string
+          total_amount?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          creche_id?: string | null
+          id?: string
+          prepared_by?: string | null
+          prepared_for?: string | null
+          status?: string | null
+          student_id?: string | null
+          subtotal?: number | null
+          tax_amount?: number | null
+          tax_rate?: number | null
+          title?: string
+          total_amount?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_creche_id_fkey"
+            columns: ["creche_id"]
+            isOneToOne: false
+            referencedRelation: "creches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_prepared_by_fkey"
+            columns: ["prepared_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       messages: {
         Row: {
           conversation_id: string | null
