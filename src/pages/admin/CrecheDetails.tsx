@@ -6,6 +6,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Settings, Users, Calendar, DollarSign, CheckSquare, Square } from "lucide-react";
 
 const CrecheDetails = () => {
   const [isEditing, setIsEditing] = useState(false);
@@ -21,6 +24,15 @@ const CrecheDetails = () => {
     operating_hours: "",
     website_url: "",
     description: "",
+    plan: "free",
+    features: {
+      staff_management: false,
+      attendance_tracking: false,
+      parent_communication: false,
+      event_calendar: false,
+      financial_tracking: false,
+      reports_analytics: false
+    }
   });
   const { toast } = useToast();
 
@@ -38,7 +50,6 @@ const CrecheDetails = () => {
 
       console.log("Loading creche for user:", user.id);
 
-      // First get the user's creche from the junction table
       const { data: userCreches, error: userCrecheError } = await supabase
         .from('user_creche')
         .select('creche_id')
@@ -52,7 +63,6 @@ const CrecheDetails = () => {
         return;
       }
 
-      // Then get the creche details
       const { data: creche, error: crecheError } = await supabase
         .from('creches')
         .select('*')
@@ -77,6 +87,15 @@ const CrecheDetails = () => {
         operating_hours: creche.operating_hours || "",
         website_url: creche.website_url || "",
         description: creche.description || "",
+        plan: creche.plan || "free",
+        features: creche.features || {
+          staff_management: false,
+          attendance_tracking: false,
+          parent_communication: false,
+          event_calendar: false,
+          financial_tracking: false,
+          reports_analytics: false
+        }
       });
     } catch (error: any) {
       console.error('Error loading creche details:', error);
@@ -103,6 +122,8 @@ const CrecheDetails = () => {
           operating_hours: editForm.operating_hours,
           website_url: editForm.website_url,
           description: editForm.description,
+          plan: editForm.plan,
+          features: editForm.features
         })
         .eq('id', crecheData.id);
 
@@ -125,6 +146,16 @@ const CrecheDetails = () => {
     }
   };
 
+  const handleFeatureToggle = (feature: string) => {
+    setEditForm(prev => ({
+      ...prev,
+      features: {
+        ...prev.features,
+        [feature]: !prev.features[feature]
+      }
+    }));
+  };
+
   if (isLoading) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;
   if (!crecheData) return <div>No creche data found</div>;
@@ -143,7 +174,10 @@ const CrecheDetails = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle>Basic Information</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <Settings className="h-5 w-5" />
+              Basic Information
+            </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
@@ -198,7 +232,10 @@ const CrecheDetails = () => {
 
         <Card>
           <CardHeader>
-            <CardTitle>Additional Information</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <Users className="h-5 w-5" />
+              Additional Information
+            </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
@@ -248,6 +285,56 @@ const CrecheDetails = () => {
               ) : (
                 <div>{crecheData.description}</div>
               )}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="md:col-span-2">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <DollarSign className="h-5 w-5" />
+              Plan & Features
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="space-y-2">
+              <Label>Subscription Plan</Label>
+              {isEditing ? (
+                <Select 
+                  value={editForm.plan} 
+                  onValueChange={(value) => setEditForm({ ...editForm, plan: value })}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select a plan" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="free">Free</SelectItem>
+                    <SelectItem value="basic">Basic</SelectItem>
+                    <SelectItem value="pro">Pro</SelectItem>
+                  </SelectContent>
+                </Select>
+              ) : (
+                <div className="capitalize">{crecheData.plan}</div>
+              )}
+            </div>
+
+            <div className="space-y-4">
+              <Label>Enabled Features</Label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {Object.entries(editForm.features).map(([feature, enabled]) => (
+                  <div key={feature} className="flex items-center space-x-2">
+                    {isEditing ? (
+                      <Checkbox
+                        checked={enabled}
+                        onCheckedChange={() => handleFeatureToggle(feature)}
+                      />
+                    ) : (
+                      enabled ? <CheckSquare className="h-4 w-4 text-primary" /> : <Square className="h-4 w-4" />
+                    )}
+                    <Label className="capitalize">{feature.replace(/_/g, ' ')}</Label>
+                  </div>
+                ))}
+              </div>
             </div>
           </CardContent>
         </Card>
