@@ -17,6 +17,11 @@ import CrecheManagement from "./pages/admin/CrecheManagement";
 import CrecheDetails from "./pages/admin/CrecheDetails";
 import Integrations from "./pages/admin/Integrations";
 import Profile from "./pages/dashboard/Profile";
+import ViewInvoice from "./pages/finance/ViewInvoice";
+import PrintInvoice from "./pages/finance/PrintInvoice";
+import CreateInvoice from "./pages/finance/CreateInvoice";
+import Calender from "./pages/Calendar";
+import CrecheProfile from "./pages/CrecheProfile";
 
 const queryClient = new QueryClient();
 
@@ -32,9 +37,19 @@ const App = () => (
           <Route path="/dashboard" element={<DashboardLayout />}>
             <Route index element={<Dashboard />} />
             <Route path="profile" element={<Profile />} />
+
+            {/* Creche Routes */}
+            <Route path="creche/:id" element={<CrecheProfile />} />
             <Route path="applications" element={<Applications />} />
             <Route path="students" element={<Students />} />
+
             <Route path="finance" element={<Finance />} />
+            {/* Finance Routes */}
+            <Route path="finance/create-invoice" element={<CreateInvoice />} />
+            <Route path="finance/invoice/:id" element={<ViewInvoice />} />
+            <Route path="finance/invoice/:id/pdf" element={<PrintInvoice />} />
+            
+            <Route path="calendar" element={<Calender />} />
             <Route path="reports" element={<Reports />} />
             <Route path="settings" element={<Settings />} />
             <Route path="help" element={<Help />} />
