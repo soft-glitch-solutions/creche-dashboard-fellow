@@ -19,6 +19,7 @@ import {
   Bell,
   LifeBuoy,
   LogOut,
+  Calendar,
 } from "lucide-react";
 import {
   Collapsible,
@@ -167,6 +168,7 @@ const DashboardLayout = () => {
     { icon: FileInput, label: "Applications", path: "/dashboard/applications" },
     { icon: Users, label: "Students", path: "/dashboard/students" },
     { icon: DollarSign, label: "Finance", path: "/dashboard/finance" },
+    { icon: Calendar, label: "Calendar", path: "/dashboard/calendar" },
     { icon: FileText, label: "Reports", path: "/dashboard/reports" },
     { icon: Settings, label: "Settings", path: "/dashboard/settings" },
     { icon: HelpCircle, label: "Help Centre", path: "/dashboard/help" },

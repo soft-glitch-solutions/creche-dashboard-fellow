@@ -10,11 +10,37 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Settings, Users, Calendar, DollarSign, CheckSquare, Square } from "lucide-react";
 
+interface CrecheFeatures {
+  staff_management: boolean;
+  attendance_tracking: boolean;
+  parent_communication: boolean;
+  event_calendar: boolean;
+  financial_tracking: boolean;
+  reports_analytics: boolean;
+}
+
+interface Creche {
+  id: string;
+  name: string;
+  address: string;
+  phone_number: string;
+  email: string;
+  capacity: number;
+  operating_hours: string;
+  website_url: string;
+  description: string;
+  price: number;
+  monthly_price: number;
+  weekly_price: number;
+  plan: 'free' | 'basic' | 'pro';
+  features: CrecheFeatures;
+}
+
 const CrecheDetails = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [crecheData, setCrecheData] = useState<any>(null);
+  const [crecheData, setCrecheData] = useState<Creche | null>(null);
   const [editForm, setEditForm] = useState({
     name: "",
     address: "",
