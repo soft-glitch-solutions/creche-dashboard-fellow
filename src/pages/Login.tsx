@@ -10,6 +10,7 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -51,118 +52,125 @@ const Login = () => {
     }
   };
 
-  const handleSignUp = async (e: React.FormEvent) => {
+  const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
+    if (!email) {
+      toast({
+        variant: "destructive",
+        title: "Email required",
+        description: "Please enter your email address to reset your password",
+      });
+      return;
+    }
 
+    setIsResetting(true);
     try {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
       });
 
       if (error) {
         toast({
           variant: "destructive",
-          title: "Sign up failed",
+          title: "Reset failed",
           description: error.message,
         });
         return;
       }
 
-      if (data.user) {
-        toast({
-          title: "Welcome!",
-          description: "Please check your email to confirm your account",
-        });
-      }
+      toast({
+        title: "Check your email",
+        description: "We've sent you a password reset link",
+      });
     } catch (error) {
-      console.error("Sign up error:", error);
+      console.error("Reset password error:", error);
       toast({
         variant: "destructive",
-        title: "Sign up failed",
+        title: "Reset failed",
         description: "An unexpected error occurred",
       });
     } finally {
-      setIsLoading(false);
+      setIsResetting(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row">
-      {/* Left side with illustration */}
-      <div className="flex-1 bg-gradient-to-br from-primary/10 to-secondary/10 p-8 flex flex-col justify-center items-center">
-        <img
-          src="/lovable-uploads/9b1ccfd0-a96c-4ae6-a854-bc80ea693225.png"
-          alt="Creche Illustration"
-          className="max-w-md w-full"
-        />
-      </div>
+    <div className="min-h-screen flex flex-col">
+      <div className="flex-1 flex">
+        {/* Left side with slogan */}
+        <div className="hidden md:flex flex-1 items-center justify-center bg-gradient-to-br from-primary/5 to-secondary/5">
+          <img
+            src="/lovable-uploads/7f68ecef-3b9f-4ef2-b152-0eb76e438d85.png"
+            alt="Your Trusted Link to Easy Childcare"
+            className="max-w-md w-full px-8"
+          />
+        </div>
 
-      {/* Right side with login form */}
-      <div className="flex-1 flex items-center justify-center p-8">
-        <div className="w-full max-w-md space-y-8">
-          <div className="text-center">
-            <h1 className="text-4xl font-bold text-primary mb-2">Welcome Back!</h1>
-            <p className="text-gray-600">Login to your account</p>
-          </div>
-
-          <form onSubmit={handleLogin} className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="Enter your email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                disabled={isLoading}
+        {/* Right side with login form */}
+        <div className="flex-1 flex items-center justify-center p-8">
+          <div className="w-full max-w-md space-y-8">
+            {/* Brand logo */}
+            <div className="flex justify-center mb-8">
+              <img
+                src="/lovable-uploads/8ef99244-a049-43de-a377-a00253510856.png"
+                alt="Creche Spots"
+                className="h-16"
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="Enter your password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                disabled={isLoading}
-              />
+            <div className="text-center">
+              <h1 className="text-4xl font-bold text-primary mb-2">Welcome Back!</h1>
+              <p className="text-gray-600">Login to your account</p>
             </div>
 
-            <div className="flex items-center justify-between">
-              <label className="flex items-center">
-                <input type="checkbox" className="rounded border-gray-300" />
-                <span className="ml-2 text-sm text-gray-600">Remember me</span>
-              </label>
-              <a href="#" className="text-sm text-primary hover:underline">
-                Forgot password?
-              </a>
-            </div>
+            <form onSubmit={handleLogin} className="space-y-6">
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="Enter your email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  disabled={isLoading}
+                />
+              </div>
 
-            <div className="space-y-4">
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? "Loading..." : "Login"}
-              </Button>
-              
-              <div className="text-center">
-                <span className="text-gray-600">Don't have an account?</span>
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="Enter your password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  disabled={isLoading}
+                />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <label className="flex items-center">
+                  <input type="checkbox" className="rounded border-gray-300" />
+                  <span className="ml-2 text-sm text-gray-600">Remember me</span>
+                </label>
                 <Button
                   type="button"
                   variant="link"
                   className="text-primary"
-                  onClick={handleSignUp}
-                  disabled={isLoading}
+                  onClick={handleForgotPassword}
+                  disabled={isResetting}
                 >
-                  Sign Up
+                  {isResetting ? "Sending..." : "Forgot password?"}
                 </Button>
               </div>
-            </div>
-          </form>
+
+              <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading ? "Loading..." : "Login"}
+              </Button>
+            </form>
+          </div>
         </div>
       </div>
     </div>
