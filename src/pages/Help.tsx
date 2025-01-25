@@ -1,8 +1,11 @@
 import { Card } from "@/components/ui/card";
 import { HelpCircle, Book, MessageSquare, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
 const Help = () => {
+  const navigate = useNavigate();
+
   const helpResources = [
     {
       title: "Documentation",
@@ -26,6 +29,8 @@ const Help = () => {
     },
   ];
 
+  const toSlug = (text: string) => text.toLowerCase().replace(/\s+/g, "-");
+
   return (
     <div className="space-y-6">
       <div>
@@ -46,7 +51,12 @@ const Help = () => {
                   {resource.description}
                 </p>
               </div>
-              <Button variant="outline">View</Button>
+              <Button
+                variant="outline"
+                onClick={() => navigate(`/dashboard/help/${toSlug(resource.title)}`)}
+              >
+                View
+              </Button>
             </div>
           </Card>
         ))}

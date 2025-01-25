@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Printer, ArrowLeft } from "lucide-react";
+import { Printer, ArrowLeft, Edit } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -44,25 +44,25 @@ const ViewInvoice = () => {
   useEffect(() => {
     const fetchInvoice = async () => {
       const { data: invoiceData, error: invoiceError } = await supabase
-        .from('invoices')
-        .select('*')
-        .eq('id', id)
+        .from("invoices")
+        .select("*")
+        .eq("id", id)
         .single();
 
       if (invoiceError) {
-        console.error('Error fetching invoice:', invoiceError);
+        console.error("Error fetching invoice:", invoiceError);
         return;
       }
 
       setInvoice(invoiceData);
 
       const { data: itemsData, error: itemsError } = await supabase
-        .from('invoice_items')
-        .select('*')
-        .eq('invoice_id', id);
+        .from("invoice_items")
+        .select("*")
+        .eq("invoice_id", id);
 
       if (itemsError) {
-        console.error('Error fetching invoice items:', itemsError);
+        console.error("Error fetching invoice items:", itemsError);
         return;
       }
 
@@ -75,20 +75,20 @@ const ViewInvoice = () => {
   const handleStatusChange = async (newStatus: string) => {
     try {
       const { error } = await supabase
-        .from('invoices')
+        .from("invoices")
         .update({ status: newStatus })
-        .eq('id', id);
+        .eq("id", id);
 
       if (error) throw error;
 
-      setInvoice(prev => prev ? { ...prev, status: newStatus } : null);
+      setInvoice((prev) => (prev ? { ...prev, status: newStatus } : null));
 
       toast({
         title: "Success",
         description: "Invoice status updated successfully",
       });
     } catch (error) {
-      console.error('Error updating invoice status:', error);
+      console.error("Error updating invoice status:", error);
       toast({
         title: "Error",
         description: "Failed to update invoice status",
@@ -101,6 +101,10 @@ const ViewInvoice = () => {
     navigate(`/dashboard/finance/invoice/${id}/pdf`);
   };
 
+  const handleEditInvoice = () => {
+    navigate(`/dashboard/finance/invoice/edit/${id}`);
+  };
+
   if (!invoice) {
     return <div>Loading...</div>;
   }
@@ -111,16 +115,22 @@ const ViewInvoice = () => {
         <div>
           <Button
             variant="ghost"
-            onClick={() => navigate('/dashboard/finance')}
+            onClick={() => navigate("/dashboard/finance")}
             className="mb-4"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Finance
           </Button>
           <h2 className="text-3xl font-bold tracking-tight">{invoice.title}</h2>
-          <p className="text-muted-foreground">Invoice #{invoice.id.slice(0, 8)}</p>
+          <p className="text-muted-foreground">
+            Invoice #{invoice.id.slice(0, 8)}
+          </p>
         </div>
         <div className="flex gap-4">
+          <Button onClick={handleEditInvoice}>
+            <Edit className="w-4 h-4 mr-2" />
+            Edit Invoice
+          </Button>
           <Select value={invoice.status} onValueChange={handleStatusChange}>
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Select status" />
@@ -168,9 +178,13 @@ const ViewInvoice = () => {
                   <tr key={item.id} className="border-t">
                     <td className="px-4 py-2">{item.title}</td>
                     <td className="px-4 py-2 text-right">{item.quantity}</td>
-                    <td className="px-4 py-2 text-right">R{item.unit_price.toFixed(2)}</td>
+                    <td className="px-4 py-2 text-right">
+                      R{item.unit_price.toFixed(2)}
+                    </td>
                     <td className="px-4 py-2 text-right">{item.discount}%</td>
-                    <td className="px-4 py-2 text-right">R{item.total_price.toFixed(2)}</td>
+                    <td className="px-4 py-2 text-right">
+                      R{item.total_price.toFixed(2)}
+                    </td>
                   </tr>
                 ))}
               </tbody>

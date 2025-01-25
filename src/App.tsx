@@ -22,6 +22,11 @@ import PrintInvoice from "./pages/finance/PrintInvoice";
 import CreateInvoice from "./pages/finance/CreateInvoice";
 import Calender from "./pages/Calendar";
 import CrecheProfile from "./pages/CrecheProfile";
+import EditInvoice from "./pages/finance/EditInvoice";
+import Tutorials from "./pages/help/Tutorials";
+import SupportChat from "./pages/help/Support-Chat";
+import Documentation from "./pages/help/Documentation";
+import Faqs from "./pages/help/Faqs";
 
 const queryClient = new QueryClient();
 
@@ -47,12 +52,20 @@ const App = () => (
             {/* Finance Routes */}
             <Route path="finance/create-invoice" element={<CreateInvoice />} />
             <Route path="finance/invoice/:id" element={<ViewInvoice />} />
+            <Route path="finance/invoice/edit/:id" element={<EditInvoice />} />
             <Route path="finance/invoice/:id/pdf" element={<PrintInvoice />} />
+
             
             <Route path="calendar" element={<Calender />} />
             <Route path="reports" element={<Reports />} />
             <Route path="settings" element={<Settings />} />
             <Route path="help" element={<Help />} />
+            {/* Help Routes */}
+            <Route path="help/documentation" element={<Documentation />} />
+            <Route path="help/tutorials" element={<Tutorials />} />
+            <Route path="help/support-chat" element={<SupportChat />} />
+            <Route path="help/faqs" element={<Faqs />} />
+
             {/* Admin Routes */}
             <Route path="admin/users" element={<UserManagement />} />
             <Route path="admin/creches" element={<CrecheManagement />} />
