@@ -9,39 +9,24 @@ import { supabase } from "@/integrations/supabase/client";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Settings, Users, Calendar, DollarSign, CheckSquare, Square } from "lucide-react";
+import { Creche, CrechePlan, CrecheFeatures } from "@/types/creche";
 
-interface CrecheFeatures {
-  staff_management: boolean;
-  attendance_tracking: boolean;
-  parent_communication: boolean;
-  event_calendar: boolean;
-  financial_tracking: boolean;
-  reports_analytics: boolean;
-}
-
-interface Creche {
-  id: string;
-  name: string;
-  address: string;
-  phone_number: string;
-  email: string;
-  capacity: number;
-  operating_hours: string;
-  website_url: string;
-  description: string;
-  price: number;
-  monthly_price: number;
-  weekly_price: number;
-  plan: 'free' | 'basic' | 'pro';
-  features: CrecheFeatures;
-}
+const defaultFeatures: CrecheFeatures = {
+  staff_management: false,
+  attendance_tracking: false,
+  parent_communication: false,
+  event_calendar: false,
+  financial_tracking: false,
+  reports_analytics: false
+};
 
 const CrecheDetails = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [crecheData, setCrecheData] = useState<Creche | null>(null);
-  const [editForm, setEditForm] = useState({
+  const [editForm, setEditForm] = useState<Creche>({
+    id: "",
     name: "",
     address: "",
     phone_number: "",
@@ -50,15 +35,26 @@ const CrecheDetails = () => {
     operating_hours: "",
     website_url: "",
     description: "",
-    plan: "free",
-    features: {
-      staff_management: false,
-      attendance_tracking: false,
-      parent_communication: false,
-      event_calendar: false,
-      financial_tracking: false,
-      reports_analytics: false
-    }
+    plan: "free" as CrechePlan,
+    features: defaultFeatures,
+    // ... other fields with their default values
+    registered: false,
+    facebook_url: null,
+    twitter_url: null,
+    instagram_url: null,
+    linkedin_url: null,
+    whatsapp_number: null,
+    telegram_number: null,
+    created_at: null,
+    updated_at: null,
+    price: null,
+    header_image: null,
+    website: null,
+    logo: null,
+    latitude: null,
+    longitude: null,
+    monthly_price: null,
+    weekly_price: null,
   });
   const { toast } = useToast();
 
@@ -103,26 +99,27 @@ const CrecheDetails = () => {
         return;
       }
 
-      setCrecheData(creche);
-      setEditForm({
-        name: creche.name || "",
-        address: creche.address || "",
-        phone_number: creche.phone_number || "",
-        email: creche.email || "",
-        capacity: creche.capacity || 0,
-        operating_hours: creche.operating_hours || "",
-        website_url: creche.website_url || "",
-        description: creche.description || "",
-        plan: creche.plan || "free",
-        features: creche.features || {
-          staff_management: false,
-          attendance_tracking: false,
-          parent_communication: false,
-          event_calendar: false,
-          financial_tracking: false,
-          reports_analytics: false
-        }
-      });
+      // Ensure the features object has all required properties
+      const features: CrecheFeatures = {
+        staff_management: creche.features?.staff_management ?? false,
+        attendance_tracking: creche.features?.attendance_tracking ?? false,
+        parent_communication: creche.features?.parent_communication ?? false,
+        event_calendar: creche.features?.event_calendar ?? false,
+        financial_tracking: creche.features?.financial_tracking ?? false,
+        reports_analytics: creche.features?.reports_analytics ?? false
+      };
+
+      // Ensure plan is one of the allowed values
+      const plan: CrechePlan = (creche.plan as CrechePlan) || "free";
+
+      const typedCreche: Creche = {
+        ...creche,
+        features,
+        plan
+      };
+
+      setCrecheData(typedCreche);
+      setEditForm(typedCreche);
     } catch (error: any) {
       console.error('Error loading creche details:', error);
       setError(error.message);
