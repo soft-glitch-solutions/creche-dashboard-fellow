@@ -182,14 +182,14 @@ const DashboardLayout = () => {
   const isAdmin = userRole === 'Administrator' || userRole === 'Developer';
 
   const menuItems = [
-    { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
-    { icon: FileInput, label: "Applications", path: "/dashboard/applications" },
-    { icon: Users, label: "Students", path: "/dashboard/students" },
-    { icon: DollarSign, label: "Finance", path: "/dashboard/finance" },
-    { icon: Calendar, label: "Calendar", path: "/dashboard/calendar" },
-    { icon: FileText, label: "Reports", path: "/dashboard/reports" },
-    { icon: Settings, label: "Settings", path: "/dashboard/settings" },
-    { icon: HelpCircle, label: "Help Centre", path: "/dashboard/help" },
+    { label: "Dashboard", path: "/dashboard", icon: "/images/icons/dashboard.png", bgColor: "#F684A3" },
+    { label: "Applications", path: "/dashboard/applications", icon: "/images/icons/applications.png", bgColor: "#84A7F6" },
+    { label: "Students", path: "/dashboard/students", icon: "/images/icons/students.png", bgColor: "#BD84F6" },
+    { label: "Finance", path: "/dashboard/finance", icon: "/images/icons/finance.png", bgColor: "#9CDBC8" },
+    { label: "Calendar", path: "/dashboard/calendar", icon: "/images/icons/calendar.png", bgColor: "#84A7F6" },
+    { label: "Reports", path: "/dashboard/reports", icon: "/images/icons/reports.png", bgColor: "#F684A3" },
+    { label: "Settings", path: "/dashboard/settings", icon: "/images/icons/settings.png", bgColor: "#BD84F6" },
+    { label: "Help Centre", path: "/dashboard/help", icon: "/images/icons/help.png", bgColor: "#F7CD85" },
   ];
 
   const adminItems = [
@@ -200,41 +200,53 @@ const DashboardLayout = () => {
 
   const SidebarContent = () => (
     <div className="flex flex-col h-full">
-      <div className="p-4 flex justify-between items-center">
-        <h2
-          className={cn(
-            "font-bold text-primary transition-all duration-300",
-            isSidebarOpen ? "text-xl" : "text-xs"
-          )}
-        >
-          {isSidebarOpen ? "Creche Spots" : ""}
-        </h2>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-          className="hidden md:flex"
-        >
-          <Menu className="h-4 w-4" />
-        </Button>
-      </div>
+    <div className="p-4 flex justify-between items-center">
+      <h2
+        className={cn(
+          "font-bold text-primary transition-all duration-300",
+          isSidebarOpen ? "text-xl" : "text-xs"
+        )}
+      >
+        {isSidebarOpen ? "Creche Spots" : ""}
+      </h2>
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+        className="hidden md:flex"
+      >
+        <Menu className="h-4 w-4" />
+      </Button>
+    </div>
 
-      <nav className="mt-8 flex-1">
-        {menuItems.map((item) => (
-          <Button
-            key={item.label}
-            variant="ghost"
-            className={cn(
-              "w-full justify-start gap-4 mb-2",
-              !isSidebarOpen && "justify-center px-2"
-            )}
-            onClick={() => navigate(item.path)}
+    <nav className="mt-8 flex-1">
+      {menuItems.map((item) => (
+        <Button
+          key={item.label}
+          variant="ghost"
+          className={cn(
+            "w-full justify-start gap-4 mb-2",
+            !isSidebarOpen && "justify-center px-2"
+          )}
+          onClick={() => navigate(item.path)}
+        >
+          <div
+            className="h-8 w-8 flex items-center justify-center rounded-md"
+            style={{
+              backgroundColor: item.bgColor,
+            }}
           >
-            <item.icon className="h-5 w-5" />
-            {isSidebarOpen && <span>{item.label}</span>}
-          </Button>
-        ))}
-      </nav>
+            <div
+              className="h-6 w-6 bg-cover bg-center"
+              style={{
+                backgroundImage: `url(${item.icon})`,
+              }}
+            />
+          </div>
+          {isSidebarOpen && <span className="text-black">{item.label}</span>}
+        </Button>
+      ))}
+    </nav>
 
       {isAdmin && (
         <div className="mt-auto mb-4">
