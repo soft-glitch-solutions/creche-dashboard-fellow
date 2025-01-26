@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, UserPlus, Grid, List, Eye, Link2, Trash2, X, UserCheck } from "lucide-react";
+import { ArrowRight, UserPlus, Grid, List, Eye, Link2, Trash2, X, UserCheck, Plus } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -27,12 +27,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
 interface Application {
   id: string;
-  status: string;
+  application_status: string;
   parent_name: string;
   parent_email: string;
   creche_id: string | null;
@@ -41,6 +44,7 @@ interface Application {
   created_at: string;
   number_of_children: number | null;
   parent_address: string | null;
+  parent_whatsapp: string | null;
 }
 
 const ITEMS_PER_PAGE = 10;
@@ -52,7 +56,20 @@ const Applications = () => {
   const [applications, setApplications] = useState<Application[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
   const { toast } = useToast();
+
+  // New application form state
+  const [newApplication, setNewApplication] = useState({
+    parent_name: "",
+    parent_email: "",
+    parent_phone_number: "",
+    parent_whatsapp: "",
+    parent_address: "",
+    message: "",
+    number_of_children: 1,
+    source: "dashboard"
+  });
 
   useEffect(() => {
     fetchApplications();
@@ -77,6 +94,32 @@ const Applications = () => {
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleCreateApplication = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('applications')
+        .insert([newApplication])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Application created successfully",
+      });
+
+      fetchApplications();
+    } catch (error) {
+      console.error('Error creating application:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to create application",
+      });
     }
   };
 
@@ -152,6 +195,11 @@ const Applications = () => {
     }
   };
 
+  const filteredApplications = applications.filter(app => 
+    app.parent_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    app.parent_email.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   const getStatusBadge = (status: string) => {
     const statusStyles = {
       New: "bg-blue-100 text-blue-800",
@@ -162,8 +210,8 @@ const Applications = () => {
     return statusStyles[status as keyof typeof statusStyles] || "bg-gray-100 text-gray-800";
   };
 
-  const totalPages = Math.ceil(applications.length / ITEMS_PER_PAGE);
-  const paginatedApplications = applications.slice(
+  const totalPages = Math.ceil(filteredApplications.length / ITEMS_PER_PAGE);
+  const paginatedApplications = filteredApplications.slice(
     (currentPage - 1) * ITEMS_PER_PAGE,
     currentPage * ITEMS_PER_PAGE
   );
@@ -172,21 +220,131 @@ const Applications = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-4xl font-bold text-primary">Applications</h1>
-        <div className="flex gap-2">
-          <Button
-            variant={viewType === "grid" ? "default" : "outline"}
-            size="icon"
-            onClick={() => setViewType("grid")}
-          >
-            <Grid className="h-4 w-4" />
-          </Button>
-          <Button
-            variant={viewType === "list" ? "default" : "outline"}
-            size="icon"
-            onClick={() => setViewType("list")}
-          >
-            <List className="h-4 w-4" />
-          </Button>
+        <div className="flex gap-4">
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button className="gap-2">
+                <Plus className="h-4 w-4" />
+                New Application
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>Create New Application</DialogTitle>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="parent_name">Parent Name</Label>
+                  <Input
+                    id="parent_name"
+                    value={newApplication.parent_name}
+                    onChange={(e) => setNewApplication(prev => ({
+                      ...prev,
+                      parent_name: e.target.value
+                    }))}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="parent_email">Email</Label>
+                  <Input
+                    id="parent_email"
+                    type="email"
+                    value={newApplication.parent_email}
+                    onChange={(e) => setNewApplication(prev => ({
+                      ...prev,
+                      parent_email: e.target.value
+                    }))}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="parent_phone">Phone Number</Label>
+                  <Input
+                    id="parent_phone"
+                    value={newApplication.parent_phone_number}
+                    onChange={(e) => setNewApplication(prev => ({
+                      ...prev,
+                      parent_phone_number: e.target.value
+                    }))}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="parent_whatsapp">WhatsApp (Optional)</Label>
+                  <Input
+                    id="parent_whatsapp"
+                    value={newApplication.parent_whatsapp}
+                    onChange={(e) => setNewApplication(prev => ({
+                      ...prev,
+                      parent_whatsapp: e.target.value
+                    }))}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="parent_address">Address</Label>
+                  <Input
+                    id="parent_address"
+                    value={newApplication.parent_address}
+                    onChange={(e) => setNewApplication(prev => ({
+                      ...prev,
+                      parent_address: e.target.value
+                    }))}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="number_of_children">Number of Children</Label>
+                  <Input
+                    id="number_of_children"
+                    type="number"
+                    min="1"
+                    value={newApplication.number_of_children}
+                    onChange={(e) => setNewApplication(prev => ({
+                      ...prev,
+                      number_of_children: parseInt(e.target.value)
+                    }))}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="message">Message</Label>
+                  <Textarea
+                    id="message"
+                    value={newApplication.message}
+                    onChange={(e) => setNewApplication(prev => ({
+                      ...prev,
+                      message: e.target.value
+                    }))}
+                  />
+                </div>
+              </div>
+              <Button onClick={handleCreateApplication}>Create Application</Button>
+            </DialogContent>
+          </Dialog>
+          <div className="flex gap-2">
+            <Button
+              variant={viewType === "grid" ? "default" : "outline"}
+              size="icon"
+              onClick={() => setViewType("grid")}
+            >
+              <Grid className="h-4 w-4" />
+            </Button>
+            <Button
+              variant={viewType === "list" ? "default" : "outline"}
+              size="icon"
+              onClick={() => setViewType("list")}
+            >
+              <List className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex gap-4 mb-4">
+        <div className="relative flex-1">
+          <Input
+            placeholder="Search applications..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
+          <Eye className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
         </div>
       </div>
 
@@ -227,8 +385,8 @@ const Applications = () => {
                     <TableCell>{application.parent_email}</TableCell>
                     <TableCell>{application.parent_phone_number}</TableCell>
                     <TableCell>
-                      <Badge className={getStatusBadge(application.status)}>
-                        {application.status}
+                      <Badge className={getStatusBadge(application.application_status)}>
+                        {application.application_status}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">
@@ -261,7 +419,7 @@ const Applications = () => {
                                 <h3 className="text-sm font-medium">Application Status</h3>
                                 <Select 
                                   onValueChange={handleStatusChange} 
-                                  defaultValue={application.status}
+                                  defaultValue={application.application_status}
                                 >
                                   <SelectTrigger>
                                     <SelectValue placeholder="Select status" />
@@ -306,7 +464,7 @@ const Applications = () => {
                             </div>
                           </SheetContent>
                         </Sheet>
-                        {application.status === 'Approved' && (
+                        {application.application_status === 'Approved' && (
                           <Button
                             variant="ghost"
                             size="icon"
@@ -349,26 +507,28 @@ const Applications = () => {
           )}
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {applications.map((app) => (
-            <Card key={app.id} className="border-2 border-primary/20">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {paginatedApplications.map((application) => (
+            <Card key={application.id} className="border-2 border-primary/20">
               <CardHeader>
                 <CardTitle className="text-xl text-purple-600">
-                  {app.status}
+                  {application.application_status}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="bg-blue-100 p-4 rounded-lg space-y-2">
-                  <p className="text-gray-700">Student no: {app.studentNo}</p>
+                  <p className="text-gray-700">Parent: {application.parent_name}</p>
+                  <p className="text-gray-700">Email: {application.parent_email}</p>
+                  <p className="text-gray-700">Phone: {application.parent_phone_number}</p>
                   <Sheet>
                     <SheetTrigger asChild>
                       <Button 
                         variant="ghost" 
                         className="p-0 h-auto hover:bg-transparent hover:text-purple-700"
-                        onClick={() => setSelectedApplication(app)}
+                        onClick={() => setSelectedApplication(application)}
                       >
                         <span className="text-purple-600 underline flex items-center gap-2">
-                          Click to view
+                          View Details
                           <Eye className="h-4 w-4" />
                         </span>
                       </Button>
@@ -389,12 +549,15 @@ const Applications = () => {
                       <div className="mt-6 space-y-6">
                         <div className="space-y-2">
                           <h3 className="text-sm font-medium">Application Status</h3>
-                          <Select onValueChange={handleStatusChange} defaultValue={app.status}>
+                          <Select 
+                            onValueChange={handleStatusChange} 
+                            defaultValue={application.application_status}
+                          >
                             <SelectTrigger>
                               <SelectValue placeholder="Select status" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="Received">Received</SelectItem>
+                              <SelectItem value="New">New</SelectItem>
                               <SelectItem value="Pending documents">Pending documents</SelectItem>
                               <SelectItem value="Approved">Approved</SelectItem>
                               <SelectItem value="Rejected">Rejected</SelectItem>
@@ -405,10 +568,17 @@ const Applications = () => {
                         <div className="space-y-2">
                           <h3 className="text-sm font-medium">Parent Information</h3>
                           <div className="bg-muted p-4 rounded-lg space-y-2">
-                            <p>Name: {app.parentName}</p>
-                            <p>Email: {app.email}</p>
-                            <p>Creche: {app.creche}</p>
+                            <p>Name: {application.parent_name}</p>
+                            <p>Email: {application.parent_email}</p>
+                            <p>Phone: {application.parent_phone_number}</p>
+                            <p>Address: {application.parent_address || 'Not provided'}</p>
+                            <p>Number of Children: {application.number_of_children || 'Not specified'}</p>
                           </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <h3 className="text-sm font-medium">Message</h3>
+                          <p className="bg-muted p-4 rounded-lg">{application.message}</p>
                         </div>
 
                         <div className="space-y-2">
@@ -419,10 +589,7 @@ const Applications = () => {
                             placeholder="Add a note..."
                             className="min-h-[100px]"
                           />
-                          <Button 
-                            onClick={handleNoteSubmit}
-                            className="w-full"
-                          >
+                          <Button className="w-full">
                             Add Note
                           </Button>
                         </div>
