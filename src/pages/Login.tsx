@@ -121,7 +121,7 @@ const Login = () => {
               <img
                 src="/lovable-uploads/8ef99244-a049-43de-a377-a00253510856.png"
                 alt="Creche Spots"
-                className="h-24 w-auto" // Increased size from h-16 to h-24
+                className="h-58 w-auto"
               />
             </div>
 
@@ -195,6 +195,11 @@ const Login = () => {
           </div>
         </div>
       </div>
+
+      {/* Footer */}
+      <footer className="text-center text-sm text-gray-500 mt-auto p-4 border-t border-gray-300">
+  © 2025 Crechespots All Rights Reserved. Designed, Built & Maintained by Soft Glitch Solutions
+      </footer>
     </div>
   );
 };

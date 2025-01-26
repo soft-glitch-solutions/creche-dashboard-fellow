@@ -189,7 +189,7 @@ const DashboardLayout = () => {
             isSidebarOpen ? "text-xl" : "text-xs"
           )}
         >
-          {isSidebarOpen ? "Creche Spots" : "CS"}
+          {isSidebarOpen ? "Creche Spots" : ""}
         </h2>
         <Button
           variant="ghost"
