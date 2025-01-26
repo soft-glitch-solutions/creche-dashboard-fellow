@@ -10,6 +10,13 @@ import { useToast } from "@/hooks/use-toast";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface User {
   id: string;
@@ -18,6 +25,7 @@ interface User {
   last_name: string | null;
   role: {
     role_name: string;
+    id: string;
   } | null;
   creches: {
     creche: {
@@ -37,9 +45,12 @@ const UserManagement = () => {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isUserDetailsOpen, setIsUserDetailsOpen] = useState(false);
   const { toast } = useToast();
+  const [roles, setRoles] = useState<{ id: string; role_name: string }[]>([]);
+  const [isUpdating, setIsUpdating] = useState(false);
 
   useEffect(() => {
     fetchUsers();
+    fetchRoles();
   }, []);
 
   const fetchUsers = async () => {
@@ -68,6 +79,52 @@ const UserManagement = () => {
       setIsLoading(false);
     }
   };
+
+  const fetchRoles = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('roles')
+        .select('*');
+
+      if (error) throw error;
+      setRoles(data);
+    } catch (error) {
+      console.error('Error fetching roles:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to load roles",
+      });
+    }
+  };
+
+  const handleRoleUpdate = async (userId: string, roleId: string) => {
+    setIsUpdating(true);
+    try {
+      const { error } = await supabase
+        .from('users')
+        .update({ role_id: roleId })
+        .eq('id', userId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "User role updated successfully",
+      });
+
+      // Refresh users list
+      fetchUsers();
+    } catch (error) {
+      console.error('Error updating user role:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to update user role",
+      });
+    } finally {
+      setIsUpdating(false);
+    }
 
   const getStatusBadgeVariant = (role: string) => {
     switch (role?.toLowerCase()) {
@@ -215,9 +272,24 @@ const UserManagement = () => {
                 </div>
                 <div>
                   <Label>Role</Label>
-                  <Badge variant={getStatusBadgeVariant(selectedUser.role?.role_name || '')} className="mt-1">
-                    {selectedUser.role?.role_name || 'User'}
-                  </Badge>
+                  <div className="mt-1">
+                    <Select
+                      value={selectedUser.role?.id}
+                      onValueChange={(value) => handleRoleUpdate(selectedUser.id, value)}
+                      disabled={isUpdating}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select a role" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {roles.map((role) => (
+                          <SelectItem key={role.id} value={role.id}>
+                            {role.role_name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
                 {selectedUser.bio && (
                   <div>

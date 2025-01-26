@@ -57,24 +57,39 @@ const DashboardLayout = () => {
   const [supportTitle, setSupportTitle] = useState("");
   const [supportMessage, setSupportMessage] = useState("");
   const [user, setUser] = useState(null);
+  const [userRole, setUserRole] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
-    // Check authentication status when component mounts
     checkUser();
     
-    // Subscribe to auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (!session) {
         navigate('/login');
       } else {
         setUser(session.user);
+        fetchUserRole(session.user.id);
       }
     });
 
     return () => subscription.unsubscribe();
   }, [navigate]);
+
+  const fetchUserRole = async (userId: string) => {
+    try {
+      const { data: userData, error } = await supabase
+        .from('users')
+        .select('roles(role_name)')
+        .eq('id', userId)
+        .single();
+
+      if (error) throw error;
+      setUserRole(userData?.roles?.role_name || null);
+    } catch (error) {
+      console.error('Error fetching user role:', error);
+    }
+  };
 
   const checkUser = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -82,6 +97,7 @@ const DashboardLayout = () => {
       navigate('/login');
     } else {
       setUser(user);
+      fetchUserRole(user.id);
     }
   };
 
@@ -163,6 +179,8 @@ const DashboardLayout = () => {
     }
   };
 
+  const isAdmin = userRole === 'Administrator' || userRole === 'Developer';
+
   const menuItems = [
     { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
     { icon: FileInput, label: "Applications", path: "/dashboard/applications" },
@@ -218,42 +236,44 @@ const DashboardLayout = () => {
         ))}
       </nav>
 
-      <div className="mt-auto mb-4">
-        <Collapsible
-          open={isAdminOpen}
-          onOpenChange={setIsAdminOpen}
-          className="w-full"
-        >
-          <CollapsibleTrigger asChild>
-            <Button
-              variant="ghost"
-              className={cn(
-                "w-full justify-start gap-4",
-                !isSidebarOpen && "justify-center px-2"
-              )}
-            >
-              <Lock className="h-5 w-5" />
-              {isSidebarOpen && <span>Admin</span>}
-            </Button>
-          </CollapsibleTrigger>
-          <CollapsibleContent className="space-y-2">
-            {adminItems.map((item) => (
+      {isAdmin && (
+        <div className="mt-auto mb-4">
+          <Collapsible
+            open={isAdminOpen}
+            onOpenChange={setIsAdminOpen}
+            className="w-full"
+          >
+            <CollapsibleTrigger asChild>
               <Button
-                key={item.label}
                 variant="ghost"
                 className={cn(
-                  "w-full justify-start gap-4 pl-8",
+                  "w-full justify-start gap-4",
                   !isSidebarOpen && "justify-center px-2"
                 )}
-                onClick={() => navigate(item.path)}
               >
-                <item.icon className="h-5 w-5" />
-                {isSidebarOpen && <span>{item.label}</span>}
+                <Lock className="h-5 w-5" />
+                {isSidebarOpen && <span>Admin</span>}
               </Button>
-            ))}
-          </CollapsibleContent>
-        </Collapsible>
-      </div>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="space-y-2">
+              {adminItems.map((item) => (
+                <Button
+                  key={item.label}
+                  variant="ghost"
+                  className={cn(
+                    "w-full justify-start gap-4 pl-8",
+                    !isSidebarOpen && "justify-center px-2"
+                  )}
+                  onClick={() => navigate(item.path)}
+                >
+                  <item.icon className="h-5 w-5" />
+                  {isSidebarOpen && <span>{item.label}</span>}
+                </Button>
+              ))}
+            </CollapsibleContent>
+          </Collapsible>
+        </div>
+      )}
     </div>
   );
 
