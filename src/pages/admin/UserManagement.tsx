@@ -125,6 +125,7 @@ const UserManagement = () => {
     } finally {
       setIsUpdating(false);
     }
+  }; // Added missing closing brace here
 
   const getStatusBadgeVariant = (role: string) => {
     switch (role?.toLowerCase()) {
