@@ -27,6 +27,7 @@ import Tutorials from "./pages/help/Tutorials";
 import SupportChat from "./pages/help/Support-Chat";
 import Documentation from "./pages/help/Documentation";
 import Faqs from "./pages/help/Faqs";
+import Social from "./pages/Social";
 
 const queryClient = new QueryClient();
 
@@ -57,6 +58,7 @@ const App = () => (
 
             
             <Route path="calendar" element={<Calender />} />
+            <Route path="social" element={<Social />} />
             <Route path="reports" element={<Reports />} />
             <Route path="settings" element={<Settings />} />
             <Route path="help" element={<Help />} />

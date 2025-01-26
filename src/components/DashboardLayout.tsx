@@ -55,6 +55,7 @@ const DashboardLayout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [supportTitle, setSupportTitle] = useState("");
+  const [crecheLogo, setCrecheLogo] = useState("/lovable-uploads/8ef99244-a049-43de-a377-a00253510856.png");
   const [supportMessage, setSupportMessage] = useState("");
   const [user, setUser] = useState(null);
   const [userRole, setUserRole] = useState<string | null>(null);
@@ -70,6 +71,7 @@ const DashboardLayout = () => {
       } else {
         setUser(session.user);
         fetchUserRole(session.user.id);
+        fetchUserCrecheLogo(session.user.id);
       }
     });
 
@@ -96,7 +98,8 @@ const DashboardLayout = () => {
     if (!user) {
       navigate('/login');
     } else {
-      setUser(user);
+      setUser( {user,
+        profile_picture_url: user.user_metadata?.profile_picture_url || null,});
       fetchUserRole(user.id);
     }
   };
@@ -135,6 +138,55 @@ const DashboardLayout = () => {
       time: "1 hour ago"
     }
   ];
+
+  const fetchProfilePicture = async (userId) => {
+    const { data, error } = await supabase
+      .from('users') // or your custom table name
+      .select('profile_picture_url')
+      .eq('user_id', userId)
+      .single();
+  
+    if (error) {
+      console.error('Error fetching profile picture:', error);
+      return null;
+    }
+  
+    return data?.profile_picture_url;
+  };
+
+
+  const fetchUserCrecheLogo = async (userId: string) => {
+    try {
+      // Step 1: Get the creche_id from the user_creche table based on the user_id
+      const { data: userCrecheData, error: userCrecheError } = await supabase
+        .from('user_creche')
+        .select('creche_id')
+        .eq('user_id', userId) // Fetch the creche_id for the logged-in user
+        .single();
+  
+      if (userCrecheError) throw userCrecheError;
+      if (!userCrecheData?.creche_id) {
+        console.error('User is not assigned to a creche');
+        return;
+      }
+  
+      // Step 2: Get the creche logo based on the creche_id
+      const { data: crecheData, error: crecheError } = await supabase
+        .from('creches')
+        .select('logo')
+        .eq('id', userCrecheData.creche_id) // Use the creche_id from user_creche table
+        .single();
+  
+      if (crecheError) throw crecheError;
+  
+      // Step 3: Set the creche logo
+      setCrecheLogo(crecheData?.logo || "/default-logo.png");
+  
+    } catch (error) {
+      console.error('Error fetching creche logo:', error);
+    }
+  };
+  
 
   const handleSupportSubmit = async () => {
     try {
@@ -187,6 +239,7 @@ const DashboardLayout = () => {
     { label: "Students", path: "/dashboard/students", icon: "/images/icons/students.png", bgColor: "#BD84F6" },
     { label: "Finance", path: "/dashboard/finance", icon: "/images/icons/finance.png", bgColor: "#9CDBC8" },
     { label: "Calendar", path: "/dashboard/calendar", icon: "/images/icons/calendar.png", bgColor: "#84A7F6" },
+    { label: "Social", path: "/dashboard/social", icon: "/images/icons/social.png", bgColor: "#F7CD85" },
     { label: "Reports", path: "/dashboard/reports", icon: "/images/icons/reports.png", bgColor: "#F684A3" },
     { label: "Settings", path: "/dashboard/settings", icon: "/images/icons/settings.png", bgColor: "#BD84F6" },
     { label: "Help Centre", path: "/dashboard/help", icon: "/images/icons/help.png", bgColor: "#F7CD85" },
@@ -200,24 +253,31 @@ const DashboardLayout = () => {
 
   const SidebarContent = () => (
     <div className="flex flex-col h-full">
-    <div className="p-4 flex justify-between items-center">
-      <h2
-        className={cn(
-          "font-bold text-primary transition-all duration-300",
-          isSidebarOpen ? "text-xl" : "text-xs"
-        )}
-      >
-        {isSidebarOpen ? "Creche Spots" : ""}
-      </h2>
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-        className="hidden md:flex"
-      >
-        <Menu className="h-4 w-4" />
-      </Button>
-    </div>
+      <div className="p-4 flex justify-between items-center">
+        <div
+          className={cn(
+            "transition-all duration-300",
+            isSidebarOpen ? "text-xl" : ""
+          )}
+        >
+          <img
+            src={crecheLogo}
+            alt="Creche Logo"
+            className={cn(
+              "transition-all duration-300",
+              isSidebarOpen ? "h-12 w-auto" : ""
+            )}
+          />
+        </div>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+          className="hidden md:flex"
+        >
+          <Menu className="h-4 w-4" />
+        </Button>
+      </div>
 
     <nav className="mt-8 flex-1">
       {menuItems.map((item) => (
@@ -384,13 +444,13 @@ const DashboardLayout = () => {
           {/* Profile Dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="rounded-full">
-                <img
-                  src="https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_640.png"
-                  alt="Profile"
-                  className="w-8 h-8 rounded-full"
-                />
-              </Button>
+            <Button variant="ghost" size="icon" className="rounded-full">
+            <img
+              src={user?.profile_picture_url || "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_640.png"}
+              alt="Profile"
+              className="w-8 h-8 rounded-full"
+            />
+            </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuItem onClick={() => navigate("/dashboard/profile")}>
