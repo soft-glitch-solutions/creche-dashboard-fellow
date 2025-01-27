@@ -432,6 +432,39 @@ export type Database = {
         }
         Relationships: []
       }
+      help_content: {
+        Row: {
+          category: Database["public"]["Enums"]["help_category"]
+          content: string
+          created_at: string | null
+          created_by: string | null
+          id: string
+          title: string
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          category: Database["public"]["Enums"]["help_category"]
+          content: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          title: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["help_category"]
+          content?: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          title?: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       invoice_items: {
         Row: {
           discount: number | null
@@ -987,7 +1020,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      help_category: "documentation" | "faq" | "tutorial"
     }
     CompositeTypes: {
       [_ in never]: never
