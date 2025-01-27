@@ -83,7 +83,6 @@ export type Database = {
           hearts: number | null
           id: string
           latitude: number
-          likes: number | null
           longitude: number
           title: string
           type: string
@@ -96,7 +95,6 @@ export type Database = {
           hearts?: number | null
           id?: string
           latitude: number
-          likes?: number | null
           longitude: number
           title: string
           type: string
@@ -109,7 +107,6 @@ export type Database = {
           hearts?: number | null
           id?: string
           latitude?: number
-          likes?: number | null
           longitude?: number
           title?: string
           type?: string

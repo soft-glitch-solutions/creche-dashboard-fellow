@@ -96,11 +96,11 @@ const DashboardLayout = () => {
   const isAdmin = userRole === 'Administrator' || userRole === 'Developer';
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex">
+    <div className="min-h-screen bg-background dark:bg-gray-900 flex">
       {/* Desktop Sidebar */}
       <aside
         className={cn(
-          "bg-white border-r border-gray-200 transition-all duration-300 hidden md:flex flex-col",
+          "bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 transition-all duration-300 hidden md:flex flex-col",
           isSidebarOpen ? "w-64" : "w-20"
         )}
       >
@@ -121,7 +121,7 @@ const DashboardLayout = () => {
             <Menu className="h-5 w-5" />
           </Button>
         </SheetTrigger>
-        <SheetContent side="left" className="w-64 p-0">
+        <SheetContent side="left" className="w-64 p-0 bg-white dark:bg-gray-800">
           <SidebarContent
             isSidebarOpen={true}
             setIsSidebarOpen={() => {}}
