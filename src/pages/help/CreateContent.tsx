@@ -1,85 +1,92 @@
 import { useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Editor } from "@/components/help/Editor";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/components/ui/use-toast";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
+type HelpCategory = "documentation" | "faq" | "tutorial";
 
 const CreateContent = () => {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
+  const [category, setCategory] = useState<HelpCategory>("documentation");
   const navigate = useNavigate();
-  const { category } = useParams();
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
 
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    if (!user) {
-      toast({
-        title: "Error",
-        description: "You must be logged in to create content",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const { error } = await supabase
-      .from('help_content')
-      .insert([
-        {
+      const { error } = await supabase
+        .from("help_content")
+        .insert({
           title,
           content,
           category,
-          created_by: user.id,
-        }
-      ]);
+          created_by: user.id
+        });
 
-    if (error) {
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Help content created successfully"
+      });
+      navigate("/dashboard/help");
+    } catch (error) {
+      console.error("Error creating help content:", error);
       toast({
         title: "Error",
-        description: "Failed to create content",
-        variant: "destructive",
+        description: "Failed to create help content",
+        variant: "destructive"
       });
-      return;
     }
-
-    toast({
-      title: "Success",
-      description: "Content created successfully",
-    });
-    navigate(`/dashboard/help/${category}`);
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-4xl font-bold text-primary">
-          Create New {category?.charAt(0).toUpperCase() + category?.slice(1)}
-        </h1>
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="space-y-2">
+        <label className="text-sm font-medium">Title</label>
+        <Input
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder="Enter title"
+          required
+        />
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div>
-          <Input
-            placeholder="Title"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            required
-          />
-        </div>
-        <Editor content={content} onChange={setContent} />
-        <div className="flex justify-end gap-4">
-          <Button variant="outline" onClick={() => navigate(-1)}>
-            Cancel
-          </Button>
-          <Button type="submit">Create</Button>
-        </div>
-      </form>
-    </div>
+      <div className="space-y-2">
+        <label className="text-sm font-medium">Category</label>
+        <Select value={category} onValueChange={(value: HelpCategory) => setCategory(value)}>
+          <SelectTrigger>
+            <SelectValue placeholder="Select category" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="documentation">Documentation</SelectItem>
+            <SelectItem value="faq">FAQ</SelectItem>
+            <SelectItem value="tutorial">Tutorial</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="space-y-2">
+        <label className="text-sm font-medium">Content</label>
+        <Textarea
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+          placeholder="Enter content"
+          required
+          className="min-h-[200px]"
+        />
+      </div>
+
+      <Button type="submit">Create Content</Button>
+    </form>
   );
 };
 

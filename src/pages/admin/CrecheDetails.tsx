@@ -98,12 +98,9 @@ const CrecheDetails = () => {
         return;
       }
 
-      // Parse features from JSON if needed
-      const features: CrecheFeatures = creche.features || defaultFeatures;
-
       const typedCreche: Creche = {
         ...creche,
-        features,
+        features: creche.features as CrecheFeatures || defaultFeatures,
         plan: (creche.plan as CrechePlan) || "free"
       };
 

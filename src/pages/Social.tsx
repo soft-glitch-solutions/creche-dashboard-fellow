@@ -15,6 +15,9 @@ interface Article {
   hearts: number;
   author_id: string;
   created_at: string;
+  type: string;
+  latitude: number;
+  longitude: number;
   author?: {
     display_name: string;
     profile_picture_url: string;
@@ -67,7 +70,10 @@ const Social = () => {
             content: newArticle.content,
             author_id: user.id,
             hearts: 0,
-          },
+            type: 'post',
+            latitude: 0, // Default value
+            longitude: 0, // Default value
+          }
         ])
         .select()
         .single();
