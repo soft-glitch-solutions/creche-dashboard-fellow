@@ -8,8 +8,22 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import type { Creche } from "@/types/creche";
 
+const defaultCreche: Creche = {
+  id: "",
+  name: "",
+  plan: "free",
+  features: {
+    event_calendar: false,
+    staff_management: false,
+    reports_analytics: false,
+    financial_tracking: false,
+    attendance_tracking: false,
+    parent_communication: false
+  }
+};
+
 const CrecheProfile = () => {
-  const [crecheData, setCrecheData] = useState<Creche | null>(null);
+  const [crecheData, setCrecheData] = useState<Creche>(defaultCreche);
   const [editMode, setEditMode] = useState<{
     basic: boolean;
     additional: boolean;

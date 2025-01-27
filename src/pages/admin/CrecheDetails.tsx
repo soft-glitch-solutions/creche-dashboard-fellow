@@ -37,7 +37,6 @@ const CrecheDetails = () => {
     description: "",
     plan: "free" as CrechePlan,
     features: defaultFeatures,
-    // ... other fields with their default values
     registered: false,
     facebook_url: null,
     twitter_url: null,
@@ -99,23 +98,13 @@ const CrecheDetails = () => {
         return;
       }
 
-      // Ensure the features object has all required properties
-      const features: CrecheFeatures = {
-        staff_management: creche.features?.staff_management ?? false,
-        attendance_tracking: creche.features?.attendance_tracking ?? false,
-        parent_communication: creche.features?.parent_communication ?? false,
-        event_calendar: creche.features?.event_calendar ?? false,
-        financial_tracking: creche.features?.financial_tracking ?? false,
-        reports_analytics: creche.features?.reports_analytics ?? false
-      };
-
-      // Ensure plan is one of the allowed values
-      const plan: CrechePlan = (creche.plan as CrechePlan) || "free";
+      // Parse features from JSON if needed
+      const features: CrecheFeatures = creche.features || defaultFeatures;
 
       const typedCreche: Creche = {
         ...creche,
         features,
-        plan
+        plan: (creche.plan as CrechePlan) || "free"
       };
 
       setCrecheData(typedCreche);

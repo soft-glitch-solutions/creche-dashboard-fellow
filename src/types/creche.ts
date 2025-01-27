@@ -1,4 +1,4 @@
-export type CrechePlan = 'free' | 'basic' | 'premium';
+export type CrechePlan = 'free' | 'basic' | 'pro';
 
 export interface CrecheFeatures {
   event_calendar: boolean;
@@ -7,36 +7,36 @@ export interface CrecheFeatures {
   financial_tracking: boolean;
   attendance_tracking: boolean;
   parent_communication: boolean;
-  [key: string]: boolean;
+  [key: string]: boolean; // Add index signature for dynamic properties
 }
 
 export interface Creche {
   id: string;
   name: string;
-  address?: string;
-  phone_number?: string;
-  email?: string;
-  capacity?: number;
-  operating_hours?: string;
-  website_url?: string;
-  description?: string;
-  registered?: boolean;
-  facebook_url?: string;
-  twitter_url?: string;
-  instagram_url?: string;
-  linkedin_url?: string;
-  whatsapp_number?: string;
-  telegram_number?: string;
-  created_at?: string;
-  updated_at?: string;
-  price?: number;
-  header_image?: string;
-  website?: string;
-  logo?: string;
-  latitude?: number;
-  longitude?: number;
-  monthly_price?: number;
-  weekly_price?: number;
+  address?: string | null;
+  phone_number?: string | null;
+  email?: string | null;
+  capacity?: number | null;
+  operating_hours?: string | null;
+  website_url?: string | null;
+  description?: string | null;
+  registered?: boolean | null;
+  facebook_url?: string | null;
+  twitter_url?: string | null;
+  instagram_url?: string | null;
+  linkedin_url?: string | null;
+  whatsapp_number?: string | null;
+  telegram_number?: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+  price?: number | null;
+  header_image?: string | null;
+  website?: string | null;
+  logo?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  monthly_price?: number | null;
+  weekly_price?: number | null;
   plan: CrechePlan;
   features: CrecheFeatures;
 }
