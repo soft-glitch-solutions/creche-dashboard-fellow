@@ -7,6 +7,7 @@ export interface CrecheFeatures {
   event_calendar: boolean;
   financial_tracking: boolean;
   reports_analytics: boolean;
+  [key: string]: boolean; // Add index signature
 }
 
 export interface Creche {
