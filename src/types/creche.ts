@@ -7,6 +7,7 @@ export interface CrecheFeatures {
   financial_tracking: boolean;
   attendance_tracking: boolean;
   parent_communication: boolean;
+  [key: string]: boolean;
 }
 
 export interface Creche {

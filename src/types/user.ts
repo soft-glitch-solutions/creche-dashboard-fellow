@@ -3,6 +3,12 @@ export interface UserRole {
   role_name: string;
 }
 
+export interface UserCreche {
+  creche: {
+    name: string;
+  };
+}
+
 export interface User {
   id: string;
   email: string;
@@ -20,4 +26,6 @@ export interface User {
   longitude?: string;
   suburb?: string;
   price?: string;
+  title?: string;
+  creches?: UserCreche[];
 }
