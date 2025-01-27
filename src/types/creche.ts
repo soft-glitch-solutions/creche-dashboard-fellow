@@ -1,12 +1,12 @@
-export type CrechePlan = 'free' | 'basic' | 'premium' | 'enterprise';
+export type CrechePlan = 'free' | 'basic' | 'premium';
 
 export interface CrecheFeatures {
+  event_calendar: boolean;
   staff_management: boolean;
+  reports_analytics: boolean;
+  financial_tracking: boolean;
   attendance_tracking: boolean;
   parent_communication: boolean;
-  event_calendar: boolean;
-  financial_tracking: boolean;
-  reports_analytics: boolean;
 }
 
 export interface Creche {

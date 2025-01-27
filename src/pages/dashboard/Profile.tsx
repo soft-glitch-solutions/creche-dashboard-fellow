@@ -8,12 +8,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { User, Mail, Phone, MapPin, FileText, Building2, UserCog } from "lucide-react";
+import { User, Mail, Phone, MapPin, FileText, Building2, UserCog, Upload } from "lucide-react";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 const Profile = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
+  const [isUploading, setIsUploading] = useState(false);
   const [profileData, setProfileData] = useState({
     firstName: "",
     lastName: "",
@@ -23,6 +25,7 @@ const Profile = () => {
     suburb: "",
     role: "",
     creche: "",
+    profile_picture_url: "",
   });
 
   useEffect(() => {
@@ -43,7 +46,6 @@ const Profile = () => {
         return;
       }
 
-      // Fetch user profile data including role and creche information
       const { data: userData, error } = await supabase
         .from('users')
         .select(`
@@ -66,6 +68,7 @@ const Profile = () => {
           suburb: userData.suburb || "",
           role: userData.role?.role_name || "User",
           creche: userData.creches?.[0]?.creche?.name || "Not assigned",
+          profile_picture_url: userData.profile_picture_url || "",
         });
       }
     } catch (error) {
@@ -77,6 +80,52 @@ const Profile = () => {
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleProfilePictureUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("No user found");
+
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}-${Date.now()}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('profile-pictures')
+        .upload(fileName, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('profile-pictures')
+        .getPublicUrl(fileName);
+
+      const { error: updateError } = await supabase
+        .from('users')
+        .update({ profile_picture_url: publicUrl })
+        .eq('id', user.id);
+
+      if (updateError) throw updateError;
+
+      setProfileData(prev => ({ ...prev, profile_picture_url: publicUrl }));
+      toast({
+        title: "Success",
+        description: "Profile picture updated successfully",
+      });
+    } catch (error) {
+      console.error('Error uploading profile picture:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to upload profile picture",
+      });
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -150,21 +199,35 @@ const Profile = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <UserCog className="h-5 w-5" />
-              Role & Organization
+              Profile Picture & Role
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div>
-              <Label>Current Role</Label>
-              <div className="mt-1">
+            <div className="flex flex-col items-center space-y-4">
+              <div className="relative">
+                <Avatar className="h-32 w-32">
+                  <AvatarImage src={profileData.profile_picture_url} />
+                  <AvatarFallback>
+                    {profileData.firstName?.[0]}{profileData.lastName?.[0]}
+                  </AvatarFallback>
+                </Avatar>
+                <label className="absolute bottom-0 right-0 cursor-pointer bg-primary text-primary-foreground p-2 rounded-full">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleProfilePictureUpload}
+                    disabled={isUploading}
+                  />
+                  <Upload className="h-4 w-4" />
+                </label>
+              </div>
+              <div>
                 <Badge variant="secondary" className="text-sm">
                   {profileData.role}
                 </Badge>
               </div>
-            </div>
-            <div>
-              <Label>Assigned Creche</Label>
-              <div className="mt-1">
+              <div>
                 <Badge variant="outline" className="text-sm">
                   {profileData.creche}
                 </Badge>

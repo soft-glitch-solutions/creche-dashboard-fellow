@@ -1,10 +1,10 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Eye, Link as LinkIcon, Trash2, UserPlus } from "lucide-react";
+import { Eye, Link as LinkIcon, Trash2, UserPlus, ChevronLeft, ChevronRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -17,26 +17,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import type { User } from "@/types/user";
 
-interface User {
-  id: string;
-  email: string;
-  first_name: string | null;
-  last_name: string | null;
-  role: {
-    role_name: string;
-    id: string;
-  } | null;
-  creches: {
-    creche: {
-      name: string;
-    };
-  }[];
-  title?: string;
-  phone_number?: string;
-  profile_picture_url?: string;
-  bio?: string;
-}
+const USERS_PER_PAGE = 10;
 
 const UserManagement = () => {
   const [users, setUsers] = useState<User[]>([]);
@@ -44,6 +27,8 @@ const UserManagement = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isUserDetailsOpen, setIsUserDetailsOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalUsers, setTotalUsers] = useState(0);
   const { toast } = useToast();
   const [roles, setRoles] = useState<{ id: string; role_name: string }[]>([]);
   const [isUpdating, setIsUpdating] = useState(false);
@@ -51,22 +36,32 @@ const UserManagement = () => {
   useEffect(() => {
     fetchUsers();
     fetchRoles();
-  }, []);
+  }, [currentPage]);
 
   const fetchUsers = async () => {
     try {
+      // First get total count
+      const { count, error: countError } = await supabase
+        .from('users')
+        .select('*', { count: 'exact', head: true });
+
+      if (countError) throw countError;
+      setTotalUsers(count || 0);
+
+      // Then fetch paginated users
       const { data: usersData, error } = await supabase
         .from('users')
         .select(`
           *,
-          role:roles(role_name),
+          role:roles(id, role_name),
           creches:user_creche(creche:creches(name))
-        `);
+        `)
+        .range((currentPage - 1) * USERS_PER_PAGE, currentPage * USERS_PER_PAGE - 1);
 
       if (error) throw error;
 
       if (usersData) {
-        setUsers(usersData as User[]);
+        setUsers(usersData as unknown as User[]);
       }
     } catch (error) {
       console.error('Error fetching users:', error);
@@ -125,22 +120,20 @@ const UserManagement = () => {
     } finally {
       setIsUpdating(false);
     }
-  }; // Added missing closing brace here
+  };
 
-  const getStatusBadgeVariant = (role: string) => {
-    switch (role?.toLowerCase()) {
-      case 'administrator':
-        return 'default';
-      case 'manager':
-        return 'secondary';
-      default:
-        return 'outline';
+  const totalPages = Math.ceil(totalUsers / USERS_PER_PAGE);
+
+  const handlePreviousPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(prev => prev - 1);
     }
   };
 
-  const handleViewUser = (user: User) => {
-    setSelectedUser(user);
-    setIsUserDetailsOpen(true);
+  const handleNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(prev => prev + 1);
+    }
   };
 
   const filteredUsers = users.filter(user => 
@@ -232,6 +225,32 @@ const UserManagement = () => {
                 )}
               </TableBody>
             </Table>
+          </div>
+
+          <div className="flex items-center justify-between mt-4">
+            <div className="text-sm text-muted-foreground">
+              Showing {((currentPage - 1) * USERS_PER_PAGE) + 1} to {Math.min(currentPage * USERS_PER_PAGE, totalUsers)} of {totalUsers} users
+            </div>
+            <div className="flex items-center space-x-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handlePreviousPage}
+                disabled={currentPage === 1}
+              >
+                <ChevronLeft className="h-4 w-4" />
+                Previous
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleNextPage}
+                disabled={currentPage >= totalPages}
+              >
+                Next
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>

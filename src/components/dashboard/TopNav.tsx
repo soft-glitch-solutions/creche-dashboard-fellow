@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 import { NotificationsMenu } from "./NotificationsMenu";
 import { SupportDialog } from "./SupportDialog";
 import { UserMenu } from "./UserMenu";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 interface TopNavProps {
   user: any;
