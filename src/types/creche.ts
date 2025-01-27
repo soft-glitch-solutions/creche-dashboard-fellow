@@ -1,4 +1,6 @@
-export type CrechePlan = "free" | "basic" | "pro";
+import { Json } from "@/integrations/supabase/types";
+
+export type CrechePlan = 'free' | 'basic' | 'premium' | 'enterprise';
 
 export interface CrecheFeatures {
   staff_management: boolean;
@@ -7,7 +9,7 @@ export interface CrecheFeatures {
   event_calendar: boolean;
   financial_tracking: boolean;
   reports_analytics: boolean;
-  [key: string]: boolean; // Add index signature
+  [key: string]: boolean;
 }
 
 export interface Creche {
