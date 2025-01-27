@@ -3,6 +3,8 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { ThemeProvider } from "./contexts/ThemeContext";
+import { LanguageProvider } from "./contexts/LanguageContext";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Applications from "./pages/Applications";
@@ -33,50 +35,45 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Navigate to="/login" replace />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/dashboard" element={<DashboardLayout />}>
-            <Route index element={<Dashboard />} />
-            <Route path="profile" element={<Profile />} />
-
-            {/* Creche Routes */}
-            <Route path="creche/:id" element={<CrecheProfile />} />
-            <Route path="applications" element={<Applications />} />
-            <Route path="students" element={<Students />} />
-
-            <Route path="finance" element={<Finance />} />
-            {/* Finance Routes */}
-            <Route path="finance/create-invoice" element={<CreateInvoice />} />
-            <Route path="finance/invoice/:id" element={<ViewInvoice />} />
-            <Route path="finance/invoice/edit/:id" element={<EditInvoice />} />
-            <Route path="finance/invoice/:id/pdf" element={<PrintInvoice />} />
-
-            
-            <Route path="calendar" element={<Calender />} />
-            <Route path="social" element={<Social />} />
-            <Route path="reports" element={<Reports />} />
-            <Route path="settings" element={<Settings />} />
-            <Route path="help" element={<Help />} />
-            {/* Help Routes */}
-            <Route path="help/documentation" element={<Documentation />} />
-            <Route path="help/tutorials" element={<Tutorials />} />
-            <Route path="help/support-chat" element={<SupportChat />} />
-            <Route path="help/faqs" element={<Faqs />} />
-
-            {/* Admin Routes */}
-            <Route path="admin/users" element={<UserManagement />} />
-            <Route path="admin/creches" element={<CrecheManagement />} />
-            <Route path="admin/creches/:id" element={<CrecheDetails />} />
-            <Route path="admin/integrations" element={<Integrations />} />
-          </Route>
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
+    <ThemeProvider>
+      <LanguageProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Navigate to="/login" replace />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/dashboard" element={<DashboardLayout />}>
+                <Route index element={<Dashboard />} />
+                <Route path="profile" element={<Profile />} />
+                <Route path="creche/:id" element={<CrecheProfile />} />
+                <Route path="applications" element={<Applications />} />
+                <Route path="students" element={<Students />} />
+                <Route path="finance" element={<Finance />} />
+                <Route path="finance/create-invoice" element={<CreateInvoice />} />
+                <Route path="finance/invoice/:id" element={<ViewInvoice />} />
+                <Route path="finance/invoice/edit/:id" element={<EditInvoice />} />
+                <Route path="finance/invoice/:id/pdf" element={<PrintInvoice />} />
+                <Route path="calendar" element={<Calender />} />
+                <Route path="social" element={<Social />} />
+                <Route path="reports" element={<Reports />} />
+                <Route path="settings" element={<Settings />} />
+                <Route path="help" element={<Help />} />
+                <Route path="help/documentation" element={<Documentation />} />
+                <Route path="help/tutorials" element={<Tutorials />} />
+                <Route path="help/support-chat" element={<SupportChat />} />
+                <Route path="help/faqs" element={<Faqs />} />
+                <Route path="admin/users" element={<UserManagement />} />
+                <Route path="admin/creches" element={<CrecheManagement />} />
+                <Route path="admin/creches/:id" element={<CrecheDetails />} />
+                <Route path="admin/integrations" element={<Integrations />} />
+              </Route>
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </LanguageProvider>
+    </ThemeProvider>
   </QueryClientProvider>
 );
 

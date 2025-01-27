@@ -20,36 +20,20 @@ import {
   LifeBuoy,
   LogOut,
   Calendar,
+  Sun,
+  Moon,
+  Languages
 } from "lucide-react";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Sheet,
-  SheetContent,
-  SheetTrigger,
-} from "@/components/ui/sheet";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { useTheme } from "@/contexts/ThemeContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const DashboardLayout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -61,6 +45,8 @@ const DashboardLayout = () => {
   const [userRole, setUserRole] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { theme, toggleTheme } = useTheme();
+  const { language, setLanguage } = useLanguage();
 
   useEffect(() => {
     checkUser();
@@ -157,11 +143,10 @@ const DashboardLayout = () => {
 
   const fetchUserCrecheLogo = async (userId: string) => {
     try {
-      // Step 1: Get the creche_id from the user_creche table based on the user_id
       const { data: userCrecheData, error: userCrecheError } = await supabase
         .from('user_creche')
         .select('creche_id')
-        .eq('user_id', userId) // Fetch the creche_id for the logged-in user
+        .eq('user_id', userId)
         .single();
   
       if (userCrecheError) throw userCrecheError;
@@ -170,16 +155,14 @@ const DashboardLayout = () => {
         return;
       }
   
-      // Step 2: Get the creche logo based on the creche_id
       const { data: crecheData, error: crecheError } = await supabase
         .from('creches')
         .select('logo')
-        .eq('id', userCrecheData.creche_id) // Use the creche_id from user_creche table
+        .eq('id', userCrecheData.creche_id)
         .single();
   
       if (crecheError) throw crecheError;
   
-      // Step 3: Set the creche logo
       setCrecheLogo(crecheData?.logo || "/default-logo.png");
   
     } catch (error) {
@@ -350,7 +333,7 @@ const DashboardLayout = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex">
       {/* Desktop Sidebar */}
       <aside
         className={cn(
@@ -376,7 +359,49 @@ const DashboardLayout = () => {
       {/* Main content */}
       <main className="flex-1">
         {/* Top navigation bar */}
-        <div className="bg-white border-b border-gray-200 h-16 px-4 md:px-8 flex items-center justify-end gap-4">
+        <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 h-16 px-4 md:px-8 flex items-center justify-end gap-4">
+          {/* Language Switcher */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon">
+                <Languages className="h-5 w-5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {[
+                { code: "en", label: "English" },
+                { code: "af", label: "Afrikaans" },
+                { code: "xh", label: "Xhosa" },
+              ].map((lang) => (
+                <DropdownMenuItem
+                  key={lang.code}
+                  onClick={() => setLanguage(lang.code as "en" | "af" | "xh")}
+                  className={cn(
+                    "cursor-pointer",
+                    language === lang.code && "bg-accent"
+                  )}
+                >
+                  {lang.label}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {/* Theme Toggle */}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleTheme}
+            className="text-gray-700 dark:text-gray-200"
+          >
+            {theme === "light" ? (
+              <Moon className="h-5 w-5" />
+            ) : (
+              <Sun className="h-5 w-5" />
+            )}
+          </Button>
+
+          {/* Notifications */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="relative">
