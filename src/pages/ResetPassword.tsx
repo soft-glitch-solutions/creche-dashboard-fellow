@@ -12,7 +12,7 @@ const ResetPassword = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Check if the access token exists in the URL
+    // Ensure the access token exists in the URL
     const queryParams = new URLSearchParams(window.location.hash.substring(1));
     const accessToken = queryParams.get("access_token");
 
@@ -44,16 +44,31 @@ const ResetPassword = () => {
     }
 
     try {
-      // Update the user's password using Supabase
-      const { error } = await supabase.auth.updateUser(accessToken, {
+      // Set the session with the access token
+      const { error: sessionError } = await supabase.auth.setSession({
+        access_token: accessToken,
+        refresh_token: "",
+      });
+
+      if (sessionError) {
+        toast({
+          variant: "destructive",
+          title: "Session Error",
+          description: sessionError.message,
+        });
+        return;
+      }
+
+      // Update the password
+      const { error: passwordError } = await supabase.auth.updateUser({
         password,
       });
 
-      if (error) {
+      if (passwordError) {
         toast({
           variant: "destructive",
           title: "Error",
-          description: error.message,
+          description: passwordError.message,
         });
         return;
       }
