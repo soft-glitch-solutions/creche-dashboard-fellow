@@ -32,6 +32,7 @@ import Faqs from "./pages/help/Faqs";
 import Social from "./pages/Social";
 import CreateContent from "./pages/help/CreateContent";
 import ResetPassword from "./pages/ResetPassword";
+import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
@@ -73,6 +74,7 @@ const App = () => (
                 <Route path="admin/creches/:id" element={<CrecheDetails />} />
                 <Route path="admin/integrations" element={<Integrations />} />
               </Route>
+              <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
         </TooltipProvider>
