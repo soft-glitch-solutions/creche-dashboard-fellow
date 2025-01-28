@@ -31,6 +31,7 @@ import Documentation from "./pages/help/Documentation";
 import Faqs from "./pages/help/Faqs";
 import Social from "./pages/Social";
 import CreateContent from "./pages/help/CreateContent";
+import ResetPassword from "./pages/ResetPassword";
 
 const queryClient = new QueryClient();
 
@@ -45,6 +46,7 @@ const App = () => (
             <Routes>
               <Route path="/" element={<Navigate to="/login" replace />} />
               <Route path="/login" element={<Login />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/dashboard" element={<DashboardLayout />}>
                 <Route index element={<Dashboard />} />
                 <Route path="profile" element={<Profile />} />
