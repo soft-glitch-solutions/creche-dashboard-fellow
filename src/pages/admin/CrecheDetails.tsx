@@ -311,7 +311,7 @@ const CrecheDetails = () => {
               {isEditing ? (
                 <Select 
                   value={editForm.plan} 
-                  onValueChange={(value) => setEditForm({ ...editForm, plan: value })}
+                  onValueChange={(value: CrechePlan) => setEditForm({ ...editForm, plan: value })}
                 >
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select a plan" />
