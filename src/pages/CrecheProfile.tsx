@@ -6,12 +6,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import type { Creche } from "@/types/creche";
+import type { Creche, CrechePlan, CrecheFeatures } from "@/types/creche";
 
 const defaultCreche: Creche = {
   id: "",
   name: "",
-  plan: "free",
+  plan: "free" as CrechePlan,
   features: {
     event_calendar: false,
     staff_management: false,
@@ -49,7 +49,15 @@ const CrecheProfile = () => {
 
       if (error) throw error;
       console.log("Loaded creche data:", creche);
-      setCrecheData(creche);
+      
+      if (creche) {
+        const typedCreche: Creche = {
+          ...creche,
+          plan: (creche.plan || 'free') as CrechePlan,
+          features: creche.features as CrecheFeatures || defaultCreche.features
+        };
+        setCrecheData(typedCreche);
+      }
     } catch (error) {
       console.error('Error loading creche:', error);
       toast({

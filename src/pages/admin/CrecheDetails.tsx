@@ -9,7 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Settings, Users, Calendar, DollarSign, CheckSquare, Square } from "lucide-react";
-import { Creche, CrechePlan, CrecheFeatures } from "@/types/creche";
+import type { Creche, CrechePlan, CrecheFeatures } from "@/types/creche";
 
 const defaultFeatures: CrecheFeatures = {
   staff_management: false,
@@ -100,8 +100,8 @@ const CrecheDetails = () => {
 
       const typedCreche: Creche = {
         ...creche,
-        features: creche.features as CrecheFeatures || defaultFeatures,
-        plan: (creche.plan as CrechePlan) || "free"
+        plan: (creche.plan || 'free') as CrechePlan,
+        features: creche.features as CrecheFeatures || defaultFeatures
       };
 
       setCrecheData(typedCreche);
