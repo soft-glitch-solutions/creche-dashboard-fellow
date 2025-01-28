@@ -9,7 +9,6 @@ const NotFound = () => {
           alt="Creche Spots"
           className="max-w-xs"
         />
-        thinking_teenage_boy.png
       </div>
       <h1 className="text-6xl font-bold text-primary mb-4">404</h1>
       <p className="text-xl text-gray-600 mb-6">

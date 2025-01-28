@@ -1,112 +1,101 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/components/ui/use-toast";
 
 const ResetPassword = () => {
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const handlePasswordReset = async (e: React.FormEvent) => {
-    e.preventDefault();
+  useEffect(() => {
+    // Check if the access token exists in the URL
+    const queryParams = new URLSearchParams(window.location.hash.substring(1));
+    const accessToken = queryParams.get("access_token");
 
-    if (password !== confirmPassword) {
+    if (!accessToken) {
       toast({
         variant: "destructive",
-        title: "Passwords do not match",
-        description: "Please make sure both passwords are the same.",
+        title: "Invalid Link",
+        description: "The reset password link is invalid or expired.",
       });
+      navigate("/login");
+    }
+  }, [navigate, toast]);
+
+  const handlePasswordReset = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    const queryParams = new URLSearchParams(window.location.hash.substring(1));
+    const accessToken = queryParams.get("access_token");
+
+    if (!accessToken) {
+      toast({
+        variant: "destructive",
+        title: "Invalid Link",
+        description: "The reset password link is invalid or expired.",
+      });
+      navigate("/login");
       return;
     }
 
-    setIsLoading(true);
-
     try {
-      const urlParams = new URLSearchParams(window.location.hash.substring(1));
-      const accessToken = urlParams.get("access_token");
-
-      if (!accessToken) {
-        toast({
-          variant: "destructive",
-          title: "Invalid link",
-          description: "The reset link is invalid or expired.",
-        });
-        return;
-      }
-
-      const { error } = await supabase.auth.updateUser(
-        { password },
-        { accessToken }
-      );
+      // Update the user's password using Supabase
+      const { error } = await supabase.auth.updateUser(accessToken, {
+        password,
+      });
 
       if (error) {
         toast({
           variant: "destructive",
-          title: "Password reset failed",
+          title: "Error",
           description: error.message,
         });
         return;
       }
 
       toast({
-        title: "Password updated successfully",
-        description: "You will be logged in automatically.",
+        title: "Password Reset Successfully",
+        description: "You can now log in with your new password.",
       });
-
-      // Fetch user info and navigate to dashboard
-      navigate("/dashboard");
+      navigate("/login");
     } catch (error) {
-      console.error("Password reset error:", error);
+      console.error("Error resetting password:", error);
       toast({
         variant: "destructive",
-        title: "Error",
+        title: "Unexpected Error",
         description: "Something went wrong. Please try again.",
       });
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 to-secondary/5 p-4">
-      <div className="w-full max-w-md space-y-6 bg-white shadow-lg rounded-2xl p-8">
-        <h1 className="text-2xl font-bold text-center">Reset Password</h1>
-        <p className="text-sm text-center text-gray-600">
-          Enter a new password to reset your account.
-        </p>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-primary/5 to-secondary/5">
+      <div className="max-w-md w-full bg-white p-8 shadow-lg rounded-lg">
+        <h1 className="text-2xl font-bold text-center mb-4">Reset Password</h1>
         <form onSubmit={handlePasswordReset} className="space-y-6">
           <div>
-            <Label htmlFor="password">New Password</Label>
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              New Password
+            </label>
             <Input
               id="password"
               type="password"
-              placeholder="Enter new password"
+              placeholder="Enter your new password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="bg-white"
+              disabled={isSubmitting}
             />
           </div>
-          <div>
-            <Label htmlFor="confirmPassword">Confirm Password</Label>
-            <Input
-              id="confirmPassword"
-              type="password"
-              placeholder="Confirm new password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              required
-              className="bg-white"
-            />
-          </div>
-          <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? "Updating..." : "Reset Password"}
+          <Button type="submit" className="w-full" disabled={isSubmitting}>
+            {isSubmitting ? "Resetting..." : "Reset Password"}
           </Button>
         </form>
       </div>
