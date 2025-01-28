@@ -52,7 +52,7 @@ export const SidebarContent = ({
           <img
             src={crecheLogo}
             alt="Creche Logo"
-            className={cn("transition-all duration-300", isSidebarOpen ? "h-12 w-auto" : "")}
+            className={cn("transition-all duration-300", isSidebarOpen ? "h-13 w-13" : "")}
           />
         </div>
         <Button
@@ -85,7 +85,7 @@ export const SidebarContent = ({
                 style={{ backgroundImage: `url(${item.icon})` }}
               />
             </div>
-            {isSidebarOpen && <span className="text-black">{item.label}</span>}
+            {isSidebarOpen && <span>{item.label}</span>}
           </Button>
         ))}
       </nav>

@@ -30,6 +30,7 @@ import SupportChat from "./pages/help/Support-Chat";
 import Documentation from "./pages/help/Documentation";
 import Faqs from "./pages/help/Faqs";
 import Social from "./pages/Social";
+import CreateContent from "./pages/help/CreateContent";
 
 const queryClient = new QueryClient();
 
@@ -61,6 +62,7 @@ const App = () => (
                 <Route path="settings" element={<Settings />} />
                 <Route path="help" element={<Help />} />
                 <Route path="help/documentation" element={<Documentation />} />
+                <Route path="help/documentation/new" element={<CreateContent />} />
                 <Route path="help/tutorials" element={<Tutorials />} />
                 <Route path="help/support-chat" element={<SupportChat />} />
                 <Route path="help/faqs" element={<Faqs />} />
