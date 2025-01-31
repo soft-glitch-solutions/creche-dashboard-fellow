@@ -32,6 +32,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { debounce } from "lodash";
 
 interface Application {
   id: string;
@@ -68,25 +69,36 @@ const Applications = () => {
     parent_address: "",
     message: "",
     number_of_children: 1,
-    source: "dashboard"
+    source: "dashboard",
   });
 
+  // Fetch applications on component mount
   useEffect(() => {
     fetchApplications();
   }, []);
 
+  // Fetch applications with caching
   const fetchApplications = async () => {
     try {
+      // Check for cached data
+      const cachedData = localStorage.getItem("applications");
+      if (cachedData) {
+        setApplications(JSON.parse(cachedData));
+        setIsLoading(false);
+        return;
+      }
+
       const { data, error } = await supabase
-        .from('applications')
-        .select('*')
-        .order('created_at', { ascending: false });
+        .from("applications")
+        .select("*")
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
 
       setApplications(data || []);
+      localStorage.setItem("applications", JSON.stringify(data || []));
     } catch (error) {
-      console.error('Error fetching applications:', error);
+      console.error("Error fetching applications:", error);
       toast({
         variant: "destructive",
         title: "Error",
@@ -97,24 +109,27 @@ const Applications = () => {
     }
   };
 
+  // Handle creating a new application
   const handleCreateApplication = async () => {
     try {
       const { data, error } = await supabase
-        .from('applications')
+        .from("applications")
         .insert([newApplication])
         .select()
         .single();
 
       if (error) throw error;
 
+      // Update local state
+      setApplications((prev) => [data, ...prev]);
+      localStorage.setItem("applications", JSON.stringify([data, ...applications]));
+
       toast({
         title: "Success",
         description: "Application created successfully",
       });
-
-      fetchApplications();
     } catch (error) {
-      console.error('Error creating application:', error);
+      console.error("Error creating application:", error);
       toast({
         variant: "destructive",
         title: "Error",
@@ -123,24 +138,30 @@ const Applications = () => {
     }
   };
 
+  // Handle status change
   const handleStatusChange = async (status: string) => {
     if (selectedApplication) {
       try {
         const { error } = await supabase
-          .from('applications')
+          .from("applications")
           .update({ application_status: status })
-          .eq('id', selectedApplication.id);
+          .eq("id", selectedApplication.id);
 
         if (error) throw error;
+
+        // Update local state
+        setApplications((prev) =>
+          prev.map((app) =>
+            app.id === selectedApplication.id ? { ...app, application_status: status } : app
+          )
+        );
 
         toast({
           title: "Success",
           description: "Application status updated successfully",
         });
-
-        fetchApplications();
       } catch (error) {
-        console.error('Error updating application status:', error);
+        console.error("Error updating application status:", error);
         toast({
           variant: "destructive",
           title: "Error",
@@ -150,11 +171,12 @@ const Applications = () => {
     }
   };
 
+  // Handle making a student from an application
   const handleMakeStudent = async (application: Application) => {
     try {
       // Create new student record
       const { data: student, error: studentError } = await supabase
-        .from('students')
+        .from("students")
         .insert([
           {
             name: `Child of ${application.parent_name}`,
@@ -163,8 +185,8 @@ const Applications = () => {
             parent_phone_number: application.parent_phone_number,
             address: application.parent_address,
             creche_id: application.creche_id,
-            application_id: application.id
-          }
+            application_id: application.id,
+          },
         ])
         .select()
         .single();
@@ -173,20 +195,25 @@ const Applications = () => {
 
       // Delete the application
       const { error: deleteError } = await supabase
-        .from('applications')
+        .from("applications")
         .delete()
-        .eq('id', application.id);
+        .eq("id", application.id);
 
       if (deleteError) throw deleteError;
+
+      // Update local state
+      setApplications((prev) => prev.filter((app) => app.id !== application.id));
+      localStorage.setItem(
+        "applications",
+        JSON.stringify(applications.filter((app) => app.id !== application.id))
+      );
 
       toast({
         title: "Success",
         description: "Student created successfully",
       });
-
-      fetchApplications();
     } catch (error) {
-      console.error('Error creating student:', error);
+      console.error("Error creating student:", error);
       toast({
         variant: "destructive",
         title: "Error",
@@ -195,11 +222,19 @@ const Applications = () => {
     }
   };
 
-  const filteredApplications = applications.filter(app => 
-    app.parent_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    app.parent_email.toLowerCase().includes(searchTerm.toLowerCase())
+  // Debounced search
+  const debouncedSearch = debounce((term: string) => {
+    setSearchTerm(term);
+  }, 300);
+
+  // Filter applications based on search term
+  const filteredApplications = applications.filter(
+    (app) =>
+      app.parent_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      app.parent_email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // Get status badge styles
   const getStatusBadge = (status: string) => {
     const statusStyles = {
       New: "bg-blue-100 text-blue-800",
@@ -210,6 +245,7 @@ const Applications = () => {
     return statusStyles[status as keyof typeof statusStyles] || "bg-gray-100 text-gray-800";
   };
 
+  // Pagination
   const totalPages = Math.ceil(filteredApplications.length / ITEMS_PER_PAGE);
   const paginatedApplications = filteredApplications.slice(
     (currentPage - 1) * ITEMS_PER_PAGE,
@@ -238,10 +274,12 @@ const Applications = () => {
                   <Input
                     id="parent_name"
                     value={newApplication.parent_name}
-                    onChange={(e) => setNewApplication(prev => ({
-                      ...prev,
-                      parent_name: e.target.value
-                    }))}
+                    onChange={(e) =>
+                      setNewApplication((prev) => ({
+                        ...prev,
+                        parent_name: e.target.value,
+                      }))
+                    }
                   />
                 </div>
                 <div className="grid gap-2">
@@ -250,10 +288,12 @@ const Applications = () => {
                     id="parent_email"
                     type="email"
                     value={newApplication.parent_email}
-                    onChange={(e) => setNewApplication(prev => ({
-                      ...prev,
-                      parent_email: e.target.value
-                    }))}
+                    onChange={(e) =>
+                      setNewApplication((prev) => ({
+                        ...prev,
+                        parent_email: e.target.value,
+                      }))
+                    }
                   />
                 </div>
                 <div className="grid gap-2">
@@ -261,10 +301,12 @@ const Applications = () => {
                   <Input
                     id="parent_phone"
                     value={newApplication.parent_phone_number}
-                    onChange={(e) => setNewApplication(prev => ({
-                      ...prev,
-                      parent_phone_number: e.target.value
-                    }))}
+                    onChange={(e) =>
+                      setNewApplication((prev) => ({
+                        ...prev,
+                        parent_phone_number: e.target.value,
+                      }))
+                    }
                   />
                 </div>
                 <div className="grid gap-2">
@@ -272,10 +314,12 @@ const Applications = () => {
                   <Input
                     id="parent_whatsapp"
                     value={newApplication.parent_whatsapp}
-                    onChange={(e) => setNewApplication(prev => ({
-                      ...prev,
-                      parent_whatsapp: e.target.value
-                    }))}
+                    onChange={(e) =>
+                      setNewApplication((prev) => ({
+                        ...prev,
+                        parent_whatsapp: e.target.value,
+                      }))
+                    }
                   />
                 </div>
                 <div className="grid gap-2">
@@ -283,10 +327,12 @@ const Applications = () => {
                   <Input
                     id="parent_address"
                     value={newApplication.parent_address}
-                    onChange={(e) => setNewApplication(prev => ({
-                      ...prev,
-                      parent_address: e.target.value
-                    }))}
+                    onChange={(e) =>
+                      setNewApplication((prev) => ({
+                        ...prev,
+                        parent_address: e.target.value,
+                      }))
+                    }
                   />
                 </div>
                 <div className="grid gap-2">
@@ -296,10 +342,12 @@ const Applications = () => {
                     type="number"
                     min="1"
                     value={newApplication.number_of_children}
-                    onChange={(e) => setNewApplication(prev => ({
-                      ...prev,
-                      number_of_children: parseInt(e.target.value)
-                    }))}
+                    onChange={(e) =>
+                      setNewApplication((prev) => ({
+                        ...prev,
+                        number_of_children: parseInt(e.target.value),
+                      }))
+                    }
                   />
                 </div>
                 <div className="grid gap-2">
@@ -307,10 +355,12 @@ const Applications = () => {
                   <Textarea
                     id="message"
                     value={newApplication.message}
-                    onChange={(e) => setNewApplication(prev => ({
-                      ...prev,
-                      message: e.target.value
-                    }))}
+                    onChange={(e) =>
+                      setNewApplication((prev) => ({
+                        ...prev,
+                        message: e.target.value,
+                      }))
+                    }
                   />
                 </div>
               </div>
@@ -340,8 +390,7 @@ const Applications = () => {
         <div className="relative flex-1">
           <Input
             placeholder="Search applications..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => debouncedSearch(e.target.value)}
             className="pl-10"
           />
           <Eye className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
@@ -363,11 +412,15 @@ const Applications = () => {
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center">Loading applications...</TableCell>
+                  <TableCell colSpan={5} className="text-center">
+                    Loading applications...
+                  </TableCell>
                 </TableRow>
               ) : paginatedApplications.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center">No applications found</TableCell>
+                  <TableCell colSpan={5} className="text-center">
+                    No applications found
+                  </TableCell>
                 </TableRow>
               ) : (
                 paginatedApplications.map((application) => (
@@ -393,8 +446,8 @@ const Applications = () => {
                       <div className="flex justify-end gap-2">
                         <Sheet>
                           <SheetTrigger asChild>
-                            <Button 
-                              variant="ghost" 
+                            <Button
+                              variant="ghost"
                               size="icon"
                               onClick={() => setSelectedApplication(application)}
                             >
@@ -405,8 +458,8 @@ const Applications = () => {
                             <SheetHeader>
                               <SheetTitle className="flex justify-between">
                                 Application Details
-                                <Button 
-                                  variant="ghost" 
+                                <Button
+                                  variant="ghost"
                                   size="icon"
                                   onClick={() => setSelectedApplication(null)}
                                 >
@@ -417,8 +470,8 @@ const Applications = () => {
                             <div className="mt-6 space-y-6">
                               <div className="space-y-2">
                                 <h3 className="text-sm font-medium">Application Status</h3>
-                                <Select 
-                                  onValueChange={handleStatusChange} 
+                                <Select
+                                  onValueChange={handleStatusChange}
                                   defaultValue={application.application_status}
                                 >
                                   <SelectTrigger>
@@ -426,21 +479,25 @@ const Applications = () => {
                                   </SelectTrigger>
                                   <SelectContent>
                                     <SelectItem value="New">New</SelectItem>
-                                    <SelectItem value="Pending documents">Pending documents</SelectItem>
+                                    <SelectItem value="Pending documents">
+                                      Pending documents
+                                    </SelectItem>
                                     <SelectItem value="Approved">Approved</SelectItem>
                                     <SelectItem value="Rejected">Rejected</SelectItem>
                                   </SelectContent>
                                 </Select>
                               </div>
-                              
+
                               <div className="space-y-2">
                                 <h3 className="text-sm font-medium">Parent Information</h3>
                                 <div className="bg-muted p-4 rounded-lg space-y-2">
                                   <p>Name: {application.parent_name}</p>
                                   <p>Email: {application.parent_email}</p>
                                   <p>Phone: {application.parent_phone_number}</p>
-                                  <p>Address: {application.parent_address || 'Not provided'}</p>
-                                  <p>Number of Children: {application.number_of_children || 'Not specified'}</p>
+                                  <p>Address: {application.parent_address || "Not provided"}</p>
+                                  <p>
+                                    Number of Children: {application.number_of_children || "Not specified"}
+                                  </p>
                                 </div>
                               </div>
 
@@ -457,14 +514,12 @@ const Applications = () => {
                                   placeholder="Add a note..."
                                   className="min-h-[100px]"
                                 />
-                                <Button className="w-full">
-                                  Add Note
-                                </Button>
+                                <Button className="w-full">Add Note</Button>
                               </div>
                             </div>
                           </SheetContent>
                         </Sheet>
-                        {application.application_status === 'Approved' && (
+                        {application.application_status === "Approved" && (
                           <Button
                             variant="ghost"
                             size="icon"

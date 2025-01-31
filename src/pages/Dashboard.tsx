@@ -36,73 +36,64 @@ const Dashboard = () => {
   });
   const [upcomingEvents, setUpcomingEvents] = useState([]);
 
-  useEffect(() => {
-    loadUserCreche();
-    loadUpcomingEvents();
-  }, []);
-
-  const loadUpcomingEvents = async () => {
+  // Load all dashboard data in one function
+  const loadDashboardData = async () => {
     try {
+      // Check for cached data
+      const cachedData = localStorage.getItem('dashboardData');
+      if (cachedData) {
+        const { crecheData, upcomingEvents } = JSON.parse(cachedData);
+        setCrecheData(crecheData);
+        setUpcomingEvents(upcomingEvents);
+        return;
+      }
+
+      // Fetch authenticated user
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { data: events, error } = await supabase
-        .from('events')
-        .select('*')
-        .gte('start', new Date().toISOString())
-        .order('start', { ascending: true })
-        .limit(5);
-
-      if (error) throw error;
-      setUpcomingEvents(events || []);
-    } catch (error) {
-      console.error('Error loading events:', error);
-    }
-  };
-
-  const loadUserCreche = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      console.log("Loading creche for user:", user.id);
-
+      // Fetch user creche data
       const { data: userCreches, error: userCrecheError } = await supabase
         .from('user_creche')
         .select('creche_id')
         .eq('user_id', user.id);
 
-      if (userCrecheError) {
-        console.error("Error fetching user creches:", userCrecheError);
-        throw userCrecheError;
-      }
-
-      console.log("User creches:", userCreches);
+      if (userCrecheError) throw userCrecheError;
 
       if (userCreches && userCreches.length > 0) {
         const firstCrecheId = userCreches[0].creche_id;
 
+        // Fetch creche details
         const { data: creche, error: crecheError } = await supabase
           .from('creches')
           .select('*')
           .eq('id', firstCrecheId)
           .single();
 
-        if (crecheError) {
-          console.error("Error fetching creche details:", crecheError);
-          throw crecheError;
-        }
+        if (crecheError) throw crecheError;
 
-        console.log("Loaded creche data:", creche);
-
+        // Set creche data and edit form
         setCrecheData(creche);
         setEditForm({
           dailyFee: creche.price?.toString() || "",
           monthlyFee: creche.monthly_price?.toString() || "",
           weeklyFee: creche.weekly_price?.toString() || "",
         });
+
+        // Fetch upcoming events
+        const { data: events, error: eventsError } = await supabase
+          .from('events')
+          .select('*')
+          .gte('start', new Date().toISOString())
+          .order('start', { ascending: true })
+          .limit(5);
+
+        if (eventsError) throw eventsError;
+
+        // Cache data
+        localStorage.setItem('dashboardData', JSON.stringify({ crecheData: creche, upcomingEvents: events || [] }));
+        setUpcomingEvents(events || []);
       } else {
-        console.log("No creches found for user");
         toast({
           variant: "destructive",
           title: "No creche assigned",
@@ -110,19 +101,26 @@ const Dashboard = () => {
         });
       }
     } catch (error) {
-      console.error('Error loading creche:', error);
+      console.error('Error loading dashboard data:', error);
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to load creche data",
+        description: "Failed to load dashboard data",
       });
     }
   };
 
+  // Load data on component mount
+  useEffect(() => {
+    loadDashboardData();
+  }, []);
+
+  // Handle quick edit of creche prices
   const handleQuickEdit = async () => {
     try {
       if (!crecheData) return;
 
+      // Update creche prices in the database
       const { error } = await supabase
         .from('creches')
         .update({
@@ -134,12 +132,19 @@ const Dashboard = () => {
 
       if (error) throw error;
 
+      // Update local state instead of refetching
+      setCrecheData((prev) => ({
+        ...prev,
+        price: parseFloat(editForm.dailyFee) || null,
+        monthly_price: parseFloat(editForm.monthlyFee) || null,
+        weekly_price: parseFloat(editForm.weeklyFee) || null,
+      }));
+
       toast({
         title: "Success",
         description: "Creche prices updated successfully",
       });
       setIsEditing(false);
-      loadUserCreche();
     } catch (error) {
       console.error('Error updating creche:', error);
       toast({
@@ -150,6 +155,18 @@ const Dashboard = () => {
     }
   };
 
+  // Sync edit form with creche data when editing starts
+  useEffect(() => {
+    if (isEditing && crecheData) {
+      setEditForm({
+        dailyFee: crecheData.price?.toString() || "",
+        monthlyFee: crecheData.monthly_price?.toString() || "",
+        weeklyFee: crecheData.weekly_price?.toString() || "",
+      });
+    }
+  }, [isEditing, crecheData]);
+
+  // Format event date
   const formatEventDate = (date) => {
     return new Date(date).toLocaleDateString('en-US', {
       month: 'long',
@@ -159,6 +176,7 @@ const Dashboard = () => {
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex items-center space-x-4 bg-white rounded-lg p-4 shadow-sm">
         <img
           src="/lovable-uploads/b36d0e6b-5fa8-43e2-b837-5d0b3de9e849.png"
@@ -170,7 +188,9 @@ const Dashboard = () => {
         </h1>
       </div>
 
+      {/* Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+        {/* Applications Card */}
         <Card className="border-2 border-secondary/20">
           <CardHeader>
             <CardTitle className="text-lg md:text-xl text-secondary">
@@ -202,6 +222,7 @@ const Dashboard = () => {
           </CardContent>
         </Card>
 
+        {/* Creche Profile Card */}
         {crecheData && (
           <Card className="border-2 border-primary/20">
             <CardHeader className="flex flex-row items-center justify-between">
@@ -287,6 +308,7 @@ const Dashboard = () => {
           </Card>
         )}
 
+        {/* Students Card */}
         <Card className="border-2 border-accent/20">
           <CardHeader>
             <CardTitle className="text-lg md:text-xl text-accent">My Students</CardTitle>
@@ -317,6 +339,7 @@ const Dashboard = () => {
         </Card>
       </div>
 
+      {/* Upcoming Events Card */}
       <Card className="border-2 border-primary/20">
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-lg md:text-xl text-primary flex items-center gap-2">
