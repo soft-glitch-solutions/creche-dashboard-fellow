@@ -17,7 +17,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ChartContainer, ChartTooltip } from "@/components/ui/chart";
+import { ChartContainer } from "@/components/ui/chart";
 import { Download, Printer } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts";
 import { format } from "date-fns";
@@ -105,13 +105,18 @@ const AttendanceReport = () => {
           <CardDescription>Daily attendance count</CardDescription>
         </CardHeader>
         <CardContent className="h-[300px]">
-          <ChartContainer>
+          <ChartContainer config={{
+            count: {
+              label: "Attendance Count",
+              color: "#3b82f6"
+            }
+          }}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData}>
                 <XAxis dataKey="date" />
                 <YAxis />
                 <Tooltip />
-                <Bar dataKey="count" fill="#3b82f6" />
+                <Bar dataKey="count" fill="var(--color-count)" />
               </BarChart>
             </ResponsiveContainer>
           </ChartContainer>

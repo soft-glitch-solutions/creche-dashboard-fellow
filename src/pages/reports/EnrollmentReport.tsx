@@ -102,7 +102,15 @@ const EnrollmentReport = () => {
           <CardDescription>Students per class</CardDescription>
         </CardHeader>
         <CardContent className="h-[300px]">
-          <ChartContainer>
+          <ChartContainer config={{
+            value: {
+              label: "Students",
+              theme: {
+                light: "#3b82f6",
+                dark: "#60a5fa"
+              }
+            }
+          }}>
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
@@ -114,7 +122,7 @@ const EnrollmentReport = () => {
                   outerRadius={100}
                   label
                 >
-                  {chartData?.map((entry, index) => (
+                  {chartData?.map((entry: any, index: number) => (
                     <Cell
                       key={`cell-${index}`}
                       fill={COLORS[index % COLORS.length]}

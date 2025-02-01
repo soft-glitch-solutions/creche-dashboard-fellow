@@ -6,11 +6,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import {
   ChartBar,
   ChartLine,
-  ChartPie,
   Calendar,
 } from "lucide-react";
 import AttendanceReport from "./reports/AttendanceReport";
