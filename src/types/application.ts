@@ -1,18 +1,9 @@
 import { User } from "./user";
 
-export type ApplicationNote = {
-  id: string;
-  application_id: string;
-  user_id: string;
-  note: string;
-  created_at: string;
-  user?: User;
-};
-
 export type ApplicationLifecycleStage = 
   | "New"
-  | "Contact Made"
-  | "Documents Requested"
+  | "Contacted"
+  | "Documents Pending"
   | "Documents Received"
   | "Interview Scheduled"
   | "Interview Completed"
@@ -22,8 +13,8 @@ export type ApplicationLifecycleStage =
 
 export const applicationStageOrder: ApplicationLifecycleStage[] = [
   "New",
-  "Contact Made",
-  "Documents Requested",
+  "Contacted",
+  "Documents Pending",
   "Documents Received",
   "Interview Scheduled",
   "Interview Completed",
@@ -31,3 +22,12 @@ export const applicationStageOrder: ApplicationLifecycleStage[] = [
   "Accepted",
   "Rejected"
 ];
+
+export interface ApplicationNote {
+  id: string;
+  application_id: string;
+  user_id: string;
+  note: string;
+  created_at: string;
+  user?: User;
+}

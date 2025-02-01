@@ -50,6 +50,7 @@ interface Application {
   parent_address: string | null;
   parent_whatsapp: string | null;
   lifecycle_stage: ApplicationLifecycleStage;
+  user_id: string;
 }
 
 const ITEMS_PER_PAGE = 10;
@@ -85,23 +86,21 @@ const Applications = () => {
   // Fetch applications with caching
   const fetchApplications = async () => {
     try {
-      // Check for cached data
-      const cachedData = localStorage.getItem("applications");
-      if (cachedData) {
-        setApplications(JSON.parse(cachedData));
-        setIsLoading(false);
-        return;
-      }
-
-      const { data, error } = await supabase
+      const { data: rawData, error } = await supabase
         .from("applications")
         .select("*")
         .order("created_at", { ascending: false });
 
       if (error) throw error;
 
-      setApplications(data || []);
-      localStorage.setItem("applications", JSON.stringify(data || []));
+      // Transform the data to ensure lifecycle_stage is of type ApplicationLifecycleStage
+      const transformedData = (rawData || []).map(app => ({
+        ...app,
+        lifecycle_stage: (app.lifecycle_stage || "New") as ApplicationLifecycleStage
+      }));
+
+      setApplications(transformedData);
+      localStorage.setItem("applications", JSON.stringify(transformedData));
     } catch (error) {
       console.error("Error fetching applications:", error);
       toast({
@@ -475,7 +474,7 @@ const Applications = () => {
                             <div className="mt-6 space-y-6">
                               <div className="space-y-2">
                                 <ApplicationLifecycle
-                                  currentStage={selectedApplication?.lifecycle_stage as ApplicationLifecycleStage || "New"}
+                                  currentStage={selectedApplication?.lifecycle_stage || "New"}
                                   onStageChange={async (stage) => {
                                     if (!selectedApplication) return;
                                     try {
