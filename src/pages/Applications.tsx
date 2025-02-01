@@ -33,6 +33,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { debounce } from "lodash";
+import { ApplicationLifecycle } from "@/components/applications/ApplicationLifecycle";
+import { ApplicationNotes } from "@/components/applications/ApplicationNotes";
+import { ApplicationNote, ApplicationLifecycleStage } from "@/types/application";
 
 interface Application {
   id: string;
@@ -46,6 +49,7 @@ interface Application {
   number_of_children: number | null;
   parent_address: string | null;
   parent_whatsapp: string | null;
+  lifecycle_stage: ApplicationLifecycleStage;
 }
 
 const ITEMS_PER_PAGE = 10;
@@ -59,6 +63,7 @@ const Applications = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const { toast } = useToast();
+  const [applicationNotes, setApplicationNotes] = useState<ApplicationNote[]>([]);
 
   // New application form state
   const [newApplication, setNewApplication] = useState({
@@ -469,53 +474,107 @@ const Applications = () => {
                             </SheetHeader>
                             <div className="mt-6 space-y-6">
                               <div className="space-y-2">
-                                <h3 className="text-sm font-medium">Application Status</h3>
-                                <Select
-                                  onValueChange={handleStatusChange}
-                                  defaultValue={application.application_status}
-                                >
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Select status" />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="New">New</SelectItem>
-                                    <SelectItem value="Pending documents">
-                                      Pending documents
-                                    </SelectItem>
-                                    <SelectItem value="Approved">Approved</SelectItem>
-                                    <SelectItem value="Rejected">Rejected</SelectItem>
-                                  </SelectContent>
-                                </Select>
+                                <ApplicationLifecycle
+                                  currentStage={selectedApplication?.lifecycle_stage as ApplicationLifecycleStage || "New"}
+                                  onStageChange={async (stage) => {
+                                    if (!selectedApplication) return;
+                                    try {
+                                      const { error } = await supabase
+                                        .from("applications")
+                                        .update({ lifecycle_stage: stage })
+                                        .eq("id", selectedApplication.id);
+
+                                      if (error) throw error;
+
+                                      setApplications(prev =>
+                                        prev.map(app =>
+                                          app.id === selectedApplication.id
+                                            ? { ...app, lifecycle_stage: stage }
+                                            : app
+                                        )
+                                      );
+
+                                      toast({
+                                        title: "Success",
+                                        description: "Application stage updated successfully",
+                                      });
+                                    } catch (error) {
+                                      console.error("Error updating application stage:", error);
+                                      toast({
+                                        variant: "destructive",
+                                        title: "Error",
+                                        description: "Failed to update application stage",
+                                      });
+                                    }
+                                  }}
+                                />
                               </div>
 
                               <div className="space-y-2">
                                 <h3 className="text-sm font-medium">Parent Information</h3>
                                 <div className="bg-muted p-4 rounded-lg space-y-2">
-                                  <p>Name: {application.parent_name}</p>
-                                  <p>Email: {application.parent_email}</p>
-                                  <p>Phone: {application.parent_phone_number}</p>
-                                  <p>Address: {application.parent_address || "Not provided"}</p>
+                                  <p>Name: {selectedApplication?.parent_name}</p>
+                                  <p>Email: {selectedApplication?.parent_email}</p>
+                                  <p>Phone: {selectedApplication?.parent_phone_number}</p>
+                                  <p>Address: {selectedApplication?.parent_address || "Not provided"}</p>
                                   <p>
-                                    Number of Children: {application.number_of_children || "Not specified"}
+                                    Number of Children: {selectedApplication?.number_of_children || "Not specified"}
                                   </p>
                                 </div>
                               </div>
 
                               <div className="space-y-2">
                                 <h3 className="text-sm font-medium">Message</h3>
-                                <p className="bg-muted p-4 rounded-lg">{application.message}</p>
+                                <p className="bg-muted p-4 rounded-lg">{selectedApplication?.message}</p>
                               </div>
 
-                              <div className="space-y-2">
-                                <h3 className="text-sm font-medium">Application Notes</h3>
-                                <Textarea
-                                  value={applicationNote}
-                                  onChange={(e) => setApplicationNote(e.target.value)}
-                                  placeholder="Add a note..."
-                                  className="min-h-[100px]"
-                                />
-                                <Button className="w-full">Add Note</Button>
-                              </div>
+                              <ApplicationNotes
+                                notes={applicationNotes}
+                                onAddNote={async (note) => {
+                                  if (!selectedApplication) return;
+                                  
+                                  try {
+                                    const { data: userData, error: userError } = await supabase.auth.getUser();
+                                    if (userError) throw userError;
+
+                                    const { error } = await supabase
+                                      .from("application_notes")
+                                      .insert({
+                                        application_id: selectedApplication.id,
+                                        user_id: userData.user.id,
+                                        note,
+                                      });
+
+                                    if (error) throw error;
+
+                                    // Refresh notes
+                                    const { data: newNotes, error: notesError } = await supabase
+                                      .from("application_notes")
+                                      .select(`
+                                        *,
+                                        user:users(*)
+                                      `)
+                                      .eq("application_id", selectedApplication.id)
+                                      .order("created_at", { ascending: false });
+
+                                    if (notesError) throw notesError;
+
+                                    setApplicationNotes(newNotes);
+
+                                    toast({
+                                      title: "Success",
+                                      description: "Note added successfully",
+                                    });
+                                  } catch (error) {
+                                    console.error("Error adding note:", error);
+                                    toast({
+                                      variant: "destructive",
+                                      title: "Error",
+                                      description: "Failed to add note",
+                                    });
+                                  }
+                                }}
+                              />
                             </div>
                           </SheetContent>
                         </Sheet>
@@ -644,9 +703,7 @@ const Applications = () => {
                             placeholder="Add a note..."
                             className="min-h-[100px]"
                           />
-                          <Button className="w-full">
-                            Add Note
-                          </Button>
+                          <Button className="w-full">Add Note</Button>
                         </div>
                       </div>
                     </SheetContent>

@@ -9,12 +9,66 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      application_notes: {
+        Row: {
+          application_id: string
+          created_at: string | null
+          id: string
+          note: string
+          user_id: string
+        }
+        Insert: {
+          application_id: string
+          created_at?: string | null
+          id?: string
+          note: string
+          user_id: string
+        }
+        Update: {
+          application_id?: string
+          created_at?: string | null
+          id?: string
+          note?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "application_notes_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "application_notes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_application"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_user"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       applications: {
         Row: {
           application_status: string | null
           created_at: string | null
           creche_id: string | null
           id: string
+          lifecycle_stage: string | null
           message: string
           number_of_children: number | null
           parent_address: string | null
@@ -31,6 +85,7 @@ export type Database = {
           created_at?: string | null
           creche_id?: string | null
           id?: string
+          lifecycle_stage?: string | null
           message: string
           number_of_children?: number | null
           parent_address?: string | null
@@ -47,6 +102,7 @@ export type Database = {
           created_at?: string | null
           creche_id?: string | null
           id?: string
+          lifecycle_stage?: string | null
           message?: string
           number_of_children?: number | null
           parent_address?: string | null
