@@ -33,6 +33,8 @@ import Social from "./pages/Social";
 import CreateContent from "./pages/help/CreateContent";
 import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
+import ViewContent from "./pages/help/ViewContent";
+import EditContent from "./pages/help/EditContent";
 
 const queryClient = new QueryClient();
 
@@ -66,6 +68,8 @@ const App = () => (
                 <Route path="help" element={<Help />} />
                 <Route path="help/documentation" element={<Documentation />} />
                 <Route path="help/documentation/new" element={<CreateContent />} />
+                <Route path="help/documentation/view/:id" element={<ViewContent />} />
+                <Route path="help/documentation/edit/:id" element={<EditContent />} />
                 <Route path="help/tutorials" element={<Tutorials />} />
                 <Route path="help/support-chat" element={<SupportChat />} />
                 <Route path="help/faqs" element={<Faqs />} />
