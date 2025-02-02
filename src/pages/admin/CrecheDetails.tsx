@@ -8,7 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Settings, Users, Calendar, DollarSign, CheckSquare, Square } from "lucide-react";
+import { Settings, Users, DollarSign, Edit, Save, CheckSquare, Square } from "lucide-react";
 import type { Creche, CrechePlan, CrecheFeatures } from "@/types/creche";
 
 const defaultFeatures: CrecheFeatures = {
@@ -17,11 +17,10 @@ const defaultFeatures: CrecheFeatures = {
   parent_communication: false,
   event_calendar: false,
   financial_tracking: false,
-  reports_analytics: false
+  reports_analytics: false,
 };
 
 const CrecheDetails = () => {
-  const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [crecheData, setCrecheData] = useState<Creche | null>(null);
@@ -55,6 +54,10 @@ const CrecheDetails = () => {
     monthly_price: null,
     weekly_price: null,
   });
+  const [isEditingBasic, setIsEditingBasic] = useState(false);
+  const [isEditingAdditional, setIsEditingAdditional] = useState(false);
+  const [isEditingPlan, setIsEditingPlan] = useState(false);
+  
   const { toast } = useToast();
 
   useEffect(() => {
@@ -69,15 +72,12 @@ const CrecheDetails = () => {
         return;
       }
 
-      console.log("Loading creche for user:", user.id);
-
       const { data: userCreches, error: userCrecheError } = await supabase
         .from('user_creche')
         .select('creche_id')
         .eq('user_id', user.id);
 
       if (userCrecheError) throw userCrecheError;
-      console.log("User creches:", userCreches);
 
       if (!userCreches || userCreches.length === 0) {
         setError("No creche found for this user");
@@ -91,7 +91,6 @@ const CrecheDetails = () => {
         .maybeSingle();
 
       if (crecheError) throw crecheError;
-      console.log("Loaded creche data:", creche);
 
       if (!creche) {
         setError("Creche not found");
@@ -107,14 +106,13 @@ const CrecheDetails = () => {
       setCrecheData(typedCreche);
       setEditForm(typedCreche);
     } catch (error: any) {
-      console.error('Error loading creche details:', error);
       setError(error.message);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleSave = async () => {
+  const handleSaveBasic = async () => {
     try {
       if (!crecheData?.id) {
         throw new Error("No creche ID found");
@@ -127,12 +125,6 @@ const CrecheDetails = () => {
           address: editForm.address,
           phone_number: editForm.phone_number,
           email: editForm.email,
-          capacity: parseInt(editForm.capacity.toString()),
-          operating_hours: editForm.operating_hours,
-          website_url: editForm.website_url,
-          description: editForm.description,
-          plan: editForm.plan,
-          features: editForm.features
         })
         .eq('id', crecheData.id);
 
@@ -140,16 +132,81 @@ const CrecheDetails = () => {
 
       toast({
         title: "Success",
-        description: "Creche details updated successfully",
+        description: "Basic information updated successfully",
       });
 
-      setIsEditing(false);
+      setIsEditingBasic(false);
       loadCrecheDetails();
     } catch (error: any) {
-      console.error('Error saving creche details:', error);
       toast({
         title: "Error",
-        description: "Failed to update creche details",
+        description: "Failed to update basic information",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleSaveAdditional = async () => {
+    try {
+      if (!crecheData?.id) {
+        throw new Error("No creche ID found");
+      }
+
+      const { error } = await supabase
+        .from('creches')
+        .update({
+          capacity: parseInt(editForm.capacity.toString()),
+          operating_hours: editForm.operating_hours,
+          website_url: editForm.website_url,
+          description: editForm.description,
+        })
+        .eq('id', crecheData.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Additional information updated successfully",
+      });
+
+      setIsEditingAdditional(false);
+      loadCrecheDetails();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: "Failed to update additional information",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleSavePlan = async () => {
+    try {
+      if (!crecheData?.id) {
+        throw new Error("No creche ID found");
+      }
+
+      const { error } = await supabase
+        .from('creches')
+        .update({
+          plan: editForm.plan,
+          features: editForm.features,
+        })
+        .eq('id', crecheData.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Plan and features updated successfully",
+      });
+
+      setIsEditingPlan(false);
+      loadCrecheDetails();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: "Failed to update plan and features",
         variant: "destructive",
       });
     }
@@ -173,11 +230,6 @@ const CrecheDetails = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Creche Details</h1>
-        {isEditing ? (
-          <Button onClick={handleSave}>Save Changes</Button>
-        ) : (
-          <Button onClick={() => setIsEditing(true)}>Edit</Button>
-        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -186,12 +238,19 @@ const CrecheDetails = () => {
             <CardTitle className="flex items-center gap-2">
               <Settings className="h-5 w-5" />
               Basic Information
+              <Button
+                variant="link"
+                onClick={() => setIsEditingBasic(!isEditingBasic)}
+                className="ml-auto p-0"
+              >
+                {isEditingBasic ? <Save className="h-5 w-5 text-green-500" /> : <Edit className="h-5 w-5 text-blue-500" />}
+              </Button>
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label>Name</Label>
-              {isEditing ? (
+              {isEditingBasic ? (
                 <Input
                   value={editForm.name}
                   onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
@@ -203,7 +262,7 @@ const CrecheDetails = () => {
             
             <div className="space-y-2">
               <Label>Address</Label>
-              {isEditing ? (
+              {isEditingBasic ? (
                 <Input
                   value={editForm.address}
                   onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
@@ -215,7 +274,7 @@ const CrecheDetails = () => {
 
             <div className="space-y-2">
               <Label>Phone Number</Label>
-              {isEditing ? (
+              {isEditingBasic ? (
                 <Input
                   value={editForm.phone_number}
                   onChange={(e) => setEditForm({ ...editForm, phone_number: e.target.value })}
@@ -227,7 +286,7 @@ const CrecheDetails = () => {
 
             <div className="space-y-2">
               <Label>Email</Label>
-              {isEditing ? (
+              {isEditingBasic ? (
                 <Input
                   value={editForm.email}
                   onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
@@ -236,6 +295,10 @@ const CrecheDetails = () => {
                 <div>{crecheData.email}</div>
               )}
             </div>
+
+            {isEditingBasic && (
+              <Button onClick={handleSaveBasic}>Save Changes</Button>
+            )}
           </CardContent>
         </Card>
 
@@ -244,12 +307,19 @@ const CrecheDetails = () => {
             <CardTitle className="flex items-center gap-2">
               <Users className="h-5 w-5" />
               Additional Information
+              <Button
+                variant="link"
+                onClick={() => setIsEditingAdditional(!isEditingAdditional)}
+                className="ml-auto p-0"
+              >
+                {isEditingAdditional ? <Save className="h-5 w-5 text-green-500" /> : <Edit className="h-5 w-5 text-blue-500" />}
+              </Button>
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label>Capacity</Label>
-              {isEditing ? (
+              {isEditingAdditional ? (
                 <Input
                   type="number"
                   value={editForm.capacity}
@@ -262,7 +332,7 @@ const CrecheDetails = () => {
 
             <div className="space-y-2">
               <Label>Operating Hours</Label>
-              {isEditing ? (
+              {isEditingAdditional ? (
                 <Input
                   value={editForm.operating_hours}
                   onChange={(e) => setEditForm({ ...editForm, operating_hours: e.target.value })}
@@ -274,7 +344,7 @@ const CrecheDetails = () => {
 
             <div className="space-y-2">
               <Label>Website URL</Label>
-              {isEditing ? (
+              {isEditingAdditional ? (
                 <Input
                   value={editForm.website_url}
                   onChange={(e) => setEditForm({ ...editForm, website_url: e.target.value })}
@@ -286,7 +356,7 @@ const CrecheDetails = () => {
 
             <div className="space-y-2">
               <Label>Description</Label>
-              {isEditing ? (
+              {isEditingAdditional ? (
                 <Textarea
                   value={editForm.description}
                   onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
@@ -295,6 +365,10 @@ const CrecheDetails = () => {
                 <div>{crecheData.description}</div>
               )}
             </div>
+
+            {isEditingAdditional && (
+              <Button onClick={handleSaveAdditional}>Save Changes</Button>
+            )}
           </CardContent>
         </Card>
 
@@ -303,12 +377,19 @@ const CrecheDetails = () => {
             <CardTitle className="flex items-center gap-2">
               <DollarSign className="h-5 w-5" />
               Plan & Features
+              <Button
+                variant="link"
+                onClick={() => setIsEditingPlan(!isEditingPlan)}
+                className="ml-auto p-0"
+              >
+                {isEditingPlan ? <Save className="h-5 w-5 text-green-500" /> : <Edit className="h-5 w-5 text-blue-500" />}
+              </Button>
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="space-y-2">
               <Label>Subscription Plan</Label>
-              {isEditing ? (
+              {isEditingPlan ? (
                 <Select 
                   value={editForm.plan} 
                   onValueChange={(value: CrechePlan) => setEditForm({ ...editForm, plan: value })}
@@ -332,7 +413,7 @@ const CrecheDetails = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {Object.entries(editForm.features).map(([feature, enabled]) => (
                   <div key={feature} className="flex items-center space-x-2">
-                    {isEditing ? (
+                    {isEditingPlan ? (
                       <Checkbox
                         checked={enabled}
                         onCheckedChange={() => handleFeatureToggle(feature)}
@@ -345,6 +426,10 @@ const CrecheDetails = () => {
                 ))}
               </div>
             </div>
+
+            {isEditingPlan && (
+              <Button onClick={handleSavePlan}>Save Changes</Button>
+            )}
           </CardContent>
         </Card>
       </div>

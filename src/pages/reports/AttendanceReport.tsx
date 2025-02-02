@@ -104,7 +104,7 @@ const AttendanceReport = () => {
           <CardTitle>Attendance Overview</CardTitle>
           <CardDescription>Daily attendance count</CardDescription>
         </CardHeader>
-        <CardContent className="h-[300px]">
+        <CardContent>
           <ChartContainer config={{
             count: {
               label: "Attendance Count",

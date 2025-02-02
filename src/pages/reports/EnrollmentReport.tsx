@@ -101,7 +101,7 @@ const EnrollmentReport = () => {
           <CardTitle>Class Distribution</CardTitle>
           <CardDescription>Students per class</CardDescription>
         </CardHeader>
-        <CardContent className="h-[300px]">
+        <CardContent>
           <ChartContainer config={{
             value: {
               label: "Students",
