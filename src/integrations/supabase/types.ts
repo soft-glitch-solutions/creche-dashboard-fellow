@@ -1006,6 +1006,7 @@ export type Database = {
       users: {
         Row: {
           bio: string | null
+          city: string | null
           created_at: string | null
           display_name: string | null
           email: string
@@ -1018,12 +1019,14 @@ export type Database = {
           phone_number: string | null
           price: string | null
           profile_picture_url: string | null
+          province: string | null
           role_id: string | null
           suburb: string | null
           updated_at: string | null
         }
         Insert: {
           bio?: string | null
+          city?: string | null
           created_at?: string | null
           display_name?: string | null
           email: string
@@ -1036,12 +1039,14 @@ export type Database = {
           phone_number?: string | null
           price?: string | null
           profile_picture_url?: string | null
+          province?: string | null
           role_id?: string | null
           suburb?: string | null
           updated_at?: string | null
         }
         Update: {
           bio?: string | null
+          city?: string | null
           created_at?: string | null
           display_name?: string | null
           email?: string
@@ -1054,6 +1059,7 @@ export type Database = {
           phone_number?: string | null
           price?: string | null
           profile_picture_url?: string | null
+          province?: string | null
           role_id?: string | null
           suburb?: string | null
           updated_at?: string | null
