@@ -35,6 +35,7 @@ import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 import ViewContent from "./pages/help/ViewContent";
 import EditContent from "./pages/help/EditContent";
+import PhotoBook from "./pages/Photobook";
 
 const queryClient = new QueryClient();
 
@@ -56,6 +57,7 @@ const App = () => (
                 <Route path="creche/:id" element={<CrecheProfile />} />
                 <Route path="applications" element={<Applications />} />
                 <Route path="students" element={<Students />} />
+                <Route path="photobook" element={<PhotoBook />} />
                 <Route path="finance" element={<Finance />} />
                 <Route path="finance/create-invoice" element={<CreateInvoice />} />
                 <Route path="finance/invoice/:id" element={<ViewInvoice />} />
