@@ -1,42 +1,36 @@
-name: Deploy to cPanel
+name: Deploy via FTP
 
 on:
   push:
     branches:
-      - main  # Trigger on pushes to the main branch (adjust as needed)
+      - main  # Deploy only when pushing to the main branch
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Set up Node.js
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
-          node-version: '16'  # Specify the version of Node.js
+          node-version: '16'
 
       - name: Install dependencies
-        run: |
-          npm install
+        run: npm install
 
       - name: Build the app
-        run: |
-          npm run build
+        run: npm run build
 
-      - name: Copy files to server (via SSH)
-        uses: appleboy/ssh-action@v0.1.5
+      - name: Deploy to cPanel via FTP
+        uses: appleboy/ftp-action@v0.2.0
         with:
-          host: ${{ secrets.CPANEL_HOST }}   # The IP/hostname of your server
-          username: ${{ secrets.CPANEL_USER }}  # Your cPanel username
-          password: ${{ secrets.CPANEL_PASS }}  # Your cPanel password
-          port: 22  # Default SSH port
-          script: |
-            # Remove existing files in the target directory
-            rm -rf /home/njfhditm/portal.crechespots.co.za/*
-
-            # Copy the new build to the server
-            mkdir -p /home/njfhditm/portal.crechespots.co.za/
-            cp -r ./build/* /home/njfhditm/portal.crechespots.co.za/
+          host: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          port: ${{ secrets.FTP_PORT }}
+          local_dir: build  # Upload from the "build" folder
+          remote_dir: /public_html/  # Change this if your website is hosted elsewhere
+          delete: true  # Remove old files before uploading new ones
