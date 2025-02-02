@@ -3,9 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Editor } from "@/components/help/Editor";
 
 type HelpCategory = "documentation" | "faq" | "tutorial";
 
@@ -76,13 +76,7 @@ const CreateContent = () => {
 
       <div className="space-y-2">
         <label className="text-sm font-medium">Content</label>
-        <Textarea
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-          placeholder="Enter content"
-          required
-          className="min-h-[200px]"
-        />
+        <Editor content={content} onChange={setContent} />
       </div>
 
       <Button type="submit">Create Content</Button>

@@ -1,14 +1,18 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Editor } from "@/components/help/Editor";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
+type HelpCategory = "documentation" | "faq" | "tutorial";
 
 const EditContent = () => {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
+  const [category, setCategory] = useState<HelpCategory>("documentation");
   const navigate = useNavigate();
   const { id } = useParams();
   const { toast } = useToast();
@@ -32,6 +36,7 @@ const EditContent = () => {
     if (data) {
       setTitle(data.title);
       setContent(data.content);
+      setCategory(data.category);
     }
   };
 
@@ -54,6 +59,7 @@ const EditContent = () => {
       .update({
         title,
         content,
+        category,
         updated_by: user.id,
       })
       .eq('id', id);
@@ -81,15 +87,34 @@ const EditContent = () => {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        <div>
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Title</label>
           <Input
-            placeholder="Title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             required
           />
         </div>
-        <Editor content={content} onChange={setContent} />
+
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Category</label>
+          <Select value={category} onValueChange={(value: HelpCategory) => setCategory(value)}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select category" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="documentation">Documentation</SelectItem>
+              <SelectItem value="faq">FAQ</SelectItem>
+              <SelectItem value="tutorial">Tutorial</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Content</label>
+          <Editor content={content} onChange={setContent} />
+        </div>
+
         <div className="flex justify-end gap-4">
           <Button variant="outline" onClick={() => navigate(-1)}>
             Cancel
