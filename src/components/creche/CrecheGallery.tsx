@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,7 +23,12 @@ export const CrecheGallery = ({ crecheId }: CrecheGalleryProps) => {
   const [images, setImages] = useState<GalleryImage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
+  const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null);
   const { toast } = useToast();
+
+  useEffect(() => {
+    loadGalleryImages();
+  }, [crecheId]);
 
   const loadGalleryImages = async () => {
     try {
@@ -47,51 +52,61 @@ export const CrecheGallery = ({ crecheId }: CrecheGalleryProps) => {
     }
   };
 
-  useState(() => {
-    loadGalleryImages();
-  }, [crecheId]);
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSelectedFiles(event.target.files);
+  };
 
-  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    setIsUploading(true);
-    try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${crecheId}-${Date.now()}.${fileExt}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('creche-gallery')
-        .upload(fileName, file);
-
-      if (uploadError) throw uploadError;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('creche-gallery')
-        .getPublicUrl(fileName);
-
-      const { error: dbError } = await supabase
-        .from('creche_gallery')
-        .insert({
-          creche_id: crecheId,
-          image_url: publicUrl,
-          order_index: images.length
-        });
-
-      if (dbError) throw dbError;
-
-      toast({
-        title: "Success",
-        description: "Image uploaded successfully",
-      });
-
-      loadGalleryImages();
-    } catch (error) {
-      console.error('Error uploading image:', error);
+  const handleUpload = async () => {
+    if (!selectedFiles || selectedFiles.length === 0) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to upload image",
+        description: "Please select files to upload",
+      });
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      for (let i = 0; i < selectedFiles.length; i++) {
+        const file = selectedFiles[i];
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${crecheId}-${Date.now()}-${i}.${fileExt}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('creche-gallery')
+          .upload(fileName, file);
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('creche-gallery')
+          .getPublicUrl(fileName);
+
+        const { error: dbError } = await supabase
+          .from('creche_gallery')
+          .insert({
+            creche_id: crecheId,
+            image_url: publicUrl,
+            order_index: images.length + i
+          });
+
+        if (dbError) throw dbError;
+      }
+
+      toast({
+        title: "Success",
+        description: "Images uploaded successfully",
+      });
+
+      setSelectedFiles(null);
+      loadGalleryImages();
+    } catch (error) {
+      console.error('Error uploading images:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to upload images",
       });
     } finally {
       setIsUploading(false);
@@ -166,23 +181,27 @@ export const CrecheGallery = ({ crecheId }: CrecheGalleryProps) => {
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
           <span>Gallery</span>
-          <label className="cursor-pointer">
+          <div className="flex items-center gap-4">
             <Input
               type="file"
               accept="image/*"
-              className="hidden"
-              onChange={handleImageUpload}
-              disabled={isUploading}
+              multiple
+              onChange={handleFileSelect}
+              className="max-w-[300px]"
             />
-            <Button variant="outline" disabled={isUploading}>
+            <Button 
+              variant="outline" 
+              onClick={handleUpload}
+              disabled={isUploading || !selectedFiles}
+            >
               {isUploading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
               ) : (
-                <Upload className="h-4 w-4" />
+                <Upload className="h-4 w-4 mr-2" />
               )}
-              <span className="ml-2">Upload Image</span>
+              Upload Images
             </Button>
-          </label>
+          </div>
         </CardTitle>
       </CardHeader>
       <CardContent>
