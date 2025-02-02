@@ -156,13 +156,13 @@ const Dashboard = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center space-x-4 bg-white rounded-lg p-4 shadow-sm">
+      <div className="flex items-center space-x-4 rounded-lg p-4 shadow-sm">
         <img
           src="/lovable-uploads/b36d0e6b-5fa8-43e2-b837-5d0b3de9e849.png"
           alt="Creche Logo"
           className="w-16 h-16"
         />
-        <h1 className="text-3xl font-bold text-gray-900">
+        <h1 className="text-3xl font-bold 0">
           {crecheData?.name || "Loading..."}
         </h1>
       </div>
