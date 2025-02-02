@@ -28,6 +28,7 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [crecheData, setCrecheData] = useState(null);
+  const [isAuthorized, setIsAuthorized] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState({
     dailyFee: "",
@@ -39,76 +40,54 @@ const Dashboard = () => {
   // Load all dashboard data in one function
   const loadDashboardData = async () => {
     try {
-      // Check for cached data
-      const cachedData = localStorage.getItem('dashboardData');
-      if (cachedData) {
-        const { crecheData, upcomingEvents } = JSON.parse(cachedData);
-        setCrecheData(crecheData);
-        setUpcomingEvents(upcomingEvents);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setIsAuthorized(false);
         return;
       }
 
-      // Fetch authenticated user
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      // Fetch user creche data
       const { data: userCreches, error: userCrecheError } = await supabase
-        .from('user_creche')
-        .select('creche_id')
-        .eq('user_id', user.id);
+        .from("user_creche")
+        .select("creche_id")
+        .eq("user_id", user.id);
 
-      if (userCrecheError) throw userCrecheError;
-
-      if (userCreches && userCreches.length > 0) {
-        const firstCrecheId = userCreches[0].creche_id;
-
-        // Fetch creche details
-        const { data: creche, error: crecheError } = await supabase
-          .from('creches')
-          .select('*')
-          .eq('id', firstCrecheId)
-          .single();
-
-        if (crecheError) throw crecheError;
-
-        // Set creche data and edit form
-        setCrecheData(creche);
-        setEditForm({
-          dailyFee: creche.price?.toString() || "",
-          monthlyFee: creche.monthly_price?.toString() || "",
-          weeklyFee: creche.weekly_price?.toString() || "",
-        });
-
-        // Fetch upcoming events
-        const { data: events, error: eventsError } = await supabase
-          .from('events')
-          .select('*')
-          .gte('start', new Date().toISOString())
-          .order('start', { ascending: true })
-          .limit(5);
-
-        if (eventsError) throw eventsError;
-
-        // Cache data
-        localStorage.setItem('dashboardData', JSON.stringify({ crecheData: creche, upcomingEvents: events || [] }));
-        setUpcomingEvents(events || []);
-      } else {
-        toast({
-          variant: "destructive",
-          title: "No creche assigned",
-          description: "You are not assigned to any creche",
-        });
+      if (userCrecheError || !userCreches?.length) {
+        setIsAuthorized(false);
+        toast({ variant: "destructive", title: "Access Denied", description: "You are not assigned to any creche." });
+        return;
       }
-    } catch (error) {
-      console.error('Error loading dashboard data:', error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to load dashboard data",
+
+      const assignedCrecheId = userCreches[0].creche_id;
+      const { data: creche, error: crecheError } = await supabase
+        .from("creches")
+        .select("*")
+        .eq("id", assignedCrecheId)
+        .single();
+
+      if (crecheError) throw crecheError;
+      setCrecheData(creche);
+      setEditForm({
+        dailyFee: creche.price?.toString() || "",
+        monthlyFee: creche.monthly_price?.toString() || "",
+        weeklyFee: creche.weekly_price?.toString() || "",
       });
+
+      const { data: events, error: eventsError } = await supabase
+        .from("events")
+        .select("*")
+        .eq("creche_id", assignedCrecheId)
+        .gte("start", new Date().toISOString())
+        .order("start", { ascending: true })
+        .limit(5);
+
+      if (eventsError) throw eventsError;
+      setUpcomingEvents(events || []);
+    } catch (error) {
+      console.error("Error loading dashboard data:", error);
+      toast({ variant: "destructive", title: "Error", description: "Failed to load dashboard data." });
     }
   };
+
 
   // Load data on component mount
   useEffect(() => {
