@@ -33,5 +33,5 @@ jobs:
           protocol: ftp
           port: ${{ secrets.FTP_PORT }}
           local-dir: dist/  # This is your build directory
-          server-dir: /home/njfhditm/portal.crechespots.co.za/  # Change this if needed
+          server-dir: /portal.crechespots.co.za/  # Change this if needed
           cleanup: true  # Remove old files before uploading
