@@ -65,6 +65,7 @@ const Applications = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const { toast } = useToast();
   const [applicationNotes, setApplicationNotes] = useState<ApplicationNote[]>([]);
+  const [userCreche, setUserCreche] = useState<string | null>(null);
 
   // New application form state
   const [newApplication, setNewApplication] = useState({
@@ -78,10 +79,31 @@ const Applications = () => {
     source: "dashboard",
   });
 
+  // Fetch user's creche
+  useEffect(() => {
+    const getUserCreche = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: userCrecheData } = await supabase
+          .from('user_creche')
+          .select('creche_id')
+          .eq('user_id', user.id)
+          .single();
+        
+        if (userCrecheData) {
+          setUserCreche(userCrecheData.creche_id);
+          console.log("User's creche:", userCrecheData.creche_id);
+        }
+      }
+    };
+
+    getUserCreche();
+  }, []);
+
   // Fetch applications on component mount
   useEffect(() => {
     fetchApplications();
-  }, []);
+  }, [userCreche]);
 
   // Fetch applications with caching
   const fetchApplications = async () => {
@@ -89,6 +111,7 @@ const Applications = () => {
       const { data: rawData, error } = await supabase
         .from("applications")
         .select("*")
+        .eq('creche_id', userCreche)
         .order("created_at", { ascending: false });
 
       if (error) throw error;

@@ -1,13 +1,14 @@
 import { useEffect, useState } from "react";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Mail, Search, Plus, Eye } from "lucide-react";
+import { Mail, Search, Plus, Eye, UserCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
+import { AttendanceSheet } from "@/components/students/AttendanceSheet";
 
 interface Student {
   id: string;
@@ -28,9 +29,9 @@ const Students = () => {
   const [userCreche, setUserCreche] = useState<string | null>(null);
   const { toast } = useToast();
   const [currentPage, setCurrentPage] = useState(1);
+  const [isAttendanceOpen, setIsAttendanceOpen] = useState(false);
   const ITEMS_PER_PAGE = 10;
 
-  // New student form state
   const [newStudent, setNewStudent] = useState({
     name: "",
     parent_name: "",
@@ -51,11 +52,12 @@ const Students = () => {
         const { data: userCrecheData } = await supabase
           .from('user_creche')
           .select('creche_id')
-          .eq('user_id', user.id);
+          .eq('user_id', user.id)
+          .single();
         
-        if (userCrecheData && userCrecheData.length > 0) {
-          setUserCreche(userCrecheData[0].creche_id);
-          console.log("User's creche:", userCrecheData[0].creche_id);
+        if (userCrecheData) {
+          setUserCreche(userCrecheData.creche_id);
+          console.log("User's creche:", userCrecheData.creche_id);
         }
       }
     };
@@ -85,6 +87,15 @@ const Students = () => {
   });
 
   const handleCreateStudent = async () => {
+    if (!userCreche) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "No creche assigned"
+      });
+      return;
+    }
+
     try {
       const { data, error } = await supabase
         .from('students')
@@ -128,17 +139,15 @@ const Students = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-4xl font-bold text-primary">Students</h1>
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button className="gap-2">
-              <Plus className="h-4 w-4" />
-              New Student
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
-            <DialogHeader>
-              <DialogTitle>Add New Student</DialogTitle>
-            </DialogHeader>
+        <div className="flex gap-2">
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button className="gap-2">
+                <Plus className="h-4 w-4" />
+                New Student
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
             <div className="grid gap-4 py-4">
               <div className="grid gap-2">
                 <Label htmlFor="name">Student Name</Label>
@@ -244,8 +253,16 @@ const Students = () => {
               </div>
             </div>
             <Button onClick={handleCreateStudent}>Create Student</Button>
-          </DialogContent>
-        </Dialog>
+            </DialogContent>
+          </Dialog>
+          <Button 
+            variant="outline"
+            onClick={() => setIsAttendanceOpen(true)}
+          >
+            <UserCheck className="h-4 w-4 mr-2" />
+            Take Attendance
+          </Button>
+        </div>
       </div>
       
       <div className="flex flex-col lg:flex-row gap-6">
@@ -344,6 +361,12 @@ const Students = () => {
           </Card>
         )}
       </div>
+
+      <AttendanceSheet
+        students={students}
+        isOpen={isAttendanceOpen}
+        onClose={() => setIsAttendanceOpen(false)}
+      />
     </div>
   );
 };
