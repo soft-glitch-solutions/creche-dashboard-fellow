@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Mail, Phone, Clock, Users, Building2, GraduationCap, Edit, Save, Upload } from "lucide-react";
+import { Mail, Phone, Clock, Users, Building2, GraduationCap, Edit, Save, Upload, Facebook, Instagram, MessageCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -28,9 +28,11 @@ const CrecheProfile = () => {
   const [editMode, setEditMode] = useState<{
     basic: boolean;
     additional: boolean;
+    social: boolean
   }>({
     basic: false,
     additional: false,
+    social: false,
   });
   const [isUploading, setIsUploading] = useState(false);
   const { id } = useParams();
@@ -68,6 +70,8 @@ const CrecheProfile = () => {
       });
     }
   };
+
+  
 
   const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -111,7 +115,7 @@ const CrecheProfile = () => {
     }
   };
 
-  const handleUpdate = async (section: 'basic' | 'additional') => {
+  const handleUpdate = async (section: 'basic' | 'additional' | 'social') => {
     try {
       const { error } = await supabase
         .from('creches')
@@ -236,7 +240,7 @@ const CrecheProfile = () => {
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-lg md:text-xl text-primary flex items-center gap-2">
               <Users className="h-5 w-5" />
-              Additional Information
+              Financial Information
             </CardTitle>
             {!editMode.additional ? (
               <Button variant="ghost" size="sm" onClick={() => setEditMode(prev => ({ ...prev, additional: true }))}>
@@ -314,6 +318,51 @@ const CrecheProfile = () => {
             )}
           </CardContent>
         </Card>
+
+        <Card className="border-2 border-primary/20">
+        <CardHeader className="flex justify-between">
+          <CardTitle className="text-lg text-primary flex items-center gap-2">
+            <Instagram className="h-5 w-5" /> Social Media
+          </CardTitle>
+          {!editMode.social ? (
+            <Button variant="ghost" size="sm" onClick={() => setEditMode((prev) => ({ ...prev, social: true }))}>
+              <Edit className="h-4 w-4" />
+            </Button>
+          ) : (
+            <Button variant="ghost" size="sm" onClick={() => handleUpdate("social")}>
+              <Save className="h-4 w-4" />
+            </Button>
+          )}
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {editMode.social ? (
+              [
+                { label: "Facebook", icon: <Facebook className="h-4 w-4" />, field: "facebook_url" },
+                { label: "Instagram", icon: <Instagram className="h-4 w-4" />, field: "instagram_url" },
+                { label: "WhatsApp", icon: <MessageCircle className="h-4 w-4" />, field: "whatsapp_number" },
+              ].map(({ label, icon, field }) => (
+                <div key={field} className="space-y-2">
+                  <label className="text-sm text-gray-500 flex items-center gap-2">{icon} {label}</label>
+                  <Input value={crecheData[field] || ""} onChange={(e) => handleInputChange(field, e.target.value)} placeholder={`${label} URL`} />
+                </div>
+              ))
+            ) : (
+              <>
+                <div className="flex items-center gap-2 text-sm">
+                  <Facebook className="h-4 w-4 text-blue-500" /> {crecheData.facebook_url || "Not provided"}
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <Instagram className="h-4 w-4 text-pink-500" /> {crecheData.instagram_url || "Not provided"}
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <MessageCircle className="h-4 w-4 text-green-500" /> {crecheData.whatsapp_number || "Not provided"}
+                </div>
+              </>
+            )}
+          </div>
+        </CardContent>
+      </Card>
 
         <Card className="md:col-span-2 border-2 border-accent/20">
           <CardHeader>
