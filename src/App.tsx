@@ -71,6 +71,9 @@ const App = () => (
                 <Route path="help/documentation/view/:id" element={<ViewContent />} />
                 <Route path="help/documentation/edit/:id" element={<EditContent />} />
                 <Route path="help/tutorials" element={<Tutorials />} />
+                <Route path="help/tutorials/new" element={<CreateContent />} />
+                <Route path="help/tutorials/view/:id" element={<ViewContent />} />
+                <Route path="help/tutorials/edit/:id" element={<EditContent />} />
                 <Route path="help/support-chat" element={<SupportChat />} />
                 <Route path="help/faqs" element={<Faqs />} />
                 <Route path="admin/users" element={<UserManagement />} />

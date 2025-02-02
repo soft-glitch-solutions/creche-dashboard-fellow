@@ -143,7 +143,7 @@ const CrecheProfile = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between bg-white rounded-lg p-4 shadow-sm">
+      <div className="flex items-center justify-between rounded-lg p-4 shadow-sm">
         <div className="flex items-center space-x-4">
           <div className="relative">
             <img
@@ -159,10 +159,10 @@ const CrecheProfile = () => {
                 onChange={handleLogoUpload}
                 disabled={isUploading}
               />
-              <Upload className="h-5 w-5 text-gray-500 hover:text-gray-700" />
+              <Upload className="h-5 w-5  hover:text-gray-700" />
             </label>
           </div>
-          <h1 className="text-3xl font-bold text-gray-900">{crecheData.name}</h1>
+          <h1 className="text-3xl font-bold ">{crecheData.name}</h1>
         </div>
       </div>
 
@@ -324,21 +324,21 @@ const CrecheProfile = () => {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+              <div className="flex items-center justify-between p-4  rounded-lg">
                 <span className="flex items-center gap-2">
                   <GraduationCap className="h-4 w-4" />
                   Grade R
                 </span>
                 <span className="font-bold">15</span>
               </div>
-              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+              <div className="flex items-center justify-between p-4  rounded-lg">
                 <span className="flex items-center gap-2">
                   <Building2 className="h-4 w-4" />
                   Grade 0
                 </span>
                 <span className="font-bold">12</span>
               </div>
-              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+              <div className="flex items-center justify-between p-4  rounded-lg">
                 <span className="flex items-center gap-2">
                   <Clock className="h-4 w-4" />
                   After-care

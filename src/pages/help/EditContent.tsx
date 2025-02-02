@@ -11,8 +11,9 @@ type HelpCategory = "documentation" | "faq" | "tutorial";
 
 const EditContent = () => {
   const [title, setTitle] = useState("");
-  const [content, setContent] = useState("");
+  const [content, setContent] = useState(""); // This will store the initial content for the form
   const [category, setCategory] = useState<HelpCategory>("documentation");
+  const [editorContent, setEditorContent] = useState(""); // This will store the content as edited
   const navigate = useNavigate();
   const { id } = useParams();
   const { toast } = useToast();
@@ -35,16 +36,18 @@ const EditContent = () => {
 
     if (data) {
       setTitle(data.title);
-      setContent(data.content);
+      setContent(data.content); // initial content value for form
+      setEditorContent(data.content); // initial content for the editor
       setCategory(data.category);
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log("Form submitted");
 
     const { data: { user } } = await supabase.auth.getUser();
-    
+
     if (!user) {
       toast({
         title: "Error",
@@ -58,7 +61,7 @@ const EditContent = () => {
       .from('help_content')
       .update({
         title,
-        content,
+        content: editorContent, // Use editorContent for final content
         category,
         updated_by: user.id,
       })
@@ -80,8 +83,13 @@ const EditContent = () => {
     navigate(-1);
   };
 
+  // Wrap the editor section with an event handler that prevents closing when interacting
+  const handleEditorClick = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent click from propagating upwards
+  };
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" onClick={handleEditorClick}>
       <div className="flex justify-between items-center">
         <h1 className="text-4xl font-bold text-primary">Edit Content</h1>
       </div>
@@ -112,7 +120,8 @@ const EditContent = () => {
 
         <div className="space-y-2">
           <label className="text-sm font-medium">Content</label>
-          <Editor content={content} onChange={setContent} />
+          {/* Pass the editorContent state to Editor and handle updates */}
+          <Editor content={editorContent} onChange={setEditorContent} editable={true} />
         </div>
 
         <div className="flex justify-end gap-4">
@@ -125,5 +134,6 @@ const EditContent = () => {
     </div>
   );
 };
+
 
 export default EditContent;

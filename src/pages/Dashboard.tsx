@@ -171,10 +171,20 @@ const Dashboard = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
         {/* Applications Card */}
         <Card className="border-2 border-secondary/20">
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between">
+
             <CardTitle className="text-lg md:text-xl text-secondary">
               My Applications
             </CardTitle>
+            <div className="flex gap-2">
+            <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => navigate(`/dashboard/applications`)}
+                >
+                  <Eye className="h-4 w-4" />
+            </Button>
+            </div>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between">
@@ -289,8 +299,17 @@ const Dashboard = () => {
 
         {/* Students Card */}
         <Card className="border-2 border-accent/20">
-          <CardHeader>
+          <CardHeader  className="flex flex-row items-center justify-between">
             <CardTitle className="text-lg md:text-xl text-accent">My Students</CardTitle>
+            <div className="flex gap-2">
+            <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => navigate(`/dashboard/students`)}
+                >
+                  <Eye className="h-4 w-4" />
+            </Button>
+            </div>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between">
