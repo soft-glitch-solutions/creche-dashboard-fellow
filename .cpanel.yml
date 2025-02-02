@@ -10,8 +10,11 @@ deployment:
       npm run build
 
     deploy: |
-      # Move the build folder content to the public_html directory
-      cp -r build/* /home/njfhditm/portal.crechespots.co.za/
+          # Remove existing files in the target directory
+          rm -rf /home/njfhditm/portal.crechespots.co.za/*
+
+          # Move the build folder content to the public_html directory
+          cp -r build/* /home/njfhditm/portal.crechespots.co.za/
       
 runtime:
   nodejs: '16'  # Specify the Node.js version you need (ensure it's available on cPanel)
