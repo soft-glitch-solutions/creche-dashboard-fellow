@@ -3,7 +3,7 @@ name: Deploy via FTP
 on:
   push:
     branches:
-      - main  # Deploy only when pushing to the main branch
+      - main  # Deploy when pushing to the main branch
 
 jobs:
   deploy:
@@ -25,12 +25,13 @@ jobs:
         run: npm run build
 
       - name: Deploy to cPanel via FTP
-        uses: appleboy/ftp-action@v0.2.0
+        uses: SamKirkland/FTP-Deploy-Action@v4
         with:
-          host: ${{ secrets.FTP_SERVER }}
+          server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ftp
           port: ${{ secrets.FTP_PORT }}
-          local_dir: build  # Upload from the "build" folder
-          remote_dir: /public_html/  # Change this if your website is hosted elsewhere
-          delete: true  # Remove old files before uploading new ones
+          local-dir: dist/  # This is your build directory
+          server-dir: /home/njfhditm/portal.crechespots.co.za/  # Change this if needed
+          cleanup: true  # Remove old files before uploading
