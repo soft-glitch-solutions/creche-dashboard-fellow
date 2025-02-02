@@ -141,7 +141,6 @@ const Login = () => {
                   onChange={(e) => setEmail(e.target.value)}
                   required
                   disabled={isLoading}
-                  className="bg-white"
                 />
               </div>
 
@@ -156,7 +155,6 @@ const Login = () => {
                     onChange={(e) => setPassword(e.target.value)}
                     required
                     disabled={isLoading}
-                    className="bg-white pr-10"
                   />
                   <button
                     type="button"
