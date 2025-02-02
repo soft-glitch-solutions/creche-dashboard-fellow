@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { CrecheGallery } from "@/components/creche/CrecheGallery";
 import type { Creche, CrechePlan, CrecheFeatures } from "@/types/creche";
 
 const defaultCreche: Creche = {
@@ -348,6 +349,9 @@ const CrecheProfile = () => {
           </CardContent>
         </Card>
       </div>
+
+      <CrecheGallery crecheId={id} />
+
     </div>
   );
 };

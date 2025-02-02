@@ -290,6 +290,44 @@ export type Database = {
           },
         ]
       }
+      creche_gallery: {
+        Row: {
+          caption: string | null
+          created_at: string | null
+          creche_id: string
+          id: string
+          image_url: string
+          order_index: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          caption?: string | null
+          created_at?: string | null
+          creche_id: string
+          id?: string
+          image_url: string
+          order_index?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          caption?: string | null
+          created_at?: string | null
+          creche_id?: string
+          id?: string
+          image_url?: string
+          order_index?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "creche_gallery_creche_id_fkey"
+            columns: ["creche_id"]
+            isOneToOne: false
+            referencedRelation: "creches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       creche_users: {
         Row: {
           creche_id: number
