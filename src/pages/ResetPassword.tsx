@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -10,10 +10,11 @@ const ResetPassword = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const location = useLocation(); // Get current URL
 
   useEffect(() => {
-    // Extract token before it gets lost
-    const queryParams = new URLSearchParams(window.location.hash.substring(1));
+    // Extract access token from URL hash
+    const queryParams = new URLSearchParams(location.hash.substring(1));
     const accessToken = queryParams.get("access_token");
 
     if (accessToken) {
@@ -29,7 +30,7 @@ const ResetPassword = () => {
         navigate("/login");
       }
     }
-  }, [navigate, toast]);
+  }, [location, navigate, toast]);
 
   const handlePasswordReset = async (e) => {
     e.preventDefault();
