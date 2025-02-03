@@ -44,11 +44,8 @@ const ResetPassword = () => {
     }
 
     try {
-      // Set the session with the access token
-      const { error: sessionError } = await supabase.auth.setSession({
-        access_token: accessToken,
-        refresh_token: "",
-      });
+      // Exchange the token for a session
+      const { data, error: sessionError } = await supabase.auth.exchangeCodeForSession(accessToken);
 
       if (sessionError) {
         toast({
@@ -77,6 +74,8 @@ const ResetPassword = () => {
         title: "Password Reset Successfully",
         description: "You can now log in with your new password.",
       });
+
+      // Redirect to login after successful password reset
       navigate("/login");
     } catch (error) {
       console.error("Error resetting password:", error);
