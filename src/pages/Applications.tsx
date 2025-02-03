@@ -115,15 +115,17 @@ const Applications = () => {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-
-      // Transform the data to ensure lifecycle_stage is of type ApplicationLifecycleStage
-      const transformedData = (rawData || []).map(app => ({
-        ...app,
-        lifecycle_stage: (app.lifecycle_stage || "New") as ApplicationLifecycleStage
-      }));
-
-      setApplications(transformedData);
-      localStorage.setItem("applications", JSON.stringify(transformedData));
+      console.log("Loaded applications data:", rawData);
+      
+      if (rawData) {
+        // Transform the data to ensure lifecycle_stage is of type ApplicationLifecycleStage
+        const transformedData: Application[] = rawData.map(app => ({
+          ...app,
+          lifecycle_stage: (app.lifecycle_stage || "New") as ApplicationLifecycleStage
+        }));
+        setApplications(transformedData);
+        localStorage.setItem("applications", JSON.stringify(transformedData));
+      }
     } catch (error) {
       console.error("Error fetching applications:", error);
       toast({

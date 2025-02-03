@@ -1,3 +1,14 @@
+export type CrechePlan = 'free' | 'basic' | 'pro';
+
+export interface CrecheFeatures {
+  event_calendar: boolean;
+  staff_management: boolean;
+  reports_analytics: boolean;
+  financial_tracking: boolean;
+  attendance_tracking: boolean;
+  parent_communication: boolean;
+}
+
 export interface Creche {
   id: string;
   name: string;
@@ -25,13 +36,6 @@ export interface Creche {
   longitude: number | null;
   monthly_price: number | null;
   weekly_price: number | null;
-  plan: string | null;
-  features: {
-    event_calendar: boolean;
-    staff_management: boolean;
-    reports_analytics: boolean;
-    financial_tracking: boolean;
-    attendance_tracking: boolean;
-    parent_communication: boolean;
-  } | null;
+  plan: CrechePlan;
+  features: CrecheFeatures;
 }

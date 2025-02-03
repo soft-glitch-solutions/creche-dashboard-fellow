@@ -9,9 +9,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Settings, Users, DollarSign, Edit, Save, CheckSquare, Square } from "lucide-react";
-import type { Creche, CrechePlan, CrecheFeatures } from "@/types/creche";
+import type { Creche } from "@/types/creche";
 
-const defaultFeatures: CrecheFeatures = {
+const defaultFeatures = {
   staff_management: false,
   attendance_tracking: false,
   parent_communication: false,
@@ -438,3 +438,4 @@ const CrecheDetails = () => {
 };
 
 export default CrecheDetails;
+

@@ -7,12 +7,36 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { CrecheGallery } from "@/components/creche/CrecheGallery";
-import type { Creche, CrechePlan, CrecheFeatures } from "@/types/creche";
+import type { Creche } from "@/types/creche";
 
 const defaultCreche: Creche = {
   id: "",
   name: "",
-  plan: "free" as CrechePlan,
+  address: null,
+  phone_number: null,
+  email: null,
+  capacity: null,
+  operating_hours: null,
+  website_url: null,
+  description: null,
+  registered: null,
+  facebook_url: null,
+  twitter_url: null,
+  instagram_url: null,
+  linkedin_url: null,
+  whatsapp_number: null,
+  telegram_number: null,
+  created_at: null,
+  updated_at: null,
+  price: null,
+  header_image: null,
+  website: null,
+  logo: null,
+  latitude: null,
+  longitude: null,
+  monthly_price: null,
+  weekly_price: null,
+  plan: "free",
   features: {
     event_calendar: false,
     staff_management: false,
