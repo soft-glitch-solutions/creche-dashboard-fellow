@@ -41,7 +41,10 @@ const Users = () => {
         .from("users")
         .select(`
           *,
-          role:roles(role_name)
+          roles!inner (
+            id,
+            role_name
+          )
         `)
         .in("id", (
           await supabase
@@ -52,7 +55,16 @@ const Users = () => {
 
       if (error) throw error;
 
-      setUsers(crecheUsers as User[]);
+      // Transform the data to match the User type
+      const transformedUsers: User[] = crecheUsers.map(user => ({
+        ...user,
+        role: {
+          id: user.roles.id,
+          role_name: user.roles.role_name
+        }
+      }));
+
+      setUsers(transformedUsers);
     } catch (error) {
       console.error("Error loading users:", error);
       toast({

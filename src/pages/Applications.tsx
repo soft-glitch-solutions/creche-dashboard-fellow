@@ -574,7 +574,13 @@ const Applications = () => {
                                       .from("application_notes")
                                       .select(`
                                         *,
-                                        user:users(*)
+                                        users!inner (
+                                          id,
+                                          email,
+                                          role_id,
+                                          first_name,
+                                          last_name
+                                        )
                                       `)
                                       .eq("application_id", selectedApplication.id)
                                       .order("created_at", { ascending: false });
