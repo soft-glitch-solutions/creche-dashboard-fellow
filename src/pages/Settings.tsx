@@ -1,23 +1,35 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Bell, Lock, User } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Users, Building2, Link, Settings as SettingsIcon } from "lucide-react";
 
 const Settings = () => {
+  const navigate = useNavigate();
+
   const settingsSections = [
     {
-      title: "Profile Settings",
-      icon: User,
-      description: "Update your profile information and preferences",
+      title: "User Access",
+      icon: Users,
+      description: "View and manage users assigned to your creche",
+      action: () => navigate("/dashboard/users"),
     },
     {
-      title: "Security",
-      icon: Lock,
-      description: "Manage your password and security settings",
+      title: "Creche Profile",
+      icon: Building2,
+      description: "View and update your creche profile information",
+      action: () => navigate("/dashboard/creche"),
     },
     {
-      title: "Notifications",
-      icon: Bell,
-      description: "Configure your notification preferences",
+      title: "Integrations",
+      icon: Link,
+      description: "Set up and manage third-party integrations",
+      action: () => navigate("/dashboard/integrations"),
+    },
+    {
+      title: "General Settings",
+      icon: SettingsIcon,
+      description: "Configure general application settings",
+      action: () => navigate("/dashboard/settings/general"),
     },
   ];
 
@@ -26,7 +38,7 @@ const Settings = () => {
       <div>
         <h2 className="text-3xl font-bold tracking-tight">Settings</h2>
         <p className="text-muted-foreground">
-          Manage your account settings and preferences
+          Manage your creche settings and preferences
         </p>
       </div>
 
@@ -41,7 +53,9 @@ const Settings = () => {
                   {section.description}
                 </p>
               </div>
-              <Button variant="outline">Configure</Button>
+              <Button variant="outline" onClick={section.action}>
+                Configure
+              </Button>
             </div>
           </Card>
         ))}
