@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Search, Download, Plus, Users, Filter } from "lucide-react";
+import { Search, Download, Plus, Users, Filter , BadgeCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
@@ -12,6 +12,7 @@ import { StudentProfileDrawer } from "@/components/students/StudentProfileDrawer
 import { ManageClassesDialog } from "@/components/students/ManageClassesDialog";
 import { AttendanceSheet } from "@/components/students/AttendanceSheet";
 import * as XLSX from 'xlsx';
+import { ManageAttendanceDialog } from "@/components/students/ManageAttendanceDialog";
 
 interface Student {
   id: string;
@@ -33,6 +34,7 @@ const Students = () => {
   const { toast } = useToast();
   const [isProfileDrawerOpen, setIsProfileDrawerOpen] = useState(false);
   const [isClassesDialogOpen, setIsClassesDialogOpen] = useState(false);
+  const [isAttendanceDialogOpen, setisAttendanceDialogOpen] = useState(false);
   const [isAttendanceOpen, setIsAttendanceOpen] = useState(false);
   const [filters, setFilters] = useState({
     class: "",
@@ -215,6 +217,14 @@ const Students = () => {
             <Users className="h-4 w-4" />
             Manage Classes
           </Button>
+          <Button 
+            variant="outline" 
+            onClick={() => setisAttendanceDialogOpen(true)}
+            className="gap-2"
+          >
+            <BadgeCheck className="h-4 w-4" />
+            Manage Attendance
+          </Button>
           <ImportStudentsDialog onImport={handleImportStudents} />
           <Button variant="outline" onClick={handleExportStudents} className="gap-2">
             <Download className="h-4 w-4" />
@@ -282,10 +292,6 @@ const Students = () => {
               setSelectedStudent(student);
               setIsProfileDrawerOpen(true);
             }}
-            onView={(student) => {
-              setSelectedStudent(student);
-              setIsProfileDrawerOpen(true);
-            }}
           />
         )}
       </div>
@@ -300,6 +306,11 @@ const Students = () => {
       <ManageClassesDialog
         open={isClassesDialogOpen}
         onOpenChange={setIsClassesDialogOpen}
+      />
+
+      <ManageAttendanceDialog
+        open={isAttendanceDialogOpen}
+        onOpenChange={setisAttendanceDialogOpen}
       />
 
       <AttendanceSheet
