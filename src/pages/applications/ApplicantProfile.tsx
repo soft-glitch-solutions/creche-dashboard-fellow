@@ -9,7 +9,7 @@ import { Pencil, ArrowLeft } from "lucide-react";
 
 interface Applicant {
   id: string;
-  name: string;
+  name: string | null;
   email: string | null;
   phone_number: string | null;
   address: string | null;
@@ -27,7 +27,7 @@ const ApplicantProfile = () => {
   useEffect(() => {
     const fetchApplicant = async () => {
       const { data, error } = await supabase
-        .from("applicants")
+        .from("applications")
         .select("*")
         .eq("id", id)
         .single();
@@ -44,6 +44,7 @@ const ApplicantProfile = () => {
     }
   }, [id]);
 
+  // Safety check for applicant data
   if (!applicant) {
     return <div className="text-center p-6">Loading applicant data...</div>;
   }
@@ -60,11 +61,11 @@ const ApplicantProfile = () => {
       <Card className="p-6 flex items-center gap-4">
         <Avatar className="h-20 w-20">
           <div className="bg-primary text-primary-foreground w-full h-full flex items-center justify-center text-2xl font-medium">
-            {applicant.name.charAt(0)}
+            {applicant.name ? applicant.name.charAt(0) : "?"}
           </div>
         </Avatar>
         <div className="flex-1">
-          <h1 className="text-2xl font-bold">{applicant.name}</h1>
+          <h1 className="text-2xl font-bold">{applicant.name || "No Name"}</h1>
           <p className="text-muted-foreground">{applicant.email || "No Email"}</p>
         </div>
         <Button variant="outline" className="gap-2">

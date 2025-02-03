@@ -1,113 +1,67 @@
-import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom"; // Navigate for back button
-import { Card } from "@/components/ui/card";
-import { Avatar } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { supabase } from "@/integrations/supabase/client";
-import { Pencil, ArrowLeft } from "lucide-react";
+import React from 'react';
+import { Eye, Pencil } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Avatar } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Student } from '@/types/student';
+import { useNavigate } from 'react-router-dom'; // 🔥 Import React Router's useNavigate
 
-interface Student {
-  id: string;
-  name: string;
-  class: string | null;
-  parent_name: string | null;
-  parent_email: string | null;
-  parent_phone_number: string | null;
-  address: string | null;
-  dob: string | null;
-  age: number | null;
+interface StudentListProps {
+  students: Student[];
+  onEdit: (student: Student) => void;
 }
 
-const StudentProfile = () => {
-  const { id } = useParams(); // Get student ID from URL
-  const navigate = useNavigate(); // For back navigation
-  const [student, setStudent] = useState<Student | null>(null);
-
-  useEffect(() => {
-    const fetchStudent = async () => {
-      const { data, error } = await supabase
-        .from("students")
-        .select("*")
-        .eq("id", id)
-        .single();
-
-      if (error) {
-        console.error("Error fetching student:", error);
-      } else {
-        setStudent(data);
-      }
-    };
-
-    if (id) {
-      fetchStudent();
-    }
-  }, [id]);
-
-  if (!student) {
-    return <div className="text-center p-6">Loading student data...</div>;
-  }
+export const StudentList = ({ students, onEdit }: StudentListProps) => {
+  const navigate = useNavigate(); // 🔥 Initialize React Router's navigation
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      {/* Back Button */}
-      <Button variant="outline" className="flex items-center gap-2" onClick={() => navigate(-1)}>
-        <ArrowLeft className="h-5 w-5" />
-        Back
-      </Button>
-
-      {/* Student Header */}
-      <Card className="p-6 flex items-center gap-4">
-        <Avatar className="h-20 w-20">
-          <div className="bg-primary text-primary-foreground w-full h-full flex items-center justify-center text-2xl font-medium">
-            {student.name.charAt(0)}
-          </div>
-        </Avatar>
-        <div className="flex-1">
-          <h1 className="text-2xl font-bold">{student.name}</h1>
-          <p className="text-muted-foreground">{student.class || "Unassigned"}</p>
+    <Card className="p-6">
+      <div className="space-y-4">
+        <div className="grid grid-cols-6 gap-4 text-sm font-medium text-muted-foreground">
+          <div>Student</div>
+          <div>Class</div>
+          <div>Parent</div>
+          <div>Contact</div>
+          <div>Status</div>
+          <div>Actions</div>
         </div>
-        <Button variant="outline" className="gap-2">
-          <Pencil className="h-4 w-4" />
-          Edit
-        </Button>
-      </Card>
 
-      {/* Tabs Section */}
-      <Tabs defaultValue="info">
-        <TabsList className="grid grid-cols-3 bg-muted p-1 rounded-lg">
-          <TabsTrigger value="info">Student Info</TabsTrigger>
-          <TabsTrigger value="documents">Documents</TabsTrigger>
-          <TabsTrigger value="attendance">Attendance</TabsTrigger>
-        </TabsList>
-
-        {/* Student Info Tab */}
-        <TabsContent value="info">
-          <Card className="p-6 space-y-4">
-            <div><strong>Email:</strong> {student.parent_email || "Not Provided"}</div>
-            <div><strong>Phone:</strong> {student.parent_phone_number || "Not Provided"}</div>
-            <div><strong>Address:</strong> {student.address || "Not Provided"}</div>
-            <div><strong>Birthday:</strong> {student.dob || "Not Provided"}</div>
-            <div><strong>Age:</strong> {student.age ? `${student.age} years` : "Not Provided"}</div>
-          </Card>
-        </TabsContent>
-
-        {/* Documents Tab */}
-        <TabsContent value="documents">
-          <Card className="p-6">
-            <p>📂 No documents uploaded yet.</p>
-          </Card>
-        </TabsContent>
-
-        {/* Attendance Tab */}
-        <TabsContent value="attendance">
-          <Card className="p-6">
-            <p>📅 Attendance records will be displayed here.</p>
-          </Card>
-        </TabsContent>
-      </Tabs>
-    </div>
+        {students.map((student) => (
+          <div
+            key={student.id}
+            className="grid grid-cols-6 gap-4 py-3 items-center border-b border-border/50 hover:bg-accent/5 rounded-lg px-2"
+          >
+            <div className="flex items-center gap-3">
+              <Avatar className="h-8 w-8">
+                <div className="bg-primary text-primary-foreground w-full h-full flex items-center justify-center text-sm font-medium">
+                  {student.name.charAt(0)}
+                </div>
+              </Avatar>
+              <span className="font-medium">{student.name}</span>
+            </div>
+            <div>
+              <Badge variant="outline">{student.class || 'Unassigned'}</Badge>
+            </div>
+            <div>{student.parent_name || 'Not specified'}</div>
+            <div>{student.parent_phone_number || 'Not provided'}</div>
+            <div>
+              <Badge variant="secondary">Active</Badge>
+            </div>
+            <div className="flex items-center gap-2">
+              {/* 🔥 Updated Eye Button: Navigates to /dashboard/student/{id} */}
+              <Button variant="ghost" size="icon" onClick={() => navigate(`/dashboard/students/${student.id}`)}>
+                <Eye className="h-4 w-4" />
+              </Button>
+              <Button variant="ghost" size="icon" onClick={() => onEdit(student)}>
+                <Pencil className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </Card>
   );
 };
 
-export default StudentProfile;
+export default StudentList;

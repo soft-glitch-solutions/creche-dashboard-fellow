@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, UserPlus, Grid, List, Eye, Link2, Trash2, X, UserCheck, Plus } from "lucide-react";
-import { useState, useEffect } from "react";
+import { ArrowRight, UserPlus, Grid, List, Eye, Link2, Trash2, X, UserCheck, Plus, Edit } from "lucide-react";
+import { useState, useEffect, ReactNode } from "react";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -36,6 +36,7 @@ import { debounce } from "lodash";
 import { ApplicationLifecycle } from "@/components/applications/ApplicationLifecycle";
 import { ApplicationNotes } from "@/components/applications/ApplicationNotes";
 import { ApplicationNote, ApplicationLifecycleStage } from "@/types/application";
+import { useNavigate } from 'react-router-dom';
 
 interface Application {
   source: ReactNode;
@@ -67,6 +68,7 @@ const Applications = () => {
   const { toast } = useToast();
   const [applicationNotes, setApplicationNotes] = useState<ApplicationNote[]>([]);
   const [userCreche, setUserCreche] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   // New application form state
   const [newApplication, setNewApplication] = useState({
@@ -483,7 +485,7 @@ const Applications = () => {
                               size="icon"
                               onClick={() => setSelectedApplication(application)}
                             >
-                              <Eye className="h-4 w-4" />
+                              <Edit className="h-4 w-4" />
                             </Button>
                           </SheetTrigger>
                           <SheetContent className="w-[400px] sm:w-[540px]">
@@ -621,6 +623,9 @@ const Applications = () => {
                             <UserCheck className="h-4 w-4" />
                           </Button>
                         )}
+                        <Button variant="ghost" size="icon" onClick={() => navigate(`/dashboard/applications/${application.id}`)}>
+                          <Eye className="h-4 w-4" />
+                        </Button>
                         <Button variant="ghost" size="icon">
                           <Trash2 className="h-4 w-4" />
                         </Button>
