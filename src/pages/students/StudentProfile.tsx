@@ -17,6 +17,8 @@ interface Student {
   address: string | null;
   dob: string | null;
   age: number | null;
+  financial_info: string | null; // Add financial info property
+  parent_notes: string | null; // Add parent notes property
 }
 
 const StudentProfile = () => {
@@ -75,10 +77,12 @@ const StudentProfile = () => {
 
       {/* Tabs Section */}
       <Tabs defaultValue="info">
-        <TabsList className="grid grid-cols-3 bg-muted p-1 rounded-lg">
+        <TabsList className="grid grid-cols-5 bg-muted p-1 rounded-lg">
           <TabsTrigger value="info">Student Info</TabsTrigger>
           <TabsTrigger value="documents">Documents</TabsTrigger>
           <TabsTrigger value="attendance">Attendance</TabsTrigger>
+          <TabsTrigger value="financial">Financial</TabsTrigger> {/* New Financial Tab */}
+          <TabsTrigger value="parentNotes">Parent Notes</TabsTrigger> {/* New Parent Notes Tab */}
         </TabsList>
 
         {/* Student Info Tab */}
@@ -103,6 +107,22 @@ const StudentProfile = () => {
         <TabsContent value="attendance">
           <Card className="p-6">
             <p>📅 Attendance records will be displayed here.</p>
+          </Card>
+        </TabsContent>
+
+        {/* Financial Tab */}
+        <TabsContent value="financial">
+          <Card className="p-6 space-y-4">
+            <div><strong>Tuition Fees:</strong> {student.financial_info?.tuitionFees || "Not Provided"}</div>
+            <div><strong>Outstanding Balance:</strong> {student.financial_info?.outstandingBalance || "Not Provided"}</div>
+            <div><strong>Payment Status:</strong> {student.financial_info?.paymentStatus || "Not Provided"}</div>
+          </Card>
+        </TabsContent>
+
+        {/* Parent Notes Tab */}
+        <TabsContent value="parentNotes">
+          <Card className="p-6 space-y-4">
+            <div><strong>Parent Notes:</strong> {student.parent_notes || "No notes from parents."}</div>
           </Card>
         </TabsContent>
       </Tabs>
