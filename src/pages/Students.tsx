@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Search, Download, Plus, Users } from "lucide-react";
+import { Search, Download, Plus, Users, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
@@ -34,6 +34,11 @@ const Students = () => {
   const [isProfileDrawerOpen, setIsProfileDrawerOpen] = useState(false);
   const [isClassesDialogOpen, setIsClassesDialogOpen] = useState(false);
   const [isAttendanceOpen, setIsAttendanceOpen] = useState(false);
+  const [filters, setFilters] = useState({
+    class: "",
+    parentName: "",
+    disabilitiesAllergies: "",
+  });
 
   // Get user's creche
   useEffect(() => {
@@ -180,10 +185,22 @@ const Students = () => {
     XLSX.writeFile(wb, "students.xlsx");
   };
 
-  const filteredStudents = students.filter(student => 
-    student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (student.class && student.class.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+  const filteredStudents = students.filter(student => {
+    const matchesSearchTerm = 
+      student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (student.class && student.class.toLowerCase().includes(searchTerm.toLowerCase()));
+
+    const matchesClassFilter = 
+      !filters.class || (student.class && student.class.toLowerCase().includes(filters.class.toLowerCase()));
+
+    const matchesParentNameFilter = 
+      !filters.parentName || (student.parent_name && student.parent_name.toLowerCase().includes(filters.parentName.toLowerCase()));
+
+    const matchesDisabilitiesAllergiesFilter = 
+      !filters.disabilitiesAllergies || (student.disabilities_allergies && student.disabilities_allergies.toLowerCase().includes(filters.disabilitiesAllergies.toLowerCase()));
+
+    return matchesSearchTerm && matchesClassFilter && matchesParentNameFilter && matchesDisabilitiesAllergiesFilter;
+  });
 
   return (
     <div className="space-y-6">
@@ -229,6 +246,28 @@ const Students = () => {
           </div>
           <Button onClick={() => setIsAttendanceOpen(true)}>
             Take Attendance
+          </Button>
+        </div>
+
+        <div className="flex gap-4">
+          <Input
+            placeholder="Filter by class..."
+            value={filters.class}
+            onChange={(e) => setFilters({ ...filters, class: e.target.value })}
+          />
+          <Input
+            placeholder="Filter by parent name..."
+            value={filters.parentName}
+            onChange={(e) => setFilters({ ...filters, parentName: e.target.value })}
+          />
+          <Input
+            placeholder="Filter by disabilities/allergies..."
+            value={filters.disabilitiesAllergies}
+            onChange={(e) => setFilters({ ...filters, disabilitiesAllergies: e.target.value })}
+          />
+          <Button variant="outline" onClick={() => setFilters({ class: "", parentName: "", disabilitiesAllergies: "" })}>
+            <Filter className="h-4 w-4" />
+            Clear Filters
           </Button>
         </div>
 
