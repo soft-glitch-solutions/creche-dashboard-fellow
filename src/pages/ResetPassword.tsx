@@ -12,17 +12,22 @@ const ResetPassword = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Ensure the access token exists in the URL
+    // Extract token before it gets lost
     const queryParams = new URLSearchParams(window.location.hash.substring(1));
     const accessToken = queryParams.get("access_token");
 
-    if (!accessToken) {
-      toast({
-        variant: "destructive",
-        title: "Invalid Link",
-        description: "The reset password link is invalid or expired.",
-      });
-      navigate("/login");
+    if (accessToken) {
+      sessionStorage.setItem("supabase_reset_token", accessToken);
+    } else {
+      const storedToken = sessionStorage.getItem("supabase_reset_token");
+      if (!storedToken) {
+        toast({
+          variant: "destructive",
+          title: "Invalid Link",
+          description: "The reset password link is invalid or expired.",
+        });
+        navigate("/login");
+      }
     }
   }, [navigate, toast]);
 
@@ -30,8 +35,7 @@ const ResetPassword = () => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    const queryParams = new URLSearchParams(window.location.hash.substring(1));
-    const accessToken = queryParams.get("access_token");
+    const accessToken = sessionStorage.getItem("supabase_reset_token");
 
     if (!accessToken) {
       toast({
@@ -74,6 +78,9 @@ const ResetPassword = () => {
         title: "Password Reset Successfully",
         description: "You can now log in with your new password.",
       });
+
+      // Clear the stored token after reset
+      sessionStorage.removeItem("supabase_reset_token");
 
       // Redirect to login after successful password reset
       navigate("/login");
