@@ -38,6 +38,7 @@ import { ApplicationNotes } from "@/components/applications/ApplicationNotes";
 import { ApplicationNote, ApplicationLifecycleStage } from "@/types/application";
 
 interface Application {
+  source: ReactNode;
   id: string;
   application_status: string;
   parent_name: string;
@@ -431,6 +432,7 @@ const Applications = () => {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead>Source</TableHead>
                 <TableHead>Parent Name</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>Phone</TableHead>
@@ -454,6 +456,7 @@ const Applications = () => {
               ) : (
                 paginatedApplications.map((application) => (
                   <TableRow key={application.id}>
+                    <TableCell>{application.source}</TableCell>
                     <TableCell className="font-medium">
                       <div className="flex items-center gap-2">
                         <Avatar className="h-8 w-8">
