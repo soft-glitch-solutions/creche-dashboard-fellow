@@ -1,14 +1,16 @@
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Search, Download, Plus } from "lucide-react";
+import { Search, Download, Plus, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { StudentList } from "@/components/students/StudentList";
 import { ImportStudentsDialog } from "@/components/students/ImportStudentsDialog";
-import { EditStudentDialog } from "@/components/students/EditStudentDialog";
+import { StudentProfileDrawer } from "@/components/students/StudentProfileDrawer";
+import { ManageClassesDialog } from "@/components/students/ManageClassesDialog";
+import { AttendanceSheet } from "@/components/students/AttendanceSheet";
 import * as XLSX from 'xlsx';
 
 interface Student {
@@ -29,7 +31,9 @@ const Students = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [userCreche, setUserCreche] = useState<string | null>(null);
   const { toast } = useToast();
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isProfileDrawerOpen, setIsProfileDrawerOpen] = useState(false);
+  const [isClassesDialogOpen, setIsClassesDialogOpen] = useState(false);
+  const [isAttendanceOpen, setIsAttendanceOpen] = useState(false);
 
   // Get user's creche
   useEffect(() => {
@@ -98,6 +102,7 @@ const Students = () => {
         description: "Student created successfully"
       });
 
+      setIsProfileDrawerOpen(false);
       refetch();
     } catch (error) {
       console.error('Error creating student:', error);
@@ -125,6 +130,7 @@ const Students = () => {
         description: "Student updated successfully"
       });
 
+      setIsProfileDrawerOpen(false);
       refetch();
     } catch (error) {
       console.error('Error updating student:', error);
@@ -184,6 +190,14 @@ const Students = () => {
       <div className="flex justify-between items-center">
         <h1 className="text-4xl font-bold text-primary">Students</h1>
         <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            onClick={() => setIsClassesDialogOpen(true)}
+            className="gap-2"
+          >
+            <Users className="h-4 w-4" />
+            Manage Classes
+          </Button>
           <ImportStudentsDialog onImport={handleImportStudents} />
           <Button variant="outline" onClick={handleExportStudents} className="gap-2">
             <Download className="h-4 w-4" />
@@ -192,7 +206,7 @@ const Students = () => {
           <Button 
             onClick={() => {
               setSelectedStudent(null);
-              setIsEditDialogOpen(true);
+              setIsProfileDrawerOpen(true);
             }}
             className="gap-2"
           >
@@ -213,6 +227,9 @@ const Students = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
+          <Button onClick={() => setIsAttendanceOpen(true)}>
+            Take Attendance
+          </Button>
         </div>
 
         {isLoading ? (
@@ -224,18 +241,32 @@ const Students = () => {
             students={filteredStudents}
             onEdit={(student) => {
               setSelectedStudent(student);
-              setIsEditDialogOpen(true);
+              setIsProfileDrawerOpen(true);
             }}
-            onView={setSelectedStudent}
+            onView={(student) => {
+              setSelectedStudent(student);
+              setIsProfileDrawerOpen(true);
+            }}
           />
         )}
       </div>
 
-      <EditStudentDialog
+      <StudentProfileDrawer
         student={selectedStudent}
-        open={isEditDialogOpen}
-        onOpenChange={setIsEditDialogOpen}
+        open={isProfileDrawerOpen}
+        onOpenChange={setIsProfileDrawerOpen}
         onSave={selectedStudent ? handleUpdateStudent : handleCreateStudent}
+      />
+
+      <ManageClassesDialog
+        open={isClassesDialogOpen}
+        onOpenChange={setIsClassesDialogOpen}
+      />
+
+      <AttendanceSheet
+        students={students}
+        isOpen={isAttendanceOpen}
+        onClose={() => setIsAttendanceOpen(false)}
       />
     </div>
   );
