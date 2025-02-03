@@ -38,6 +38,7 @@ import EditContent from "./pages/help/EditContent";
 import PhotoBook from "./pages/Photobook";
 import StudentProfile from "./pages/students/StudentProfile";
 import ApplicantProfile from "./pages/applications/ApplicantProfile";
+import Lessons from "./pages/Lessons";
 
 const queryClient = new QueryClient();
 
@@ -61,6 +62,7 @@ const App = () => (
                 <Route path="applications/:id" element={<ApplicantProfile />} />
                 <Route path="students" element={<Students />} />
                 <Route path="students/:id" element={<StudentProfile />} />
+                <Route path="lessons" element={<Lessons />} />
                 <Route path="photobook" element={<PhotoBook />} />
                 <Route path="finance" element={<Finance />} />
                 <Route path="finance/create-invoice" element={<CreateInvoice />} />
