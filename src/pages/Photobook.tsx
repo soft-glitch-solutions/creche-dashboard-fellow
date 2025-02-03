@@ -44,16 +44,21 @@ const PhotoBook = () => {
   const [caption, setCaption] = useState("");
   const { toast } = useToast();
 
-  useEffect(() => {
-    loadPhotos();
-  }, [selectedYear, selectedMonth]);
-
-  const loadPhotos = async () => {
+  // Fetch the current user and their creche ID
+  const loadUserCreche = async () => {
     try {
-      const { data: userCreche } = await supabase
-        .from('user_creche')
-        .select('creche_id')
+      const { data: user, error: userError } = await supabase.auth.getUser();
+      if (userError || !user?.user) {
+        throw new Error("User not authenticated");
+      }
+
+      const { data: userCreche, error: crecheError } = await supabase
+        .from("user_creche")
+        .select("creche_id")
+        .eq("user_id", user.user.id)
         .single();
+
+      if (crecheError) throw crecheError;
 
       if (!userCreche?.creche_id) {
         toast({
@@ -61,21 +66,39 @@ const PhotoBook = () => {
           title: "Error",
           description: "No creche assigned to user",
         });
-        return;
+        return null;
       }
 
+      return userCreche.creche_id;
+    } catch (error) {
+      console.error("Error loading user's creche:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to load user's creche",
+      });
+      return null;
+    }
+  };
+
+  // Load photos from the database
+  const loadPhotos = async () => {
+    const crecheId = await loadUserCreche();
+    if (!crecheId) return;
+
+    try {
       const { data, error } = await supabase
-        .from('photobook_entries')
-        .select('*')
-        .eq('creche_id', userCreche.creche_id)
-        .eq('year', selectedYear)
-        .eq('month', selectedMonth)
-        .order('created_at', { ascending: false });
+        .from("photobook_entries")
+        .select("*")
+        .eq("creche_id", crecheId)
+        .eq("year", selectedYear)
+        .eq("month", selectedMonth)
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
       setPhotos(data || []);
     } catch (error) {
-      console.error('Error loading photos:', error);
+      console.error("Error loading photos:", error);
       toast({
         variant: "destructive",
         title: "Error",
@@ -83,6 +106,10 @@ const PhotoBook = () => {
       });
     }
   };
+
+  useEffect(() => {
+    loadPhotos();
+  }, [selectedYear, selectedMonth]);
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     if (!event.target.files || event.target.files.length === 0) return;
@@ -93,27 +120,23 @@ const PhotoBook = () => {
       const fileExt = file.name.split('.').pop();
       const fileName = `${crypto.randomUUID()}.${fileExt}`;
 
-      const { data: userCreche } = await supabase
-        .from('user_creche')
-        .select('creche_id')
-        .single();
-
-      if (!userCreche?.creche_id) throw new Error('No creche assigned');
+      const crecheId = await loadUserCreche();
+      if (!crecheId) throw new Error("No creche assigned");
 
       const { error: uploadError } = await supabase.storage
-        .from('creche-gallery')
+        .from("creche-gallery")
         .upload(fileName, file);
 
       if (uploadError) throw uploadError;
 
       const { data: { publicUrl } } = supabase.storage
-        .from('creche-gallery')
+        .from("creche-gallery")
         .getPublicUrl(fileName);
 
       const { error: dbError } = await supabase
-        .from('photobook_entries')
+        .from("photobook_entries")
         .insert({
-          creche_id: userCreche.creche_id,
+          creche_id: crecheId,
           year: selectedYear,
           month: selectedMonth,
           image_url: publicUrl,
@@ -129,9 +152,9 @@ const PhotoBook = () => {
 
       setCaption("");
       setUploadDialogOpen(false);
-      loadPhotos();
+      loadPhotos(); // Refresh photos after upload
     } catch (error) {
-      console.error('Error uploading photo:', error);
+      console.error("Error uploading photo:", error);
       toast({
         variant: "destructive",
         title: "Error",
@@ -146,17 +169,17 @@ const PhotoBook = () => {
     try {
       // Extract filename from URL
       const fileName = imageUrl.split('/').pop();
-      
+
       if (fileName) {
         await supabase.storage
-          .from('creche-gallery')
+          .from("creche-gallery")
           .remove([fileName]);
       }
 
       const { error } = await supabase
-        .from('photobook_entries')
+        .from("photobook_entries")
         .delete()
-        .eq('id', photoId);
+        .eq("id", photoId);
 
       if (error) throw error;
 
@@ -165,9 +188,9 @@ const PhotoBook = () => {
         description: "Photo deleted successfully",
       });
 
-      loadPhotos();
+      loadPhotos(); // Refresh photos after deletion
     } catch (error) {
-      console.error('Error deleting photo:', error);
+      console.error("Error deleting photo:", error);
       toast({
         variant: "destructive",
         title: "Error",
