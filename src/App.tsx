@@ -14,7 +14,7 @@ import Settings from "./pages/Settings";
 import Help from "./pages/Help";
 import Reports from "./pages/Reports";
 import DashboardLayout from "./components/DashboardLayout";
-import UserManagement from "./pages/admin/UserManagement";
+import UserManagement from "./pages/settings/UserManagement";
 import CrecheManagement from "./pages/admin/CrecheManagement";
 import CrecheDetails from "./pages/admin/CrecheDetails";
 import Integrations from "./pages/admin/Integrations";
@@ -39,6 +39,7 @@ import PhotoBook from "./pages/Photobook";
 import StudentProfile from "./pages/students/StudentProfile";
 import ApplicantProfile from "./pages/applications/ApplicantProfile";
 import Lessons from "./pages/Lessons";
+import AdminUserManagement from "./pages/admin/AdminUserManagement";
 
 const queryClient = new QueryClient();
 
@@ -73,8 +74,9 @@ const App = () => (
                 <Route path="social" element={<Social />} />
                 <Route path="reports" element={<Reports />} />
                 <Route path="settings" element={<Settings />} />
-                <Route path="settings/integrations" element={<Integrations />} />
                 <Route path="settings/creche/:id" element={<CrecheProfile />} />
+                <Route path="settings/integrations" element={<Integrations />} />
+                <Route path="settings/users" element={<UserManagement />} />
                 <Route path="help" element={<Help />} />
                 <Route path="help/documentation" element={<Documentation />} />
                 <Route path="help/documentation/new" element={<CreateContent />} />
@@ -86,7 +88,7 @@ const App = () => (
                 <Route path="help/tutorials/edit/:id" element={<EditContent />} />
                 <Route path="help/support-chat" element={<SupportChat />} />
                 <Route path="help/faqs" element={<Faqs />} />
-                <Route path="admin/users" element={<UserManagement />} />
+                <Route path="admin/users" element={<AdminUserManagement />} />
                 <Route path="admin/creches" element={<CrecheManagement />} />
                 <Route path="admin/creches/:id" element={<CrecheDetails />} />
               </Route>

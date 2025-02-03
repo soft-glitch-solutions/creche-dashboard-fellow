@@ -14,7 +14,7 @@ const NotFound = () => {
       <p className="text-xl text-gray-600 mb-6">
         Oops! The page you're looking for doesn't exist.
       </p>
-      <Link to="/" className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90">
+      <Link to="/dashboard" className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90">
         Back to Home
       </Link>
       <div className="mt-8">

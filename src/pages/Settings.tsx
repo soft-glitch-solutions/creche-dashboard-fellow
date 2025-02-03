@@ -1,7 +1,7 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { Users, Building2, Link, Settings as SettingsIcon } from "lucide-react";
+import { Users, Building2, Link, DollarSign } from "lucide-react"; // Change the icon to something more relevant like DollarSign for payments
 
 const Settings = () => {
   const navigate = useNavigate();
@@ -11,7 +11,7 @@ const Settings = () => {
       title: "User Access",
       icon: Users,
       description: "View and manage users assigned to your creche",
-      action: () => navigate("/dashboard/users"),
+      action: () => navigate("/dashboard/settings/users"),
     },
     {
       title: "Creche Profile",
@@ -26,10 +26,10 @@ const Settings = () => {
       action: () => navigate("/dashboard/settings/integrations"),
     },
     {
-      title: "General Settings",
-      icon: SettingsIcon,
-      description: "Configure general application settings",
-      action: () => navigate("/dashboard/settings/general"),
+      title: "Payments",
+      icon: DollarSign, // New icon for payments
+      description: "Manage payment settings, plans, and billing",
+      action: () => navigate("/dashboard/settings/payments"), // New route for payments
     },
   ];
 
