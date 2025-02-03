@@ -754,6 +754,47 @@ export type Database = {
           },
         ]
       }
+      photobook_entries: {
+        Row: {
+          caption: string | null
+          created_at: string | null
+          creche_id: string
+          id: string
+          image_url: string
+          month: number
+          updated_at: string | null
+          year: number
+        }
+        Insert: {
+          caption?: string | null
+          created_at?: string | null
+          creche_id: string
+          id?: string
+          image_url: string
+          month: number
+          updated_at?: string | null
+          year: number
+        }
+        Update: {
+          caption?: string | null
+          created_at?: string | null
+          creche_id?: string
+          id?: string
+          image_url?: string
+          month?: number
+          updated_at?: string | null
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "photobook_entries_creche_id_fkey"
+            columns: ["creche_id"]
+            isOneToOne: false
+            referencedRelation: "creches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       roles: {
         Row: {
           id: string
