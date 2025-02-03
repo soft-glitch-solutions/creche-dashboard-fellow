@@ -19,6 +19,8 @@ const ResetPassword = () => {
     const queryParams = new URLSearchParams(location.hash.substring(1));
     const accessToken = queryParams.get("access_token");
 
+    console.log("Access Token:", accessToken); // Debugging
+
     if (accessToken) {
       sessionStorage.setItem("supabase_reset_token", accessToken);
     } else {
@@ -58,6 +60,7 @@ const ResetPassword = () => {
       });
   
       if (sessionError) {
+        console.error("Session Error:", sessionError); // Debugging
         toast({
           variant: "destructive",
           title: "Session Error",
@@ -72,6 +75,7 @@ const ResetPassword = () => {
       });
   
       if (passwordError) {
+        console.error("Password Error:", passwordError); // Debugging
         toast({
           variant: "destructive",
           title: "Error",
@@ -91,7 +95,7 @@ const ResetPassword = () => {
       // Redirect to login after successful password reset
       navigate("/login");
     } catch (error) {
-      console.error("Error resetting password:", error);
+      console.error("Error resetting password:", error); // Debugging
       toast({
         variant: "destructive",
         title: "Unexpected Error",
