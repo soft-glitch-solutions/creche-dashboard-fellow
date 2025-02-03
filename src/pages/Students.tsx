@@ -1,14 +1,15 @@
 import { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Mail, Search, Plus, Eye, UserCheck } from "lucide-react";
+import { Search, Download, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import { AttendanceSheet } from "@/components/students/AttendanceSheet";
+import { StudentList } from "@/components/students/StudentList";
+import { ImportStudentsDialog } from "@/components/students/ImportStudentsDialog";
+import { EditStudentDialog } from "@/components/students/EditStudentDialog";
+import * as XLSX from 'xlsx';
 
 interface Student {
   id: string;
@@ -28,23 +29,9 @@ const Students = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [userCreche, setUserCreche] = useState<string | null>(null);
   const { toast } = useToast();
-  const [currentPage, setCurrentPage] = useState(1);
-  const [isAttendanceOpen, setIsAttendanceOpen] = useState(false);
-  const ITEMS_PER_PAGE = 10;
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
-  const [newStudent, setNewStudent] = useState({
-    name: "",
-    parent_name: "",
-    parent_email: "",
-    parent_phone_number: "",
-    address: "",
-    class: "",
-    disabilities_allergies: "",
-    dob: "",
-    age: "",
-  });
-
-  // First, get the user's creche
+  // Get user's creche
   useEffect(() => {
     const getUserCreche = async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -57,7 +44,6 @@ const Students = () => {
         
         if (userCrecheData) {
           setUserCreche(userCrecheData.creche_id);
-          console.log("User's creche:", userCrecheData.creche_id);
         }
       }
     };
@@ -65,7 +51,7 @@ const Students = () => {
     getUserCreche();
   }, []);
 
-  // Then fetch students for that creche
+  // Fetch students
   const { data: students = [], isLoading, refetch } = useQuery({
     queryKey: ['students', userCreche],
     queryFn: async () => {
@@ -86,7 +72,7 @@ const Students = () => {
     enabled: !!userCreche
   });
 
-  const handleCreateStudent = async () => {
+  const handleCreateStudent = async (studentData: Partial<Student>) => {
     if (!userCreche) {
       toast({
         variant: "destructive",
@@ -100,9 +86,8 @@ const Students = () => {
       const { data, error } = await supabase
         .from('students')
         .insert([{
-          ...newStudent,
+          ...studentData,
           creche_id: userCreche,
-          age: parseInt(newStudent.age)
         }])
         .select();
 
@@ -124,15 +109,74 @@ const Students = () => {
     }
   };
 
+  const handleUpdateStudent = async (studentData: Partial<Student>) => {
+    if (!selectedStudent) return;
+
+    try {
+      const { error } = await supabase
+        .from('students')
+        .update(studentData)
+        .eq('id', selectedStudent.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Student updated successfully"
+      });
+
+      refetch();
+    } catch (error) {
+      console.error('Error updating student:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to update student"
+      });
+    }
+  };
+
+  const handleImportStudents = async (students: any[]) => {
+    if (!userCreche) return;
+
+    try {
+      const { error } = await supabase
+        .from('students')
+        .insert(
+          students.map(student => ({
+            ...student,
+            creche_id: userCreche
+          }))
+        );
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: `${students.length} students imported successfully`
+      });
+
+      refetch();
+    } catch (error) {
+      console.error('Error importing students:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to import students"
+      });
+    }
+  };
+
+  const handleExportStudents = () => {
+    const ws = XLSX.utils.json_to_sheet(students);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Students");
+    XLSX.writeFile(wb, "students.xlsx");
+  };
+
   const filteredStudents = students.filter(student => 
     student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (student.class && student.class.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
-
-  const totalPages = Math.ceil(filteredStudents.length / ITEMS_PER_PAGE);
-  const paginatedStudents = filteredStudents.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE
   );
 
   return (
@@ -140,232 +184,58 @@ const Students = () => {
       <div className="flex justify-between items-center">
         <h1 className="text-4xl font-bold text-primary">Students</h1>
         <div className="flex gap-2">
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button className="gap-2">
-                <Plus className="h-4 w-4" />
-                New Student
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
-            <div className="grid gap-4 py-4">
-              <div className="grid gap-2">
-                <Label htmlFor="name">Student Name</Label>
-                <Input
-                  id="name"
-                  value={newStudent.name}
-                  onChange={(e) => setNewStudent(prev => ({
-                    ...prev,
-                    name: e.target.value
-                  }))}
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="parent_name">Parent Name</Label>
-                <Input
-                  id="parent_name"
-                  value={newStudent.parent_name}
-                  onChange={(e) => setNewStudent(prev => ({
-                    ...prev,
-                    parent_name: e.target.value
-                  }))}
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="parent_email">Parent Email</Label>
-                <Input
-                  id="parent_email"
-                  type="email"
-                  value={newStudent.parent_email}
-                  onChange={(e) => setNewStudent(prev => ({
-                    ...prev,
-                    parent_email: e.target.value
-                  }))}
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="parent_phone">Parent Phone</Label>
-                <Input
-                  id="parent_phone"
-                  value={newStudent.parent_phone_number}
-                  onChange={(e) => setNewStudent(prev => ({
-                    ...prev,
-                    parent_phone_number: e.target.value
-                  }))}
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="address">Address</Label>
-                <Input
-                  id="address"
-                  value={newStudent.address}
-                  onChange={(e) => setNewStudent(prev => ({
-                    ...prev,
-                    address: e.target.value
-                  }))}
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="class">Class</Label>
-                <Input
-                  id="class"
-                  value={newStudent.class}
-                  onChange={(e) => setNewStudent(prev => ({
-                    ...prev,
-                    class: e.target.value
-                  }))}
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="dob">Date of Birth</Label>
-                <Input
-                  id="dob"
-                  type="date"
-                  value={newStudent.dob}
-                  onChange={(e) => setNewStudent(prev => ({
-                    ...prev,
-                    dob: e.target.value
-                  }))}
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="age">Age</Label>
-                <Input
-                  id="age"
-                  type="number"
-                  value={newStudent.age}
-                  onChange={(e) => setNewStudent(prev => ({
-                    ...prev,
-                    age: e.target.value
-                  }))}
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="disabilities_allergies">Special Needs/Allergies</Label>
-                <Input
-                  id="disabilities_allergies"
-                  value={newStudent.disabilities_allergies}
-                  onChange={(e) => setNewStudent(prev => ({
-                    ...prev,
-                    disabilities_allergies: e.target.value
-                  }))}
-                />
-              </div>
-            </div>
-            <Button onClick={handleCreateStudent}>Create Student</Button>
-            </DialogContent>
-          </Dialog>
+          <ImportStudentsDialog onImport={handleImportStudents} />
+          <Button variant="outline" onClick={handleExportStudents} className="gap-2">
+            <Download className="h-4 w-4" />
+            Export
+          </Button>
           <Button 
-            variant="outline"
-            onClick={() => setIsAttendanceOpen(true)}
+            onClick={() => {
+              setSelectedStudent(null);
+              setIsEditDialogOpen(true);
+            }}
+            className="gap-2"
           >
-            <UserCheck className="h-4 w-4 mr-2" />
-            Take Attendance
+            <Plus className="h-4 w-4" />
+            New Student
           </Button>
         </div>
       </div>
       
-      <div className="flex flex-col lg:flex-row gap-6">
-        <div className="flex-1 space-y-6">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search students..."
-                  className="pl-9"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
-            </div>
-            <Button 
-              variant="outline" 
-              className="border-2 border-primary text-primary hover:bg-primary hover:text-white"
-            >
-              <Mail className="mr-2 h-4 w-4" />
-              Email Broadcast: {students.length} students
-            </Button>
+      <div className="flex flex-col gap-6">
+        <div className="flex gap-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search students..."
+              className="pl-9"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
           </div>
-
-          <Card className="p-6">
-            <div className="space-y-4">
-              <div className="grid grid-cols-5 gap-4 text-lg font-semibold text-primary">
-                <div>Student Name</div>
-                <div>Class</div>
-                <div>Parent</div>
-                <div>Contact</div>
-                <div>Notes</div>
-              </div>
-
-              {isLoading ? (
-                <div className="py-4 text-center">Loading students...</div>
-              ) : paginatedStudents.length === 0 ? (
-                <div className="py-4 text-center">No students found</div>
-              ) : (
-                paginatedStudents.map((student) => (
-                  <div 
-                    key={student.id}
-                    className="grid grid-cols-5 gap-4 py-2 border-b hover:bg-gray-50 cursor-pointer"
-                    onClick={() => setSelectedStudent(student)}
-                  >
-                    <div className="font-medium">{student.name}</div>
-                    <div>{student.class || 'Not assigned'}</div>
-                    <div>{student.parent_name || 'Not specified'}</div>
-                    <div>{student.parent_phone_number || 'Not provided'}</div>
-                    <div>{student.disabilities_allergies || 'None'}</div>
-                  </div>
-                ))
-              )}
-            </div>
-          </Card>
-
-          {totalPages > 1 && (
-            <div className="flex justify-center gap-2 p-4">
-              <Button
-                variant="outline"
-                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                disabled={currentPage === 1}
-              >
-                Previous
-              </Button>
-              <span className="flex items-center px-4">
-                Page {currentPage} of {totalPages}
-              </span>
-              <Button
-                variant="outline"
-                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                disabled={currentPage === totalPages}
-              >
-                Next
-              </Button>
-            </div>
-          )}
         </div>
 
-        {selectedStudent && (
-          <Card className="w-full lg:w-80 p-6 space-y-6">
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-primary">Student Details</h3>
-              <div className="space-y-2">
-                <p><strong>Name:</strong> {selectedStudent.name}</p>
-                <p><strong>Class:</strong> {selectedStudent.class || 'Not assigned'}</p>
-                <p><strong>Age:</strong> {selectedStudent.age || 'Not specified'}</p>
-                <p><strong>Parent:</strong> {selectedStudent.parent_name}</p>
-                <p><strong>Contact:</strong> {selectedStudent.parent_phone_number}</p>
-                <p><strong>Email:</strong> {selectedStudent.parent_email}</p>
-                <p><strong>Address:</strong> {selectedStudent.address}</p>
-                <p><strong>Special Needs/Allergies:</strong> {selectedStudent.disabilities_allergies || 'None'}</p>
-              </div>
-            </div>
+        {isLoading ? (
+          <Card className="p-6">
+            <div className="text-center">Loading students...</div>
           </Card>
+        ) : (
+          <StudentList
+            students={filteredStudents}
+            onEdit={(student) => {
+              setSelectedStudent(student);
+              setIsEditDialogOpen(true);
+            }}
+            onView={setSelectedStudent}
+          />
         )}
       </div>
 
-      <AttendanceSheet
-        students={students}
-        isOpen={isAttendanceOpen}
-        onClose={() => setIsAttendanceOpen(false)}
+      <EditStudentDialog
+        student={selectedStudent}
+        open={isEditDialogOpen}
+        onOpenChange={setIsEditDialogOpen}
+        onSave={selectedStudent ? handleUpdateStudent : handleCreateStudent}
       />
     </div>
   );
