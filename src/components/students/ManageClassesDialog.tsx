@@ -31,82 +31,75 @@ export const ManageClassesDialog = ({ open, onOpenChange }: ManageClassesDialogP
     }
   }, [open]);
 
-  const fetchClasses = async () => {
+  // Utility function to fetch user creche_id
+  const getUserCrecheId = async () => {
     try {
-      // First get the user's creche
-      const { data: userCreche } = await supabase
-        .from('user_creche')
-        .select('creche_id')
+      const { data: user, error: userError } = await supabase.auth.getUser();
+      if (userError || !user?.user) throw new Error("User not authenticated");
+
+      const { data: userCreche, error: crecheError } = await supabase
+        .from("user_creche")
+        .select("creche_id")
+        .eq("user_id", user.user.id)
         .single();
 
-      if (!userCreche?.creche_id) {
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "No creche assigned to user"
-        });
-        return;
-      }
-
-      const { data, error } = await supabase
-        .from('creche_classes')
-        .select('*')
-        .eq('creche_id', userCreche.creche_id);
-
-      if (error) throw error;
-      setClasses(data || []);
+      if (crecheError || !userCreche?.creche_id) throw new Error("No creche assigned");
+      
+      return userCreche.creche_id;
     } catch (error) {
-      console.error('Error fetching classes:', error);
+      console.error("Error fetching user creche:", error.message);
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to fetch classes"
+        description: error.message || "Failed to fetch user creche",
+      });
+      return null;
+    }
+  };
+
+  const fetchClasses = async () => {
+    const crecheId = await getUserCrecheId();
+    if (!crecheId) return;
+
+    try {
+      const { data: classes, error } = await supabase
+        .from("creche_classes")
+        .select("*")
+        .eq("creche_id", crecheId);
+
+      if (error) throw error;
+
+      setClasses(classes || []);
+    } catch (error) {
+      console.error("Error fetching classes:", error.message);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message || "Failed to fetch classes",
       });
     }
   };
 
   const addClass = async () => {
     if (!newClassName.trim()) return;
+    const crecheId = await getUserCrecheId();
+    if (!crecheId) return;
 
     try {
-      const { data: userCreche } = await supabase
-        .from('user_creche')
-        .select('creche_id')
-        .single();
-
-      if (!userCreche?.creche_id) {
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "No creche assigned"
-        });
-        return;
-      }
-
-      const { error } = await supabase
-        .from('creche_classes')
-        .insert({
-          creche_id: userCreche.creche_id,
-          name: newClassName,
-          color: newClassColor
-        });
+      const { error } = await supabase.from("creche_classes").insert({
+        creche_id: crecheId,
+        name: newClassName,
+        color: newClassColor,
+      });
 
       if (error) throw error;
 
-      toast({
-        title: "Success",
-        description: "Class added successfully"
-      });
-
+      toast({ title: "Success", description: "Class added successfully" });
       setNewClassName("");
       fetchClasses();
     } catch (error) {
-      console.error('Error adding class:', error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to add class"
-      });
+      console.error("Error adding class:", error);
+      toast({ variant: "destructive", title: "Error", description: "Failed to add class" });
     }
   };
 
@@ -115,54 +108,31 @@ export const ManageClassesDialog = ({ open, onOpenChange }: ManageClassesDialogP
 
     try {
       const { error } = await supabase
-        .from('creche_classes')
-        .update({
-          name: editingClass.name,
-          color: editingClass.color
-        })
-        .eq('id', classId);
+        .from("creche_classes")
+        .update({ name: editingClass.name, color: editingClass.color })
+        .eq("id", classId);
 
       if (error) throw error;
 
-      toast({
-        title: "Success",
-        description: "Class updated successfully"
-      });
-
+      toast({ title: "Success", description: "Class updated successfully" });
       setEditingClass(null);
       fetchClasses();
     } catch (error) {
-      console.error('Error updating class:', error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to update class"
-      });
+      console.error("Error updating class:", error);
+      toast({ variant: "destructive", title: "Error", description: "Failed to update class" });
     }
   };
 
   const deleteClass = async (classId: string) => {
     try {
-      const { error } = await supabase
-        .from('creche_classes')
-        .delete()
-        .eq('id', classId);
-
+      const { error } = await supabase.from("creche_classes").delete().eq("id", classId);
       if (error) throw error;
 
-      toast({
-        title: "Success",
-        description: "Class deleted successfully"
-      });
-
+      toast({ title: "Success", description: "Class deleted successfully" });
       fetchClasses();
     } catch (error) {
-      console.error('Error deleting class:', error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to delete class"
-      });
+      console.error("Error deleting class:", error);
+      toast({ variant: "destructive", title: "Error", description: "Failed to delete class" });
     }
   };
 
@@ -201,7 +171,7 @@ export const ManageClassesDialog = ({ open, onOpenChange }: ManageClassesDialogP
               <div
                 key={cls.id}
                 className="flex items-center justify-between p-2 rounded-md"
-                style={{ backgroundColor: cls.color + '20' }}
+                style={{ backgroundColor: cls.color + "20" }}
               >
                 {editingClass?.id === cls.id ? (
                   <div className="flex items-center gap-2 flex-1 mr-2">
@@ -225,25 +195,14 @@ export const ManageClassesDialog = ({ open, onOpenChange }: ManageClassesDialogP
                 ) : (
                   <>
                     <div className="flex items-center gap-2">
-                      <div
-                        className="w-4 h-4 rounded-full"
-                        style={{ backgroundColor: cls.color }}
-                      />
+                      <div className="w-4 h-4 rounded-full" style={{ backgroundColor: cls.color }} />
                       <span>{cls.name}</span>
                     </div>
                     <div className="flex gap-2">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => setEditingClass(cls)}
-                      >
+                      <Button variant="ghost" size="icon" onClick={() => setEditingClass(cls)}>
                         <Pencil className="h-4 w-4" />
                       </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => deleteClass(cls.id)}
-                      >
+                      <Button variant="ghost" size="icon" onClick={() => deleteClass(cls.id)}>
                         <X className="h-4 w-4" />
                       </Button>
                     </div>

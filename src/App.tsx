@@ -67,6 +67,8 @@ const App = () => (
                 <Route path="social" element={<Social />} />
                 <Route path="reports" element={<Reports />} />
                 <Route path="settings" element={<Settings />} />
+                <Route path="settings/integrations" element={<Integrations />} />
+                <Route path="settings/creche/:id" element={<CrecheProfile />} />
                 <Route path="help" element={<Help />} />
                 <Route path="help/documentation" element={<Documentation />} />
                 <Route path="help/documentation/new" element={<CreateContent />} />
@@ -81,7 +83,6 @@ const App = () => (
                 <Route path="admin/users" element={<UserManagement />} />
                 <Route path="admin/creches" element={<CrecheManagement />} />
                 <Route path="admin/creches/:id" element={<CrecheDetails />} />
-                <Route path="admin/integrations" element={<Integrations />} />
               </Route>
               <Route path="*" element={<NotFound />} />
             </Routes>

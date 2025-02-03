@@ -17,13 +17,13 @@ const Settings = () => {
       title: "Creche Profile",
       icon: Building2,
       description: "View and update your creche profile information",
-      action: () => navigate("/dashboard/creche"),
+      action: () => navigate("/dashboard/settings/creche/:id"),
     },
     {
       title: "Integrations",
       icon: Link,
       description: "Set up and manage third-party integrations",
-      action: () => navigate("/dashboard/integrations"),
+      action: () => navigate("/dashboard/settings/integrations"),
     },
     {
       title: "General Settings",

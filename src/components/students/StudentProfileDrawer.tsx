@@ -3,7 +3,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -26,28 +26,49 @@ export const StudentProfileDrawer = ({
 
   useEffect(() => {
     setFormData(student || {});
-    fetchClasses();
   }, [student]);
 
-  const fetchClasses = async () => {
+  const fetchClasses = useCallback(async () => {
     try {
-      const { data: userCreche } = await supabase
-        .from('user_creche')
-        .select('creche_id')
+      // Fetch authenticated user
+      const { data: user, error: userError } = await supabase.auth.getUser();
+      if (userError || !user?.user) {
+        console.error("Error fetching user:", userError);
+        return;
+      }
+
+      // Fetch creche ID associated with the user
+      const { data: userCreche, error: crecheError } = await supabase
+        .from("user_creche")
+        .select("creche_id")
+        .eq("user_id", user.user.id)
         .single();
 
-      if (!userCreche?.creche_id) return;
+      if (crecheError || !userCreche?.creche_id) {
+        console.error("Error fetching creche:", crecheError);
+        return;
+      }
 
-      const { data } = await supabase
-        .from('creche_classes')
-        .select('*')
-        .eq('creche_id', userCreche.creche_id);
+      // Fetch classes associated with the creche
+      const { data, error: classesError } = await supabase
+        .from("creche_classes")
+        .select("*")
+        .eq("creche_id", userCreche.creche_id);
+
+      if (classesError) {
+        console.error("Error fetching classes:", classesError);
+        return;
+      }
 
       if (data) setClasses(data);
     } catch (error) {
-      console.error('Error fetching classes:', error);
+      console.error("Unexpected error fetching classes:", error);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (open) fetchClasses();
+  }, [open, fetchClasses]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,21 +79,21 @@ export const StudentProfileDrawer = ({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-[400px] sm:w-[540px]">
         <SheetHeader>
-          <SheetTitle>{student ? 'Edit Student' : 'Add Student'}</SheetTitle>
+          <SheetTitle>{student ? "Edit Student" : "Add Student"}</SheetTitle>
         </SheetHeader>
         <form onSubmit={handleSubmit} className="space-y-4 py-4">
           <div className="grid gap-2">
             <Label htmlFor="name">Student Name</Label>
             <Input
               id="name"
-              value={formData.name || ''}
+              value={formData.name || ""}
               onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
             />
           </div>
           <div className="grid gap-2">
             <Label htmlFor="class">Class</Label>
             <Select
-              value={formData.class || ''}
+              value={formData.class || ""}
               onValueChange={(value) => setFormData((prev) => ({ ...prev, class: value }))}
             >
               <SelectTrigger>
@@ -97,7 +118,7 @@ export const StudentProfileDrawer = ({
             <Label htmlFor="parent_name">Parent Name</Label>
             <Input
               id="parent_name"
-              value={formData.parent_name || ''}
+              value={formData.parent_name || ""}
               onChange={(e) => setFormData((prev) => ({ ...prev, parent_name: e.target.value }))}
             />
           </div>
@@ -105,8 +126,10 @@ export const StudentProfileDrawer = ({
             <Label htmlFor="parent_phone_number">Contact Number</Label>
             <Input
               id="parent_phone_number"
-              value={formData.parent_phone_number || ''}
-              onChange={(e) => setFormData((prev) => ({ ...prev, parent_phone_number: e.target.value }))}
+              value={formData.parent_phone_number || ""}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, parent_phone_number: e.target.value }))
+              }
             />
           </div>
           <div className="grid gap-2">
@@ -114,7 +137,7 @@ export const StudentProfileDrawer = ({
             <Input
               id="parent_email"
               type="email"
-              value={formData.parent_email || ''}
+              value={formData.parent_email || ""}
               onChange={(e) => setFormData((prev) => ({ ...prev, parent_email: e.target.value }))}
             />
           </div>
@@ -122,8 +145,10 @@ export const StudentProfileDrawer = ({
             <Label htmlFor="disabilities_allergies">Special Needs/Allergies</Label>
             <Input
               id="disabilities_allergies"
-              value={formData.disabilities_allergies || ''}
-              onChange={(e) => setFormData((prev) => ({ ...prev, disabilities_allergies: e.target.value }))}
+              value={formData.disabilities_allergies || ""}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, disabilities_allergies: e.target.value }))
+              }
             />
           </div>
           <Button type="submit" className="w-full">
