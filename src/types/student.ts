@@ -1,3 +1,4 @@
+
 export interface Student {
   id: string;
   name: string;
@@ -14,4 +15,14 @@ export interface Student {
   parent_whatsapp: string | null;
   fees_owed: number | null;
   fees_paid: number | null;
+}
+
+export interface StudentDocument {
+  id: string;
+  student_id: string;
+  file_name: string;
+  file_url: string;
+  file_type: string | null;
+  uploaded_at: string;
+  uploaded_by: string;
 }
