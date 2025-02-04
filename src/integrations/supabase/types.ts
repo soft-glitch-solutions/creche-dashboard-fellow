@@ -702,6 +702,81 @@ export type Database = {
           },
         ]
       }
+      lesson_types: {
+        Row: {
+          color: string
+          created_at: string | null
+          id: string
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          color?: string
+          created_at?: string | null
+          id?: string
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          color?: string
+          created_at?: string | null
+          id?: string
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      lessons: {
+        Row: {
+          class_id: string
+          created_at: string | null
+          day_of_week: string
+          end_time: string
+          id: string
+          lesson_type: string
+          start_time: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          class_id: string
+          created_at?: string | null
+          day_of_week: string
+          end_time: string
+          id?: string
+          lesson_type: string
+          start_time: string
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          class_id?: string
+          created_at?: string | null
+          day_of_week?: string
+          end_time?: string
+          id?: string
+          lesson_type?: string
+          start_time?: string
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lessons_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "creche_classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lessons_lesson_type_fkey"
+            columns: ["lesson_type"]
+            isOneToOne: false
+            referencedRelation: "lesson_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       messages: {
         Row: {
           conversation_id: string | null

@@ -11,22 +11,7 @@ import { CalendarDays, Plus } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-
-interface Lesson {
-  id: string;
-  title: string;
-  class_id: string;
-  lesson_type: string;
-  start_time: string;
-  end_time: string;
-  day_of_week: string;
-}
-
-interface LessonType {
-  id: string;
-  name: string;
-  color: string;
-}
+import type { Lesson, LessonType } from "@/types/lesson";
 
 const Lessons = () => {
   const [view, setView] = useState<"week" | "month">("week");
@@ -72,7 +57,7 @@ const Lessons = () => {
         .from("lesson_types")
         .select("*");
       if (error) throw error;
-      return data;
+      return data as LessonType[];
     },
   });
 
@@ -84,7 +69,7 @@ const Lessons = () => {
         .from("lessons")
         .select("*");
       if (error) throw error;
-      return data;
+      return data as Lesson[];
     },
   });
 
@@ -355,21 +340,22 @@ const Lessons = () => {
                           (lesson) =>
                             lesson.day_of_week === day &&
                             lesson.start_time === time
-                        ).map((lesson) => (
-                          <div
-                            key={lesson.id}
-                            className="p-2 rounded text-sm"
-                            style={{
-                              backgroundColor:
-                                lessonTypes?.find(
-                                  (type) => type.id === lesson.lesson_type
-                                )?.color || "#3b82f6",
-                              color: "white",
-                            }}
-                          >
-                            {lesson.title}
-                          </div>
-                        ))}
+                        ).map((lesson) => {
+                          const lessonType = lessonTypes?.find(
+                            (type) => type.id === lesson.lesson_type
+                          );
+                          return (
+                            <div
+                              key={lesson.id}
+                              className="p-2 rounded text-sm text-white"
+                              style={{
+                                backgroundColor: lessonType?.color || "#3b82f6",
+                              }}
+                            >
+                              {lesson.title}
+                            </div>
+                          );
+                        })}
                       </td>
                     ))}
                   </tr>
