@@ -472,8 +472,8 @@ const Applications = () => {
                     <TableCell>{application.parent_email}</TableCell>
                     <TableCell>{application.parent_phone_number}</TableCell>
                     <TableCell>
-                      <Badge className={getStatusBadge(application.application_status)}>
-                        {application.application_status}
+                      <Badge className={getStatusBadge(application.lifecycle_stage)}>
+                        {application.lifecycle_stage}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">

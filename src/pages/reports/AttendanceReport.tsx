@@ -108,7 +108,7 @@ const AttendanceReport = () => {
           <ChartContainer config={{
             count: {
               label: "Attendance Count",
-              color: "#3b82f6"
+              color: "#84a7f6"
             }
           }}>
             <ResponsiveContainer width="100%" height="100%">
