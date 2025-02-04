@@ -138,7 +138,7 @@ const Lessons = () => {
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Create Lesson Type</DialogTitle>
+                <DialogTitle>Manage Lesson Type</DialogTitle>
               </DialogHeader>
               <Form {...typeForm}>
                 <form onSubmit={typeForm.handleSubmit(onSubmitType)} className="space-y-4">

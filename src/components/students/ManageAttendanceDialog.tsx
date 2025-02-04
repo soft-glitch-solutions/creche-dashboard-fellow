@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -74,46 +74,50 @@ export const ManageAttendanceDialog = ({ open, onOpenChange }: ManageAttendanceD
   // Function to update attendance status for a specific student
   const updateAttendance = async (studentId: string, status: "present" | "late" | "absent") => {
     try {
-      const today = new Date().toISOString().split("T")[0]; // Today's date
+      const today = new Date().toISOString().split("T")[0]; // Get today's date
+  
+      // Convert status to match database constraint (Capitalized)
+      const formattedStatus =
+        status === "present" ? "Present" : status === "late" ? "Late" : "Absent";
+  
       const existingAttendance = attendance.find((att) => att.student_id === studentId);
-
+  
       if (existingAttendance) {
-        // Update the attendance status for the student if they already have an entry
+        // Update the existing attendance record
         const { error } = await supabase
           .from("attendance_students")
-          .update({ status })
+          .update({ status: formattedStatus })
           .eq("student_id", studentId)
           .eq("attendance_date", today);
-
+  
         if (error) throw error;
-
         toast({ title: "Success", description: "Attendance updated successfully" });
       } else {
-        // If no attendance entry exists for this student today, create a new one
+        // Insert a new attendance record
         const { error } = await supabase
           .from("attendance_students")
-          .insert([{ student_id: studentId, status, attendance_date: today }]);
-
+          .insert([{ student_id: studentId, status: formattedStatus, attendance_date: today }]);
+  
         if (error) throw error;
-
         toast({ title: "Success", description: "Attendance marked successfully" });
       }
-
-      // Re-fetch the updated attendance records
-      fetchAttendance();
+  
+      fetchAttendance(); // Refresh attendance data
     } catch (error) {
       console.error("Error updating attendance:", error.message);
       toast({ variant: "destructive", title: "Error", description: "Failed to update attendance" });
     }
   };
+  
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Manage Attendance</DialogTitle>
+          <DialogDescription>Mark students as Present, Late, or Absent.</DialogDescription>
         </DialogHeader>
-        
+
         <div className="overflow-x-auto">
           <table className="min-w-full border border-gray-300 shadow-sm">
             <thead>
