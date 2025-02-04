@@ -115,7 +115,7 @@ export const ManageAttendanceDialog = ({ open, onOpenChange }: ManageAttendanceD
         </DialogHeader>
         
         <div className="overflow-x-auto">
-          <table className="min-w-full bg-white border border-gray-300 shadow-sm">
+          <table className="min-w-full border border-gray-300 shadow-sm">
             <thead>
               <tr className="border-b">
                 <th className="p-2 text-left">Student Name</th>
