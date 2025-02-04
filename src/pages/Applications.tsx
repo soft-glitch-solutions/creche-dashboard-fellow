@@ -685,7 +685,7 @@ const Applications = () => {
                         </span>
                       </Button>
                     </SheetTrigger>
-                    <SheetContent className="w-[400px] sm:w-[540px]">
+                    <SheetContent className="w-[400px] sm:w-[880px]">
                       <SheetHeader>
                         <SheetTitle className="flex justify-between">
                           Application Details
