@@ -40,6 +40,8 @@ import StudentProfile from "./pages/students/StudentProfile";
 import ApplicantProfile from "./pages/applications/ApplicantProfile";
 import Lessons from "./pages/Lessons";
 import AdminUserManagement from "./pages/admin/AdminUserManagement";
+import CompleteProfile from "./pages/CompleteProfile";
+import ForgotPassword from "./pages/ForgotPassword";
 
 const queryClient = new QueryClient();
 
@@ -54,7 +56,9 @@ const App = () => (
             <Routes>
               <Route path="/" element={<Navigate to="/login" replace />} />
               <Route path="/login" element={<Login />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/reset-password" element={<ResetPassword />} />
+              <Route path="/complete-profile" element={<CompleteProfile />} />
               <Route path="/dashboard" element={<DashboardLayout />}>
                 <Route index element={<Dashboard />} />
                 <Route path="profile" element={<Profile />} />

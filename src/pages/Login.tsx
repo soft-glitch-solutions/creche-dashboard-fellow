@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -179,10 +179,9 @@ const Login = () => {
                   type="button"
                   variant="link"
                   className="text-primary"
-                  onClick={handleForgotPassword}
-                  disabled={isResetting}
+                  asChild
                 >
-                  {isResetting ? "Sending..." : "Forgot password?"}
+                  <Link to="/forgot-password">Forgot password?</Link>
                 </Button>
               </div>
 
@@ -196,7 +195,7 @@ const Login = () => {
 
       {/* Footer */}
       <footer className="text-center text-sm text-gray-500 mt-auto p-4 border-t border-gray-300">
-  © 2025 Crechespots All Rights Reserved. Designed, Built & Maintained by Soft Glitch Solutions
+        © 2025 Crechespots All Rights Reserved. Designed, Built & Maintained by Soft Glitch Solutions
       </footer>
     </div>
   );

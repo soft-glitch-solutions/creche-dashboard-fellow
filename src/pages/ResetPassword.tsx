@@ -1,142 +1,116 @@
-import { useEffect, useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
-import { Input } from "@/components/ui/input";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/use-toast";
-import { Eye, EyeOff } from "lucide-react"; // Import Eye Icons
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { Eye, EyeOff } from "lucide-react";
 
 const ResetPassword = () => {
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false); // Toggle for password visibility
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
-  const location = useLocation(); // Get current URL
 
   useEffect(() => {
-    // Extract access token from URL hash
-    const queryParams = new URLSearchParams(location.hash.substring(1));
-    const accessToken = queryParams.get("access_token");
-
-    console.log("Access Token:", accessToken); // Debugging
-
-    if (accessToken) {
-      sessionStorage.setItem("supabase_reset_token", accessToken);
-    } else {
-      const storedToken = sessionStorage.getItem("supabase_reset_token");
-      if (!storedToken) {
-        toast({
-          variant: "destructive",
-          title: "Invalid Link",
-          description: "The reset password link is invalid or expired.",
-        });
+    const checkSession = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
         navigate("/login");
       }
-    }
-  }, [location, navigate, toast]);
+    };
+    checkSession();
+  }, [navigate]);
 
-  const handlePasswordReset = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
-  
-    const accessToken = sessionStorage.getItem("supabase_reset_token");
-  
-    if (!accessToken) {
+    if (password !== confirmPassword) {
       toast({
         variant: "destructive",
-        title: "Invalid Link",
-        description: "The reset password link is invalid or expired.",
+        title: "Passwords don't match",
+        description: "Please make sure your passwords match",
       });
-      navigate("/login");
       return;
     }
-  
+
+    setLoading(true);
     try {
-      // Set the session with the access token (Fix for PKCE issue)
-      const { error: sessionError } = await supabase.auth.setSession({
-        access_token: accessToken,
-        refresh_token: "", // Supabase doesn't provide a refresh token in password reset flows
+      const { error } = await supabase.auth.updateUser({
+        password: password,
       });
-  
-      if (sessionError) {
-        console.error("Session Error:", sessionError); // Debugging
-        toast({
-          variant: "destructive",
-          title: "Session Error",
-          description: sessionError.message,
-        });
-        return;
-      }
-  
-      // Update the password
-      const { error: passwordError } = await supabase.auth.updateUser({
-        password,
-      });
-  
-      if (passwordError) {
-        console.error("Password Error:", passwordError); // Debugging
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: passwordError.message,
-        });
-        return;
-      }
-  
+
+      if (error) throw error;
+
       toast({
-        title: "Password Reset Successfully",
-        description: "You can now log in with your new password.",
+        title: "Password updated",
+        description: "Your password has been successfully reset",
       });
-  
-      // Clear the stored token after reset
-      sessionStorage.removeItem("supabase_reset_token");
-  
-      // Redirect to login after successful password reset
+      
       navigate("/login");
-    } catch (error) {
-      console.error("Error resetting password:", error); // Debugging
+    } catch (error: any) {
       toast({
         variant: "destructive",
-        title: "Unexpected Error",
-        description: "Something went wrong. Please try again.",
+        title: "Error",
+        description: error.message,
       });
     } finally {
-      setIsSubmitting(false);
+      setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-primary/5 to-secondary/5">
-      <div className="max-w-md w-full bg-white p-8 shadow-lg rounded-lg">
-        <h1 className="text-2xl font-bold text-center mb-4">Reset Password</h1>
-        <form onSubmit={handlePasswordReset} className="space-y-6">
-          <div className="relative">
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-              New Password
-            </label>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 to-secondary/5">
+      <div className="w-full max-w-md space-y-8 p-8 bg-white rounded-lg shadow-lg">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold">Reset Password</h1>
+          <p className="text-gray-600">Enter your new password</p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="space-y-2">
+            <Label htmlFor="password">New Password</Label>
             <div className="relative">
               <Input
                 id="password"
-                type={showPassword ? "text" : "password"} // Toggle between text and password
-                placeholder="Enter your new password"
+                type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                disabled={isSubmitting}
+                minLength={6}
               />
-              {/* Toggle Button for Show/Hide Password */}
               <button
                 type="button"
-                className="absolute inset-y-0 right-3 flex items-center text-gray-500"
-                onClick={() => setShowPassword((prev) => !prev)}
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
               >
-                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                {showPassword ? (
+                  <EyeOff className="h-5 w-5" />
+                ) : (
+                  <Eye className="h-5 w-5" />
+                )}
               </button>
             </div>
           </div>
-          <Button type="submit" className="w-full" disabled={isSubmitting}>
-            {isSubmitting ? "Resetting..." : "Reset Password"}
+
+          <div className="space-y-2">
+            <Label htmlFor="confirmPassword">Confirm Password</Label>
+            <div className="relative">
+              <Input
+                id="confirmPassword"
+                type={showPassword ? "text" : "password"}
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+                minLength={6}
+              />
+            </div>
+          </div>
+
+          <Button type="submit" className="w-full" disabled={loading}>
+            {loading ? "Updating..." : "Reset Password"}
           </Button>
         </form>
       </div>
