@@ -1,4 +1,3 @@
-```typescript
 import React, { useState } from "react";
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
@@ -68,9 +67,19 @@ const Lessons = () => {
   const { data: classes } = useQuery({
     queryKey: ["classes"],
     queryFn: async () => {
+      const { data: userCreche } = await supabase
+        .from("user_creche")
+        .select("creche_id")
+        .limit(1)
+        .single();
+
+      if (!userCreche) return [];
+
       const { data, error } = await supabase
         .from("creche_classes")
-        .select("*");
+        .select("*")
+        .eq('creche_id', userCreche.creche_id);
+      
       if (error) throw error;
       return data;
     },
@@ -94,18 +103,7 @@ const Lessons = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("lessons")
-        .select(`
-        *,
-        creche_classes (
-          id,
-          name
-        ),
-        lesson_types (
-          id,
-          name,
-          color
-        )
-      `)
+        .select("*, creche_classes (id, name), lesson_types (id, name, color)")
         .eq('active', true);
       if (error) throw error;
       return data;
@@ -590,4 +588,3 @@ const Lessons = () => {
 };
 
 export default Lessons;
-```
