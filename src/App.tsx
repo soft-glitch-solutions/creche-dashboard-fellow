@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -28,7 +29,7 @@ import EditInvoice from "./pages/finance/EditInvoice";
 import Tutorials from "./pages/help/Tutorials";
 import SupportChat from "./pages/help/Support-Chat";
 import Documentation from "./pages/help/Documentation";
-import Faqs from "./pages/Faqs";
+import Faqs from "./pages/help/Faqs";
 import Social from "./pages/Social";
 import CreateContent from "./pages/help/CreateContent";
 import ResetPassword from "./pages/ResetPassword";
