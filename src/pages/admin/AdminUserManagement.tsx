@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Eye, Link as LinkIcon, Trash2, UserPlus } from "lucide-react";
+import { Eye, Trash2, UserPlus, Edit } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -28,10 +28,12 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import { useNavigate } from 'react-router-dom';
 
 const USERS_PER_PAGE = 10;
 
 const AdminUserManagement = () => {
+  const navigate = useNavigate();
   const [users, setUsers] = useState<User[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(true);
@@ -44,8 +46,7 @@ const AdminUserManagement = () => {
   const [isUpdating, setIsUpdating] = useState(false);
 
   const handleViewUser = (user: User) => {
-    setSelectedUser(user);
-    setIsUserDetailsOpen(true);
+    navigate(`/dashboard/admin/users/${user.id}`);
   };
 
   useEffect(() => {
@@ -227,8 +228,12 @@ const AdminUserManagement = () => {
                           >
                             <Eye className="h-4 w-4" />
                           </Button>
-                          <Button variant="ghost" size="icon">
-                            <LinkIcon className="h-4 w-4" />
+                          <Button 
+                            variant="ghost" 
+                            size="icon"
+                            onClick={() => setSelectedUser(user)}
+                          >
+                            <Edit className="h-4 w-4" />
                           </Button>
                           <Button variant="ghost" size="icon">
                             <Trash2 className="h-4 w-4" />

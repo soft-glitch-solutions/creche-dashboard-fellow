@@ -28,7 +28,7 @@ import EditInvoice from "./pages/finance/EditInvoice";
 import Tutorials from "./pages/help/Tutorials";
 import SupportChat from "./pages/help/Support-Chat";
 import Documentation from "./pages/help/Documentation";
-import Faqs from "./pages/help/Faqs";
+import Faqs from "./pages/Faqs";
 import Social from "./pages/Social";
 import CreateContent from "./pages/help/CreateContent";
 import ResetPassword from "./pages/ResetPassword";
@@ -42,6 +42,7 @@ import Lessons from "./pages/Lessons";
 import AdminUserManagement from "./pages/admin/AdminUserManagement";
 import CompleteProfile from "./pages/CompleteProfile";
 import ForgotPassword from "./pages/ForgotPassword";
+import UserProfile from "./pages/admin/UserProfile";
 
 const queryClient = new QueryClient();
 
@@ -95,6 +96,7 @@ const App = () => (
                 <Route path="admin/users" element={<AdminUserManagement />} />
                 <Route path="admin/creches" element={<CrecheManagement />} />
                 <Route path="admin/creches/:id" element={<CrecheDetails />} />
+                <Route path="admin/users/:id" element={<UserProfile />} />
               </Route>
               <Route path="*" element={<NotFound />} />
             </Routes>
