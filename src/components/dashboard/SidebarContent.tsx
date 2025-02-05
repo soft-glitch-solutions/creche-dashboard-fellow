@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Lock, Menu } from "lucide-react";
+import { Lock, Menu, Shield } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import {
   Collapsible,
@@ -42,9 +42,8 @@ export const SidebarContent = ({
   ];
 
   const adminItems = [
-    { icon: "Users", label: "User Management", path: "/dashboard/admin/users" },
-    { icon: "Building2", label: "Creche Management", path: "/dashboard/admin/creches" },
-    { icon: "Network", label: "Integrations", path: "/dashboard/admin/integrations" },
+    { icon: Lock, label: "User Management", path: "/dashboard/admin/users" },
+    { icon: Lock, label: "Creche Management", path: "/dashboard/admin/creches" },
   ];
 
   return (
@@ -122,10 +121,25 @@ export const SidebarContent = ({
                   )}
                   onClick={() => navigate(item.path)}
                 >
-                  <Lock className="h-5 w-5" />
+                  <item.icon className="h-5 w-5" />
                   {isSidebarOpen && <span>{item.label}</span>}
                 </Button>
               ))}
+              
+              {/* Admin Panel Link */}
+              <Button
+                asChild
+                variant="ghost"
+                className={cn(
+                  "w-full justify-start gap-4 pl-8",
+                  !isSidebarOpen && "justify-center px-2"
+                )}
+              >
+                <a href="https://admin.crechespots.co.za" target="_blank" rel="noopener noreferrer">
+                  <Shield className="h-5 w-5" />
+                  {isSidebarOpen && <span>Creche Admin</span>}
+                </a>
+              </Button>
             </CollapsibleContent>
           </Collapsible>
         </div>

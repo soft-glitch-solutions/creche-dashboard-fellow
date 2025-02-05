@@ -1,4 +1,4 @@
-import { Languages, Moon, Sun } from "lucide-react";
+import { Languages, Moon, Sun, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -12,7 +12,6 @@ import { cn } from "@/lib/utils";
 import { NotificationsMenu } from "./NotificationsMenu";
 import { SupportDialog } from "./SupportDialog";
 import { UserMenu } from "./UserMenu";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 interface TopNavProps {
   user: any;
@@ -56,11 +55,7 @@ export const TopNav = ({ user }: TopNavProps) => {
         onClick={toggleTheme}
         className="text-gray-700 dark:text-gray-200"
       >
-        {theme === "light" ? (
-          <Moon className="h-5 w-5" />
-        ) : (
-          <Sun className="h-5 w-5" />
-        )}
+        {theme === "light" ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
       </Button>
 
       <NotificationsMenu />
