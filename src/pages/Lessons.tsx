@@ -1,4 +1,4 @@
-
+```typescript
 import React, { useState } from "react";
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
@@ -94,10 +94,21 @@ const Lessons = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("lessons")
-        .select("*")
+        .select(`
+        *,
+        creche_classes (
+          id,
+          name
+        ),
+        lesson_types (
+          id,
+          name,
+          color
+        )
+      `)
         .eq('active', true);
       if (error) throw error;
-      return data as Lesson[];
+      return data;
     },
   });
 
@@ -579,3 +590,4 @@ const Lessons = () => {
 };
 
 export default Lessons;
+```
