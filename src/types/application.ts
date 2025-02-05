@@ -1,3 +1,4 @@
+
 import { User } from "./user";
 
 export type ApplicationLifecycleStage = 
@@ -29,7 +30,16 @@ export interface ApplicationNote {
   user_id: string;
   note: string;
   created_at: string;
-  user?: User;
+  user?: {
+    id: string;
+    email: string;
+    first_name?: string;
+    last_name?: string;
+    display_name?: string;
+    role?: {
+      role_name: string;
+    };
+  };
 }
 
 export interface ApplicationDocument {

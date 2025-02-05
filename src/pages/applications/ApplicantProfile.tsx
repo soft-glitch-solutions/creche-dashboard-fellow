@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
@@ -32,7 +31,7 @@ interface Invoice {
   created_at: string;
 }
 
-const ApplicantProfile = () => {
+export default function ApplicantProfile() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -48,6 +47,72 @@ const ApplicantProfile = () => {
     parent_address: "",
     message: "",
   });
+  const [applicationNotes, setApplicationNotes] = useState([]);
+
+  const fetchApplicationNotes = async (applicationId: string) => {
+    try {
+      const { data: notesData, error: notesError } = await supabase
+        .from('application_notes')
+        .select(`
+          *,
+          user:users (
+            id,
+            email,
+            first_name,
+            last_name,
+            display_name,
+            role:roles (
+              role_name
+            )
+          )
+        `)
+        .eq('application_id', applicationId)
+        .order('created_at', { ascending: false });
+
+      if (notesError) {
+        console.error("Error fetching notes:", notesError);
+        return;
+      }
+
+      setApplicationNotes(notesData || []);
+    } catch (error) {
+      console.error("Error in fetchApplicationNotes:", error);
+    }
+  };
+
+  const handleAddNote = async (note: string) => {
+    if (!application) return;
+
+    try {
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) return;
+
+      const { error } = await supabase
+        .from('application_notes')
+        .insert({
+          application_id: application.id,
+          user_id: userData.user.id,
+          note,
+        });
+
+      if (error) throw error;
+
+      // Refresh notes after adding new one
+      fetchApplicationNotes(application.id);
+
+      toast({
+        title: "Success",
+        description: "Note added successfully",
+      });
+    } catch (error) {
+      console.error("Error adding note:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to add note",
+      });
+    }
+  };
 
   useEffect(() => {
     fetchApplicationData();
@@ -200,6 +265,14 @@ const ApplicantProfile = () => {
       });
     }
   };
+
+  // Update useEffect to fetch notes when component mounts
+  useEffect(() => {
+    if (id) {
+      fetchApplicationData();
+      fetchApplicationNotes(id);
+    }
+  }, [id]);
 
   if (!application) {
     return <div className="text-center p-6">Loading application data...</div>;
@@ -464,12 +537,13 @@ const ApplicantProfile = () => {
 
         <TabsContent value="notes">
           <Card className="p-6">
-            <ApplicationNotes applicationId={application.id} />
+            <ApplicationNotes 
+              notes={applicationNotes} 
+              onAddNote={handleAddNote}
+            />
           </Card>
         </TabsContent>
       </Tabs>
     </div>
   );
-};
-
-export default ApplicantProfile;
+}
