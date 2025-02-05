@@ -766,6 +766,7 @@ export type Database = {
       }
       lessons: {
         Row: {
+          active: boolean | null
           class_id: string
           created_at: string | null
           day_of_week: string
@@ -777,6 +778,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          active?: boolean | null
           class_id: string
           created_at?: string | null
           day_of_week: string
@@ -788,6 +790,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          active?: boolean | null
           class_id?: string
           created_at?: string | null
           day_of_week?: string
