@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
@@ -7,19 +8,45 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useForm } from "react-hook-form";
-import { CalendarDays, Plus } from "lucide-react";
+import { CalendarDays, Plus, Printer, Edit } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { Lesson, LessonType } from "@/types/lesson";
+import { format } from "date-fns";
+import { useReactToPrint } from "react-to-print";
+import { useRef } from "react";
 
 const Lessons = () => {
   const [view, setView] = useState<"week" | "month">("week");
   const [date, setDate] = useState<Date>(new Date());
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isTypeOpen, setIsTypeOpen] = useState(false);
+  const [editingLesson, setEditingLesson] = useState<Lesson | null>(null);
+  
+  const weeklyTableRef = useRef(null);
+  const monthlyTableRef = useRef(null);
+
+  const handlePrintWeekly = useReactToPrint({
+    content: () => weeklyTableRef.current,
+  });
+
+  const handlePrintMonthly = useReactToPrint({
+    content: () => monthlyTableRef.current,
+  });
 
   const form = useForm({
+    defaultValues: {
+      title: "",
+      class_id: "",
+      lesson_type: "",
+      start_time: "",
+      end_time: "",
+      day_of_week: "",
+    },
+  });
+
+  const editForm = useForm({
     defaultValues: {
       title: "",
       class_id: "",
@@ -67,7 +94,8 @@ const Lessons = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("lessons")
-        .select("*");
+        .select("*")
+        .eq('active', true);
       if (error) throw error;
       return data as Lesson[];
     },
@@ -80,7 +108,7 @@ const Lessons = () => {
     mutationFn: async (values: any) => {
       const { error } = await supabase
         .from("lessons")
-        .insert([values]);
+        .insert([{ ...values, active: true }]);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -91,6 +119,26 @@ const Lessons = () => {
     onError: (error) => {
       toast.error("Failed to create lesson");
       console.error("Error creating lesson:", error);
+    },
+  });
+
+  // Update lesson mutation
+  const updateLesson = useMutation({
+    mutationFn: async (values: any) => {
+      const { error } = await supabase
+        .from("lessons")
+        .update(values)
+        .eq('id', editingLesson?.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["lessons"] });
+      setEditingLesson(null);
+      toast.success("Lesson updated successfully");
+    },
+    onError: (error) => {
+      toast.error("Failed to update lesson");
+      console.error("Error updating lesson:", error);
     },
   });
 
@@ -117,8 +165,17 @@ const Lessons = () => {
     createLesson.mutate(values);
   };
 
+  const onSubmitEdit = (values: any) => {
+    updateLesson.mutate(values);
+  };
+
   const onSubmitType = (values: any) => {
     createLessonType.mutate(values);
+  };
+
+  const handleEditLesson = (lesson: Lesson) => {
+    setEditingLesson(lesson);
+    editForm.reset(lesson);
   };
 
   const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
@@ -305,20 +362,156 @@ const Lessons = () => {
               </Form>
             </DialogContent>
           </Dialog>
+
+          {/* Edit Lesson Dialog */}
+          <Dialog open={!!editingLesson} onOpenChange={(open) => !open && setEditingLesson(null)}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Edit Lesson</DialogTitle>
+              </DialogHeader>
+              <Form {...editForm}>
+                <form onSubmit={editForm.handleSubmit(onSubmitEdit)} className="space-y-4">
+                  <FormField
+                    control={editForm.control}
+                    name="title"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Title</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={editForm.control}
+                    name="class_id"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Class</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select a class" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {classes?.map((cls) => (
+                              <SelectItem key={cls.id} value={cls.id}>
+                                {cls.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={editForm.control}
+                    name="lesson_type"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Lesson Type</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select a lesson type" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {lessonTypes?.map((type) => (
+                              <SelectItem key={type.id} value={type.id}>
+                                {type.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                      control={editForm.control}
+                      name="start_time"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Start Time</FormLabel>
+                          <FormControl>
+                            <Input type="time" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={editForm.control}
+                      name="end_time"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>End Time</FormLabel>
+                          <FormControl>
+                            <Input type="time" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  <FormField
+                    control={editForm.control}
+                    name="day_of_week"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Day of Week</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select a day" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {daysOfWeek.map((day) => (
+                              <SelectItem key={day} value={day}>
+                                {day}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <Button type="submit">Update Lesson</Button>
+                </form>
+              </Form>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
 
       <Tabs defaultValue="week" className="w-full">
-        <TabsList>
-          <TabsTrigger value="week" onClick={() => setView("week")}>
-            Week View
-          </TabsTrigger>
-          <TabsTrigger value="month" onClick={() => setView("month")}>
-            Month View
-          </TabsTrigger>
-        </TabsList>
+        <div className="flex justify-between items-center mb-4">
+          <TabsList>
+            <TabsTrigger value="week" onClick={() => setView("week")}>
+              Week View
+            </TabsTrigger>
+            <TabsTrigger value="month" onClick={() => setView("month")}>
+              Month View
+            </TabsTrigger>
+          </TabsList>
+          <Button 
+            onClick={view === "week" ? handlePrintWeekly : handlePrintMonthly}
+            variant="outline"
+          >
+            <Printer className="w-4 h-4 mr-2" />
+            Print {view === "week" ? "Weekly" : "Monthly"} Schedule
+          </Button>
+        </div>
         <TabsContent value="week">
-          <div className="border rounded-lg overflow-x-auto">
+          <div className="border rounded-lg overflow-x-auto" ref={weeklyTableRef}>
             <table className="w-full border-collapse">
               <thead>
                 <tr>
@@ -347,12 +540,18 @@ const Lessons = () => {
                           return (
                             <div
                               key={lesson.id}
-                              className="p-2 rounded text-sm text-white"
+                              className="p-2 rounded text-sm text-white relative group"
                               style={{
                                 backgroundColor: lessonType?.color || "#3b82f6",
                               }}
                             >
                               {lesson.title}
+                              <button
+                                onClick={() => handleEditLesson(lesson)}
+                                className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                              >
+                                <Edit className="w-4 h-4 text-white" />
+                              </button>
                             </div>
                           );
                         })}
@@ -365,12 +564,14 @@ const Lessons = () => {
           </div>
         </TabsContent>
         <TabsContent value="month">
-          <Calendar
-            mode="single"
-            selected={date}
-            onSelect={(newDate) => newDate && setDate(newDate)}
-            className="rounded-md border"
-          />
+          <div ref={monthlyTableRef}>
+            <Calendar
+              mode="single"
+              selected={date}
+              onSelect={(newDate) => newDate && setDate(newDate)}
+              className="rounded-md border"
+            />
+          </div>
         </TabsContent>
       </Tabs>
     </div>
