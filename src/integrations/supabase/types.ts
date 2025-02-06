@@ -744,6 +744,7 @@ export type Database = {
         Row: {
           color: string
           created_at: string | null
+          creche_id: string | null
           id: string
           name: string
           updated_at: string | null
@@ -751,6 +752,7 @@ export type Database = {
         Insert: {
           color?: string
           created_at?: string | null
+          creche_id?: string | null
           id?: string
           name: string
           updated_at?: string | null
@@ -758,11 +760,20 @@ export type Database = {
         Update: {
           color?: string
           created_at?: string | null
+          creche_id?: string | null
           id?: string
           name?: string
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "lesson_types_creche_id_fkey"
+            columns: ["creche_id"]
+            isOneToOne: false
+            referencedRelation: "creches"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       lessons: {
         Row: {

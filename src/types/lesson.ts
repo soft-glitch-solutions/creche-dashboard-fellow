@@ -3,6 +3,7 @@ export interface LessonType {
   id: string;
   name: string;
   color: string;
+  creche_id: string;
   created_at?: string;
   updated_at?: string;
 }
