@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,6 +24,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { CalendarPlus, ChevronLeft, ChevronRight } from "lucide-react";
+import { format, startOfWeek, endOfWeek, eachDayOfInterval, addDays, isSameDay, parseISO } from "date-fns";
 
 interface Event {
   id: string;
@@ -71,6 +73,23 @@ const CalendarPage = () => {
 
   useEffect(() => {
     fetchEvents();
+    
+    // Set up realtime subscription
+    const channel = supabase
+      .channel('calendar-changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'events' },
+        (payload) => {
+          console.log('Calendar change received:', payload);
+          fetchEvents();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const fetchEvents = async () => {
@@ -156,6 +175,89 @@ const CalendarPage = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const renderWeekView = () => {
+    const weekStart = startOfWeek(date);
+    const weekEnd = endOfWeek(date);
+    const days = eachDayOfInterval({ start: weekStart, end: weekEnd });
+
+    return (
+      <div className="grid grid-cols-7 gap-2">
+        {days.map((day) => (
+          <div key={day.toISOString()} className="min-h-[200px] border rounded-lg p-2">
+            <h3 className="text-sm font-medium mb-2">{format(day, 'EEE d')}</h3>
+            <div className="space-y-1">
+              {events
+                .filter((event) => isSameDay(parseISO(event.start), day))
+                .map((event) => (
+                  <div
+                    key={event.id}
+                    className="text-xs p-1 rounded"
+                    style={{ backgroundColor: event.color_code }}
+                  >
+                    {event.title}
+                  </div>
+                ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  const renderDayView = () => {
+    const dayEvents = events.filter((event) => 
+      isSameDay(parseISO(event.start), date)
+    );
+
+    return (
+      <div className="space-y-2">
+        {dayEvents.map((event) => (
+          <div
+            key={event.id}
+            className="p-2 rounded-lg"
+            style={{ backgroundColor: event.color_code }}
+          >
+            <p className="font-medium">{event.title}</p>
+            <p className="text-sm">
+              {format(parseISO(event.start), 'HH:mm')} - 
+              {format(parseISO(event.end_time), 'HH:mm')}
+            </p>
+            {event.description && (
+              <p className="text-sm mt-1">{event.description}</p>
+            )}
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  const renderListView = () => {
+    return (
+      <div className="space-y-2">
+        {events.map((event) => (
+          <div
+            key={event.id}
+            className="p-3 border rounded-lg flex items-center gap-4"
+          >
+            <div
+              className="w-4 h-4 rounded-full"
+              style={{ backgroundColor: event.color_code }}
+            />
+            <div>
+              <p className="font-medium">{event.title}</p>
+              <p className="text-sm text-muted-foreground">
+                {format(parseISO(event.start), 'PPP HH:mm')}
+              </p>
+              {event.description && (
+                <p className="text-sm mt-1">{event.description}</p>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+    );
   };
 
   return (
@@ -325,7 +427,7 @@ const CalendarPage = () => {
             </CardHeader>
             <CardContent>
               {events.length === 0 ? (
-                <p className="text-muted-foreground">No Upcoming Event</p>
+                <p className="text-muted-foreground">No Upcoming Events</p>
               ) : (
                 <div className="space-y-4">
                   {events.map((event) => (
@@ -340,7 +442,7 @@ const CalendarPage = () => {
                       <div>
                         <p className="font-medium">{event.title}</p>
                         <p className="text-sm text-muted-foreground">
-                          {new Date(event.start).toLocaleTimeString()}
+                          {format(parseISO(event.start), 'PPp')}
                         </p>
                       </div>
                     </div>
@@ -375,23 +477,37 @@ const CalendarPage = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-4">
-                  <Button variant="outline" size="icon">
+                  <Button 
+                    variant="outline" 
+                    size="icon"
+                    onClick={() => setDate(addDays(date, -1))}
+                  >
                     <ChevronLeft className="h-4 w-4" />
                   </Button>
-                  <Button variant="outline" size="icon">
+                  <Button 
+                    variant="outline" 
+                    size="icon"
+                    onClick={() => setDate(addDays(date, 1))}
+                  >
                     <ChevronRight className="h-4 w-4" />
                   </Button>
                   <h2 className="text-xl font-semibold">
-                    {date.toLocaleString('default', { month: 'long', year: 'numeric' })}
+                    {format(date, 'MMMM yyyy')}
                   </h2>
                 </div>
               </div>
-              <Calendar
-                mode="single"
-                selected={date}
-                onSelect={(newDate) => newDate && setDate(newDate)}
-                className="rounded-md border"
-              />
+              
+              {view === "month" && (
+                <Calendar
+                  mode="single"
+                  selected={date}
+                  onSelect={(newDate) => newDate && setDate(newDate)}
+                  className="rounded-md border"
+                />
+              )}
+              {view === "week" && renderWeekView()}
+              {view === "day" && renderDayView()}
+              {view === "list" && renderListView()}
             </CardContent>
           </Card>
         </div>
