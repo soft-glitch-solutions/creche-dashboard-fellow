@@ -905,6 +905,83 @@ export type Database = {
           },
         ]
       }
+      organization_users: {
+        Row: {
+          created_at: string | null
+          organization_id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          organization_id: string
+          role?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          organization_id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_users_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      organizations: {
+        Row: {
+          created_at: string | null
+          email: string | null
+          id: string
+          name: string
+          phone_number: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          name: string
+          phone_number?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          name?: string
+          phone_number?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      permissions: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
       photobook_entries: {
         Row: {
           caption: string | null
@@ -942,6 +1019,42 @@ export type Database = {
             columns: ["creche_id"]
             isOneToOne: false
             referencedRelation: "creches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      role_permissions: {
+        Row: {
+          created_at: string | null
+          id: string
+          permission_id: string | null
+          role_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          permission_id?: string | null
+          role_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          permission_id?: string | null
+          role_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "role_permissions_permission_id_fkey"
+            columns: ["permission_id"]
+            isOneToOne: false
+            referencedRelation: "permissions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "role_permissions_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "roles"
             referencedColumns: ["id"]
           },
         ]
@@ -1128,40 +1241,69 @@ export type Database = {
           },
         ]
       }
-      support_requests: {
+      support_tickets: {
         Row: {
-          category: string
+          assigned_to: string | null
           created_at: string | null
-          id: number
-          message: string
-          status: string | null
+          created_by: string | null
+          creche_id: string | null
+          description: string
+          id: string
+          organization_id: string | null
+          priority: string
+          resolved_at: string | null
+          status_id: string | null
           title: string
-          user_id: string | null
+          updated_at: string | null
         }
         Insert: {
-          category: string
+          assigned_to?: string | null
           created_at?: string | null
-          id?: number
-          message: string
-          status?: string | null
+          created_by?: string | null
+          creche_id?: string | null
+          description: string
+          id?: string
+          organization_id?: string | null
+          priority?: string
+          resolved_at?: string | null
+          status_id?: string | null
           title: string
-          user_id?: string | null
+          updated_at?: string | null
         }
         Update: {
-          category?: string
+          assigned_to?: string | null
           created_at?: string | null
-          id?: number
-          message?: string
-          status?: string | null
+          created_by?: string | null
+          creche_id?: string | null
+          description?: string
+          id?: string
+          organization_id?: string | null
+          priority?: string
+          resolved_at?: string | null
+          status_id?: string | null
           title?: string
-          user_id?: string | null
+          updated_at?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "support_requests_user_id_fkey"
-            columns: ["user_id"]
+            foreignKeyName: "support_tickets_creche_id_fkey"
+            columns: ["creche_id"]
             isOneToOne: false
-            referencedRelation: "users"
+            referencedRelation: "creches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "support_tickets_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "support_tickets_status_id_fkey"
+            columns: ["status_id"]
+            isOneToOne: false
+            referencedRelation: "ticket_status"
             referencedColumns: ["id"]
           },
         ]
@@ -1193,17 +1335,69 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "ticket_comments_ticket_id_fkey"
-            columns: ["ticket_id"]
-            isOneToOne: false
-            referencedRelation: "support_requests"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "ticket_comments_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ticket_status: {
+        Row: {
+          color: string
+          created_at: string | null
+          id: string
+          name: string
+          order_index: number
+        }
+        Insert: {
+          color?: string
+          created_at?: string | null
+          id?: string
+          name: string
+          order_index?: number
+        }
+        Update: {
+          color?: string
+          created_at?: string | null
+          id?: string
+          name?: string
+          order_index?: number
+        }
+        Relationships: []
+      }
+      ticket_time_logs: {
+        Row: {
+          description: string
+          id: string
+          logged_at: string | null
+          ticket_id: string | null
+          time_spent: number
+          user_id: string | null
+        }
+        Insert: {
+          description: string
+          id?: string
+          logged_at?: string | null
+          ticket_id?: string | null
+          time_spent: number
+          user_id?: string | null
+        }
+        Update: {
+          description?: string
+          id?: string
+          logged_at?: string | null
+          ticket_id?: string | null
+          time_spent?: number
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ticket_time_logs_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "support_tickets"
             referencedColumns: ["id"]
           },
         ]
