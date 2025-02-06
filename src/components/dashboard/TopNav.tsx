@@ -1,4 +1,5 @@
-import { Languages, Moon, Sun, Shield } from "lucide-react";
+
+import { Languages, Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -19,7 +20,7 @@ interface TopNavProps {
 
 export const TopNav = ({ user }: TopNavProps) => {
   const { theme, toggleTheme } = useTheme();
-  const { language, setLanguage } = useLanguage();
+  const { language, setLanguage, t } = useLanguage();
 
   return (
     <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 h-16 px-4 md:px-8 flex items-center justify-end gap-4">

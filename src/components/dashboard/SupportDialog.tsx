@@ -1,3 +1,4 @@
+
 import { LifeBuoy } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
@@ -13,11 +14,22 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue 
+} from "@/components/ui/select";
 
 export const SupportDialog = () => {
   const [supportTitle, setSupportTitle] = useState("");
   const [supportMessage, setSupportMessage] = useState("");
+  const [category, setCategory] = useState("general");
+  const [isOpen, setIsOpen] = useState(false);
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   const handleSupportSubmit = async () => {
     try {
@@ -38,7 +50,7 @@ export const SupportDialog = () => {
           {
             user_id: user.id,
             title: supportTitle,
-            category: 'General',
+            category,
             message: supportMessage,
           }
         ]);
@@ -52,6 +64,8 @@ export const SupportDialog = () => {
 
       setSupportTitle("");
       setSupportMessage("");
+      setCategory("general");
+      setIsOpen(false);
     } catch (error) {
       console.error('Error submitting support request:', error);
       toast({
@@ -63,7 +77,7 @@ export const SupportDialog = () => {
   };
 
   return (
-    <Dialog>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         <Button variant="ghost" size="icon">
           <LifeBuoy className="h-5 w-5" />
@@ -71,11 +85,11 @@ export const SupportDialog = () => {
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Submit Support Request</DialogTitle>
+          <DialogTitle>{t("support")}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4 mt-4">
           <div className="space-y-2">
-            <Label htmlFor="title">Title</Label>
+            <Label htmlFor="title">{t("title")}</Label>
             <Input
               id="title"
               value={supportTitle}
@@ -84,7 +98,21 @@ export const SupportDialog = () => {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="message">Message</Label>
+            <Label htmlFor="category">{t("category")}</Label>
+            <Select value={category} onValueChange={setCategory}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select category" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="general">General</SelectItem>
+                <SelectItem value="technical">Technical</SelectItem>
+                <SelectItem value="billing">Billing</SelectItem>
+                <SelectItem value="other">Other</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="message">{t("message")}</Label>
             <Textarea
               id="message"
               value={supportMessage}
@@ -94,7 +122,7 @@ export const SupportDialog = () => {
             />
           </div>
           <Button onClick={handleSupportSubmit} className="w-full">
-            Submit Request
+            {t("submit")}
           </Button>
         </div>
       </DialogContent>
