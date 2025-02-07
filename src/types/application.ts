@@ -5,9 +5,7 @@ export type ApplicationLifecycleStage =
   | "New"
   | "Contacted"
   | "Documents Pending"
-  | "Documents Received"
   | "Interview Scheduled"
-  | "Interview Completed"
   | "Offer Made"
   | "Accepted"
   | "Rejected";
@@ -16,9 +14,7 @@ export const applicationStageOrder: ApplicationLifecycleStage[] = [
   "New",
   "Contacted",
   "Documents Pending",
-  "Documents Received",
   "Interview Scheduled",
-  "Interview Completed",
   "Offer Made",
   "Accepted",
   "Rejected"
