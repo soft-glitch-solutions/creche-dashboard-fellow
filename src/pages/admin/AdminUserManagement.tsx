@@ -49,6 +49,11 @@ const AdminUserManagement = () => {
     navigate(`/dashboard/admin/users/${user.id}`);
   };
 
+  const handleEditUser = (user: User) => {
+    setSelectedUser(user);
+    setIsUserDetailsOpen(true);
+  };
+
   useEffect(() => {
     fetchUsers();
     fetchRoles();
@@ -231,7 +236,7 @@ const AdminUserManagement = () => {
                           <Button 
                             variant="ghost" 
                             size="icon"
-                            onClick={() => setSelectedUser(user)}
+                            onClick={() => handleEditUser(user)}
                           >
                             <Edit className="h-4 w-4" />
                           </Button>

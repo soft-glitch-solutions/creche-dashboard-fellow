@@ -88,7 +88,13 @@ const Lessons = () => {
   const { data: classes } = useQuery({
     queryKey: ["classes"],
     queryFn: async () => {
-      if (!userCreche?.creche_id) return [];
+      const { data: userCreche } = await supabase
+        .from("user_creche")
+        .select("creche_id")
+        .limit(1)
+        .maybeSingle();
+
+      if (!userCreche) return [];
 
       const { data, error } = await supabase
         .from("creche_classes")
