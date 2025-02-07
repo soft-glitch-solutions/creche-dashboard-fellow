@@ -97,9 +97,9 @@ const WeekView = () => {
       <table className="w-full border-collapse">
         <thead>
           <tr>
-            <th className="border p-3 bg-gray-200">Time</th>
+            <th className="border p-3 ">Time</th>
             {daysOfWeek.map((day) => (
-              <th key={day} className="border p-3 bg-gray-200">{day}</th>
+              <th key={day} className="border p-3 ">{day}</th>
             ))}
           </tr>
         </thead>
@@ -117,7 +117,7 @@ const WeekView = () => {
                         return (
                           <div
                             key={lesson.id}
-                            className="group p-2 rounded text-sm text-white font-semibold cursor-pointer relative"
+                            className="group p-2 rounded text-sm font-semibold cursor-pointer relative"
                             style={{ backgroundColor: classColor }}
                             onClick={() => handleLessonClick(lesson)} // Add click handler
                           >
@@ -129,7 +129,7 @@ const WeekView = () => {
                                   e.stopPropagation();
                                   handleLessonClick(lesson);
                                 }}
-                                className="text-white cursor-pointer"
+                                className=" cursor-pointer"
                               />
                               {/* Delete Icon */}
                               <Trash2
@@ -137,7 +137,7 @@ const WeekView = () => {
                                   e.stopPropagation();
                                   handleDeleteLesson(lesson.id);
                                 }}
-                                className="text-white cursor-pointer"
+                                className=" cursor-pointer"
                               />
                             </div>
                           </div>

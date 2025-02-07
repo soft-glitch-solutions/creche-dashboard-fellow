@@ -10,9 +10,11 @@ import {
   ChartBar,
   ChartLine,
   Calendar,
+  Banknote,
 } from "lucide-react";
 import AttendanceReport from "./reports/AttendanceReport";
 import EnrollmentReport from "./reports/EnrollmentReport";
+import FinanceReport from "./reports/FinanceReport";
 
 const Reports = () => {
   const [selectedReport, setSelectedReport] = useState<string>("attendance");
@@ -31,6 +33,13 @@ const Reports = () => {
       description: "Current and historical enrollment data",
       icon: ChartLine,
       component: EnrollmentReport,
+    },
+    {
+      id: "finance",
+      title: "Finance Report",
+      description: "Current and historical enrollment data",
+      icon: Banknote,
+      component: FinanceReport,
     },
   ];
 

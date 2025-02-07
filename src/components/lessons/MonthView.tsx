@@ -55,14 +55,14 @@ const MonthView = () => {
   const EventComponent = ({ event }: { event: any }) => (
     <div className="p-1 bg-blue-100 border-l-4 border-blue-500 rounded">
       <strong>{event.title}</strong>
-      <div className="text-sm text-gray-600">{event.resource.class}</div>
+      <div className="text-sm">{event.resource.class}</div>
     </div>
   );
 
   return (
     <div className="p-6 space-y-6">
       {/* Calendar Section */}
-      <div className="bg-white rounded-lg shadow-md p-4">
+      <div className=" rounded-lg shadow-md p-4">
         <h2 className="text-2xl font-semibold mb-4">Monthly Schedule</h2>
         <Calendar
           localizer={localizer}
