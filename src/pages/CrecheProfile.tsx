@@ -344,8 +344,8 @@ const CrecheProfile = () => {
         </Card>
 
         <Card className="border-2 border-primary/20">
-        <CardHeader className="flex justify-between">
-          <CardTitle className="text-lg text-primary flex items-center gap-2">
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle className="text-lg md:text-xl text-secondary flex items-center gap-2">
             <Instagram className="h-5 w-5" /> Social Media
           </CardTitle>
           {!editMode.social ? (

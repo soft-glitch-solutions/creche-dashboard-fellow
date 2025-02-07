@@ -208,7 +208,7 @@ const PhotoBook = () => {
       {/* Header */}
       <div className="flex items-center justify-between print:hidden">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Photo Book</h2>
+          <h1 className="text-4xl font-bold text-primary">Photo Book</h1>
           <p className="text-muted-foreground">
             Capture and organize your creche memories
           </p>
