@@ -10,6 +10,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Settings, Users, DollarSign, Edit, Save, CheckSquare, Square } from "lucide-react";
 import type { Creche } from "@/types/creche";
+import BasicInformationCard from "@/components/admin/BasicInformationCard";
+import AdditionalInformationCard from "@/components/admin/AdditionalInformationCard";
+import PlanAndFeaturesCard from "@/components/admin/PlanAndFeaturesCard";
 
 const defaultFeatures = {
   staff_management: false,
@@ -228,210 +231,32 @@ const CrecheDetails = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Creche Details</h1>
-      </div>
-
+      <h1 className="text-2xl font-bold">Creche Details</h1>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Settings className="h-5 w-5" />
-              Basic Information
-              <Button
-                variant="link"
-                onClick={() => setIsEditingBasic(!isEditingBasic)}
-                className="ml-auto p-0"
-              >
-                {isEditingBasic ? <Save className="h-5 w-5 text-green-500" /> : <Edit className="h-5 w-5 text-blue-500" />}
-              </Button>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label>Name</Label>
-              {isEditingBasic ? (
-                <Input
-                  value={editForm.name}
-                  onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-                />
-              ) : (
-                <div>{crecheData.name}</div>
-              )}
-            </div>
-            
-            <div className="space-y-2">
-              <Label>Address</Label>
-              {isEditingBasic ? (
-                <Input
-                  value={editForm.address}
-                  onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
-                />
-              ) : (
-                <div>{crecheData.address}</div>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label>Phone Number</Label>
-              {isEditingBasic ? (
-                <Input
-                  value={editForm.phone_number}
-                  onChange={(e) => setEditForm({ ...editForm, phone_number: e.target.value })}
-                />
-              ) : (
-                <div>{crecheData.phone_number}</div>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label>Email</Label>
-              {isEditingBasic ? (
-                <Input
-                  value={editForm.email}
-                  onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
-                />
-              ) : (
-                <div>{crecheData.email}</div>
-              )}
-            </div>
-
-            {isEditingBasic && (
-              <Button onClick={handleSaveBasic}>Save Changes</Button>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Users className="h-5 w-5" />
-              Additional Information
-              <Button
-                variant="link"
-                onClick={() => setIsEditingAdditional(!isEditingAdditional)}
-                className="ml-auto p-0"
-              >
-                {isEditingAdditional ? <Save className="h-5 w-5 text-green-500" /> : <Edit className="h-5 w-5 text-blue-500" />}
-              </Button>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label>Capacity</Label>
-              {isEditingAdditional ? (
-                <Input
-                  type="number"
-                  value={editForm.capacity}
-                  onChange={(e) => setEditForm({ ...editForm, capacity: parseInt(e.target.value) || 0 })}
-                />
-              ) : (
-                <div>{crecheData.capacity}</div>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label>Operating Hours</Label>
-              {isEditingAdditional ? (
-                <Input
-                  value={editForm.operating_hours}
-                  onChange={(e) => setEditForm({ ...editForm, operating_hours: e.target.value })}
-                />
-              ) : (
-                <div>{crecheData.operating_hours}</div>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label>Website URL</Label>
-              {isEditingAdditional ? (
-                <Input
-                  value={editForm.website_url}
-                  onChange={(e) => setEditForm({ ...editForm, website_url: e.target.value })}
-                />
-              ) : (
-                <div>{crecheData.website_url}</div>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label>Description</Label>
-              {isEditingAdditional ? (
-                <Textarea
-                  value={editForm.description}
-                  onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
-                />
-              ) : (
-                <div>{crecheData.description}</div>
-              )}
-            </div>
-
-            {isEditingAdditional && (
-              <Button onClick={handleSaveAdditional}>Save Changes</Button>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card className="md:col-span-2">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <DollarSign className="h-5 w-5" />
-              Plan & Features
-              <Button
-                variant="link"
-                onClick={() => setIsEditingPlan(!isEditingPlan)}
-                className="ml-auto p-0"
-              >
-                {isEditingPlan ? <Save className="h-5 w-5 text-green-500" /> : <Edit className="h-5 w-5 text-blue-500" />}
-              </Button>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="space-y-2">
-              <Label>Subscription Plan</Label>
-              {isEditingPlan ? (
-                <Select 
-                  value={editForm.plan} 
-                  onValueChange={(value: CrechePlan) => setEditForm({ ...editForm, plan: value })}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select a plan" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="free">Free</SelectItem>
-                    <SelectItem value="basic">Basic</SelectItem>
-                    <SelectItem value="pro">Pro</SelectItem>
-                  </SelectContent>
-                </Select>
-              ) : (
-                <div className="capitalize">{crecheData.plan}</div>
-              )}
-            </div>
-
-            <div className="space-y-4">
-              <Label>Enabled Features</Label>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {Object.entries(editForm.features).map(([feature, enabled]) => (
-                  <div key={feature} className="flex items-center space-x-2">
-                    {isEditingPlan ? (
-                      <Checkbox
-                        checked={enabled}
-                        onCheckedChange={() => handleFeatureToggle(feature)}
-                      />
-                    ) : (
-                      enabled ? <CheckSquare className="h-4 w-4 text-primary" /> : <Square className="h-4 w-4" />
-                    )}
-                    <Label className="capitalize">{feature.replace(/_/g, ' ')}</Label>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {isEditingPlan && (
-              <Button onClick={handleSavePlan}>Save Changes</Button>
-            )}
-          </CardContent>
-        </Card>
+        <BasicInformationCard
+          crecheData={crecheData}
+          editForm={editForm}
+          isEditing={isEditingBasic}
+          onToggleEdit={() => setIsEditingBasic(!isEditingBasic)}
+          onSave={handleSaveBasic}
+          onChange={(field, value) => setEditForm({ ...editForm, [field]: value })}
+        />
+        <AdditionalInformationCard
+          crecheData={crecheData}
+          editForm={editForm}
+          isEditing={isEditingAdditional}
+          onToggleEdit={() => setIsEditingAdditional(!isEditingAdditional)}
+          onSave={handleSaveAdditional}
+          onChange={(field, value) => setEditForm({ ...editForm, [field]: value })}
+        />
+        <PlanAndFeaturesCard
+          crecheData={crecheData}
+          editForm={editForm}
+          isEditing={isEditingPlan}
+          onToggleEdit={() => setIsEditingPlan(!isEditingPlan)}
+          onSave={handleSavePlan}
+          onFeatureToggle={handleFeatureToggle}
+        />
       </div>
     </div>
   );
