@@ -13,10 +13,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface Student {
   id: string;
   name: string;
+  parent_name: string;
+}
+
+interface Application {
+  id: string;
+  applicant_name: string;
   parent_name: string;
 }
 
@@ -33,7 +40,10 @@ const CreateInvoice = () => {
   const { toast } = useToast();
   const [userCreche, setUserCreche] = useState<string | null>(null);
   const [students, setStudents] = useState<Student[]>([]);
+  const [applications, setApplications] = useState<Application[]>([]);
+  const [selectedTab, setSelectedTab] = useState<"student" | "application">("student");
   const [selectedStudent, setSelectedStudent] = useState<string>("");
+  const [selectedApplication, setSelectedApplication] = useState<string>("");
   const [items, setItems] = useState<InvoiceItem[]>([{
     title: "",
     quantity: 1,
@@ -63,6 +73,16 @@ const CreateInvoice = () => {
           
           if (studentsData) {
             setStudents(studentsData);
+          }
+
+          // Fetch applications for this creche
+          const { data: applicationsData } = await supabase
+            .from('applications')
+            .select('id, parent_name')
+            .eq('creche_id', userCrecheData.creche_id);
+          
+          if (applicationsData) {
+            setApplications(applicationsData);
           }
         }
       }
@@ -102,10 +122,10 @@ const CreateInvoice = () => {
   };
 
   const handleSubmit = async () => {
-    if (!userCreche || !selectedStudent) {
+    if (!userCreche || (selectedTab === "student" && !selectedStudent) || (selectedTab === "application" && !selectedApplication)) {
       toast({
         title: "Error",
-        description: "Please select a student",
+        description: `Please select a ${selectedTab === "student" ? "student" : "application"}`,
         variant: "destructive",
       });
       return;
@@ -122,14 +142,17 @@ const CreateInvoice = () => {
         .from('invoices')
         .insert({
           creche_id: userCreche,
-          student_id: selectedStudent,
+          student_id: selectedTab === "student" ? selectedStudent : null,
+          application_id: selectedTab === "application" ? selectedApplication : null,
           title,
           status: 'pending',
           subtotal,
           tax_rate: taxRate,
           tax_amount: taxAmount,
           total_amount: totalAmount,
-          prepared_for: students.find(s => s.id === selectedStudent)?.parent_name
+          prepared_for: selectedTab === "student" 
+            ? students.find(s => s.id === selectedStudent)?.parent_name 
+            : applications.find(a => a.id === selectedApplication)?.parent_name
         })
         .select()
         .single();
@@ -168,11 +191,18 @@ const CreateInvoice = () => {
     <div className="space-y-6">
       <div>
         <h2 className="text-3xl font-bold tracking-tight">Create Invoice</h2>
-        <p className="text-muted-foreground">Create a new invoice for a student</p>
+        <p className="text-muted-foreground">Create a new invoice for a student or application</p>
       </div>
 
       <Card className="p-6">
         <div className="space-y-6">
+          <Tabs value={selectedTab} onValueChange={(value) => setSelectedTab(value as "student" | "application")}>
+            <TabsList>
+              <TabsTrigger value="student">Student</TabsTrigger>
+              <TabsTrigger value="application">Application</TabsTrigger>
+            </TabsList>
+          </Tabs>
+
           <div className="space-y-4">
             <div>
               <Label>Invoice Title</Label>
@@ -184,22 +214,30 @@ const CreateInvoice = () => {
             </div>
 
             <div>
-              <Label>Select Student</Label>
-              <Select value={selectedStudent} onValueChange={setSelectedStudent}>
+              <Label>Select {selectedTab === "student" ? "Student" : "Application"}</Label>
+              <Select
+                value={selectedTab === "student" ? selectedStudent : selectedApplication}
+                onValueChange={selectedTab === "student" ? setSelectedStudent : setSelectedApplication}
+              >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select a student" />
+                  <SelectValue placeholder={`Select a ${selectedTab === "student" ? "student" : "application"}`} />
                 </SelectTrigger>
                 <SelectContent>
-                  {students.map((student) => (
-                    <SelectItem key={student.id} value={student.id}>
-                      {student.name} ({student.parent_name})
-                    </SelectItem>
-                  ))}
+                  {selectedTab === "student"
+                    ? students.map((student) => (
+                        <SelectItem key={student.id} value={student.id}>
+                          {student.name} ({student.parent_name})
+                        </SelectItem>
+                      ))
+                    : applications.map((application) => (
+                        <SelectItem key={application.id} value={application.id}>
+                          {application.applicant_name} ({application.parent_name})
+                        </SelectItem>
+                      ))}
                 </SelectContent>
               </Select>
             </div>
           </div>
-
           <div className="space-y-4">
             <div className="flex justify-between items-center">
               <h3 className="text-lg font-semibold">Invoice Items</h3>

@@ -28,51 +28,52 @@ const FinanceReport = () => {
   const { toast } = useToast();
   const [selectedMonth, setSelectedMonth] = useState(new Date());
 
-  const { data: attendanceData, isLoading } = useQuery({
-    queryKey: ["attendance-report"],
+  const { data: invoiceData, isLoading } = useQuery({
+    queryKey: ["invoice-report"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("attendance_students")
+        .from("invoice")
         .select(`
           *,
-          student:students(name)
+          client:clients(name)
         `)
-        .order("attendance_date", { ascending: false });
+        .order("invoice_date", { ascending: false });
 
       if (error) throw error;
       return data;
     },
   });
 
-  const chartData = attendanceData?.reduce((acc: any[], curr) => {
-    const date = format(new Date(curr.attendance_date), "MMM dd");
+  const chartData = invoiceData?.reduce((acc: any[], curr) => {
+    const date = format(new Date(curr.invoice_date), "MMM dd");
     const existing = acc.find((item) => item.date === date);
     if (existing) {
-      existing.count += 1;
+      existing.amount += curr.amount;
     } else {
-      acc.push({ date, count: 1 });
+      acc.push({ date, amount: curr.amount });
     }
     return acc;
   }, []);
 
   const handleExportExcel = () => {
-    if (!attendanceData) return;
+    if (!invoiceData) return;
 
     const worksheet = XLSX.utils.json_to_sheet(
-      attendanceData.map((record) => ({
-        Date: format(new Date(record.attendance_date), "yyyy-MM-dd"),
-        Student: record.student?.name,
+      invoiceData.map((record) => ({
+        Date: format(new Date(record.invoice_date), "yyyy-MM-dd"),
+        Client: record.client?.name,
+        Amount: record.amount,
         Status: record.status,
       }))
     );
 
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Attendance");
-    XLSX.writeFile(workbook, "attendance-report.xlsx");
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Invoices");
+    XLSX.writeFile(workbook, "invoice-report.xlsx");
 
     toast({
       title: "Report Exported",
-      description: "The attendance report has been exported to Excel",
+      description: "The invoice report has been exported to Excel",
     });
   };
 
@@ -84,9 +85,9 @@ const FinanceReport = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Attendance Report</h2>
+          <h2 className="text-3xl font-bold tracking-tight">Finance Report</h2>
           <p className="text-muted-foreground">
-            View and analyze student attendance data
+            View and analyze financial data from invoices
           </p>
         </div>
         <div className="flex gap-2">
@@ -101,13 +102,13 @@ const FinanceReport = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Finance Overview</CardTitle>
-          <CardDescription>Daily attendance count</CardDescription>
+          <CardTitle>Revenue Overview</CardTitle>
+          <CardDescription>Daily revenue from invoices</CardDescription>
         </CardHeader>
         <CardContent>
           <ChartContainer config={{
-            count: {
-              label: "Attendance Count",
+            amount: {
+              label: "Revenue",
               color: "#84a7f6"
             }
           }}>
@@ -116,7 +117,7 @@ const FinanceReport = () => {
                 <XAxis dataKey="date" />
                 <YAxis />
                 <Tooltip />
-                <Bar dataKey="count" fill="var(--color-count)" />
+                <Bar dataKey="amount" fill="var(--color-count)" />
               </BarChart>
             </ResponsiveContainer>
           </ChartContainer>
@@ -125,25 +126,27 @@ const FinanceReport = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Attendance Records</CardTitle>
-          <CardDescription>Detailed list of attendance records</CardDescription>
+          <CardTitle>Invoice Records</CardTitle>
+          <CardDescription>Detailed list of invoices</CardDescription>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Date</TableHead>
-                <TableHead>Student</TableHead>
+                <TableHead>Client</TableHead>
+                <TableHead>Amount</TableHead>
                 <TableHead>Status</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {attendanceData?.map((record) => (
+              {invoiceData?.map((record) => (
                 <TableRow key={record.id}>
                   <TableCell>
-                    {format(new Date(record.attendance_date), "MMM dd, yyyy")}
+                    {format(new Date(record.invoice_date), "MMM dd, yyyy")}
                   </TableCell>
-                  <TableCell>{record.student?.name}</TableCell>
+                  <TableCell>{record.client?.name}</TableCell>
+                  <TableCell>${record.amount.toFixed(2)}</TableCell>
                   <TableCell>{record.status}</TableCell>
                 </TableRow>
               ))}

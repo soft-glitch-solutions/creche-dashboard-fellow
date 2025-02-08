@@ -64,6 +64,13 @@ const ResetPassword = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 to-secondary/5">
       <div className="w-full max-w-md space-y-8 p-8 bg-white rounded-lg shadow-lg">
+      <div className="flex justify-center mb-8">
+              <img
+                src="/lovable-uploads/8ef99244-a049-43de-a377-a00253510856.png"
+                alt="Creche Spots"
+                className="h-58 w-auto"
+              />
+      </div>
         <div className="text-center">
           <h1 className="text-2xl font-bold">Reset Password</h1>
           <p className="text-gray-600">Enter your new password</p>

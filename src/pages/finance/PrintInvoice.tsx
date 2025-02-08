@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Printer } from "lucide-react";
+import { Printer, ArrowLeft } from "lucide-react";
 
 interface Invoice {
   id: string;
@@ -27,17 +27,17 @@ interface InvoiceItem {
 
 const PrintInvoice = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [invoice, setInvoice] = useState<Invoice | null>(null);
   const [items, setItems] = useState<InvoiceItem[]>([]);
   const [creche, setCreche] = useState<any>(null);
 
   useEffect(() => {
     const fetchData = async () => {
-      // Fetch invoice
       const { data: invoiceData } = await supabase
-        .from('invoices')
-        .select('*, creche:creches(*)')
-        .eq('id', id)
+        .from("invoices")
+        .select("*, creche:creches(*)")
+        .eq("id", id)
         .single();
 
       if (invoiceData) {
@@ -45,11 +45,10 @@ const PrintInvoice = () => {
         setCreche(invoiceData.creche);
       }
 
-      // Fetch items
       const { data: itemsData } = await supabase
-        .from('invoice_items')
-        .select('*')
-        .eq('invoice_id', id);
+        .from("invoice_items")
+        .select("*")
+        .eq("invoice_id", id);
 
       if (itemsData) {
         setItems(itemsData);
@@ -60,7 +59,15 @@ const PrintInvoice = () => {
   }, [id]);
 
   const handlePrint = () => {
-    window.print();
+    const content = document.getElementById("invoice-content")?.innerHTML;
+    const originalContent = document.body.innerHTML;
+
+    if (content) {
+      document.body.innerHTML = content;
+      window.print();
+      document.body.innerHTML = originalContent;
+      window.location.reload();
+    }
   };
 
   if (!invoice || !creche) {
@@ -69,14 +76,20 @@ const PrintInvoice = () => {
 
   return (
     <div className="max-w-4xl mx-auto p-8">
-      <div className="print:hidden mb-8">
+      {/* Back & Print Buttons (Hidden when printing) */}
+      <div className="print:hidden mb-8 flex justify-between">
+        <Button onClick={() => navigate(-1)}>
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Back
+        </Button>
         <Button onClick={handlePrint}>
           <Printer className="w-4 h-4 mr-2" />
           Print Invoice
         </Button>
       </div>
 
-      <div className="space-y-8">
+      {/* Invoice Content - Only this will be printed */}
+      <div id="invoice-content" className="space-y-8">
         {/* Header */}
         <div className="flex justify-between items-start">
           <div>
@@ -143,7 +156,7 @@ const PrintInvoice = () => {
         <div className="border-t pt-8 text-center text-sm text-gray-600">
           <p>Thank you for your business!</p>
           <p>{creche.name}</p>
-          <p>{creche.website || ''}</p>
+          <p>{creche.website || ""}</p>
         </div>
       </div>
     </div>
