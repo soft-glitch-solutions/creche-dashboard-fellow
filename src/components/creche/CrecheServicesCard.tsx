@@ -7,7 +7,7 @@ interface ServicesCardProps {
   editMode: boolean;
   onEditToggle: () => void;
   onUpdate: () => void;
-  onInputChange: (field: keyof Creche, value: boolean) => void;
+  onInputChange: (field: keyof Creche['services'], value: boolean) => void;
 }
 
 export const ServicesCard = ({
@@ -52,7 +52,7 @@ export const ServicesCard = ({
                 <input
                   type="checkbox"
                   checked={crecheData.services[field] || false}
-                  onChange={(e) => onInputChange(field, e.target.checked)}
+                  onChange={(e) => onInputChange(field, e.target.checked)} // Properly handling the change
                 />
                 <span>Available</span>
               </div>
