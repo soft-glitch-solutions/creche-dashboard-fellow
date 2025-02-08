@@ -74,6 +74,7 @@ export const AttendanceSheet = ({ students, isOpen, onClose }: AttendanceSheetPr
         <DialogHeader>
           <DialogTitle>Record Attendance</DialogTitle>
         </DialogHeader>
+        
         {currentStudent && (
           <div className="space-y-6">
             <div className="text-center">

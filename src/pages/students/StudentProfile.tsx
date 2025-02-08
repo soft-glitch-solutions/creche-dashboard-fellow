@@ -12,6 +12,8 @@ import { StudentDocumentUpload } from "@/components/students/StudentDocumentUplo
 import { useToast } from "@/hooks/use-toast";
 import { StudentProfileDrawer } from "@/components/students/StudentProfileDrawer";
 import { format } from "date-fns";
+import CalendarHeatmap from "react-calendar-heatmap";
+import "react-calendar-heatmap/dist/styles.css";
 
 const StudentProfile = () => {
   const { id } = useParams();
@@ -242,30 +244,32 @@ const StudentProfile = () => {
         </TabsContent>
 
         <TabsContent value="attendance">
-          <Card className="p-6">
-            <div className="space-y-4">
-              {attendance.length === 0 ? (
-                <p className="text-muted-foreground">No attendance records found.</p>
-              ) : (
-                attendance.map((record) => (
-                  <div key={record.id} className="flex items-center justify-between p-3 border rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <Calendar className="h-5 w-5 text-muted-foreground" />
-                      <div>
-                        <p className="font-medium">
-                          {format(new Date(record.attendance_date), "PPP")}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          Status: {record.status}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </Card>
-        </TabsContent>
+  <Card className="p-6">
+    <h3 className="text-lg font-semibold mb-4">Attendance Overview</h3>
+    {attendance.length === 0 ? (
+      <p className="text-muted-foreground">No attendance records found.</p>
+    ) : (
+    <CalendarHeatmap
+      startDate={new Date(new Date().setFullYear(new Date().getFullYear() - 1))}
+      endDate={new Date()}
+      values={attendance.map((record) => ({
+        date: record.attendance_date,
+        status: record.status,
+      }))}
+      classForValue={(value) => {
+        if (!value) return "heatmap-empty";
+        return value.status === "Present"
+          ? "heatmap-medium"
+          : value.status === "Absent"
+          ? "heatmap-absent"
+          : "heatmap-low"; // Late
+      }}
+    />
+
+
+    )}
+  </Card>
+</TabsContent>
 
         <TabsContent value="financial">
           <Card className="p-6 space-y-4">
