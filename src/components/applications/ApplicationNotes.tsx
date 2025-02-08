@@ -132,22 +132,6 @@ export const ApplicationNotes = () => {
     <div className="space-y-4">
       <h3 className="text-sm font-medium">Application Notes</h3>
 
-      {/* Add new note */}
-      <div className="space-y-2">
-        <Textarea
-          value={newNote}
-          onChange={(e) => setNewNote(e.target.value)}
-          placeholder="Add a note..."
-          className="min-h-[100px]"
-        />
-        <Button
-          onClick={handleSubmit}
-          disabled={isSubmitting || !newNote.trim()}
-          className="w-full"
-        >
-          {isSubmitting ? "Adding..." : "Add Note"}
-        </Button>
-      </div>
 
       {/* Notes list */}
       <div className="space-y-4 mt-6">
@@ -162,8 +146,8 @@ export const ApplicationNotes = () => {
               <div className="flex items-center justify-between">
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                    <h4 className="text-sm font-medium">
-                      {note.user?.first_name || note.user?.email || "Unknown User"}
+                  <h4 className="text-sm font-medium">
+                      {note.users?.first_name || note.users?.email || "Unknown User"}
                     </h4>
                     {note.user?.role?.role_name && (
                       <Badge variant="secondary" className="text-xs">
@@ -185,6 +169,24 @@ export const ApplicationNotes = () => {
             No notes yet. Be the first to add a note.
           </p>
         )}
+      </div>
+
+      
+      {/* Add new note */}
+      <div className="space-y-2">
+        <Textarea
+          value={newNote}
+          onChange={(e) => setNewNote(e.target.value)}
+          placeholder="Add a note..."
+          className="min-h-[100px]"
+        />
+        <Button
+          onClick={handleSubmit}
+          disabled={isSubmitting || !newNote.trim()}
+          className="w-full"
+        >
+          {isSubmitting ? "Adding..." : "Add Note"}
+        </Button>
       </div>
     </div>
   );
