@@ -1,0 +1,75 @@
+/* 🔵 Heatmap Cell Colors */
+.heatmap-empty {
+    fill: #e0e0e0; /* Light gray for empty */
+  }
+  
+  .heatmap-present {
+    fill: #4caf50 !important; /* Green for Present */
+  }
+  
+  .heatmap-absent {
+    fill: #f44336 !important; /* Red for Absent */
+  }
+  
+  .heatmap-late {
+    fill: #ff9800 !important; /* Orange for Late */
+  }
+  
+  /* 🔤 Font Styles */
+  body {
+    font-family: "Inter", sans-serif;
+    font-size: 16px;
+  }
+  
+  h3 {
+    font-weight: 600;
+    font-size: 1.25rem;
+  }
+  
+  p {
+    font-size: 1rem;
+  }
+  
+  /* ✅ Fix Month Label Font Size */
+  .react-calendar-heatmap .react-calendar-heatmap-month-label {
+    font-size: 10px !important; /* More readable */
+    font-weight: 600;
+    text-transform: uppercase;
+    fill: #555; /* Ensure the text color is visible */
+  }
+  
+  /* ✅ Fix Empty Class */
+  .text-gray-500 {
+    color: #6b7280; /* Proper gray color */
+  }
+  
+  /* 🔥 Heatmap Tooltip Styling */
+/* 🔥 Heatmap Tooltip Styling */
+[data-tooltip] {
+    position: relative;
+    cursor: pointer;
+  }
+  
+  [data-tooltip]:hover::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    font-size: 12px;
+    padding: 5px 8px;
+    border-radius: 5px;
+    white-space: nowrap;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.2s ease-in-out;
+    z-index: 999; /* Ensure tooltip is visible */
+  }
+  
+  [data-tooltip]:not(:hover)::after {
+    opacity: 0;
+    visibility: hidden;
+  }
+  

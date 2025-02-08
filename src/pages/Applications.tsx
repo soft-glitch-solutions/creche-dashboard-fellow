@@ -728,16 +728,6 @@ const Applications = () => {
                           <p className="bg-muted p-4 rounded-lg">{application.message}</p>
                         </div>
 
-                        <div className="space-y-2">
-                          <h3 className="text-sm font-medium">Application Notes</h3>
-                          <Textarea
-                            value={applicationNote}
-                            onChange={(e) => setApplicationNote(e.target.value)}
-                            placeholder="Add a note..."
-                            className="min-h-[100px]"
-                          />
-                          <Button className="w-full">Add Note</Button>
-                        </div>
                       </div>
                     </SheetContent>
                   </Sheet>

@@ -26,21 +26,21 @@ export const AttendanceSheet = ({ students, isOpen, onClose }: AttendanceSheetPr
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
-  const handleAttendance = async (status: 'Present' | 'Absent') => {
+  const handleAttendance = async (status: "Present" | "Absent") => {
     if (currentIndex >= students.length) return;
-    
+
     const student = students[currentIndex];
     setIsSubmitting(true);
 
     try {
-      const today = new Date().toISOString().split('T')[0];
-      
+      const today = new Date().toISOString().split("T")[0];
+
       const { error } = await supabase
-        .from('attendance_students')
+        .from("attendance_students")
         .insert({
           student_id: student.id,
           attendance_date: today,
-          status: status
+          status: status,
         });
 
       if (error) throw error;
@@ -52,10 +52,10 @@ export const AttendanceSheet = ({ students, isOpen, onClose }: AttendanceSheetPr
         });
         onClose();
       } else {
-        setCurrentIndex(prev => prev + 1);
+        setCurrentIndex((prev) => prev + 1);
       }
     } catch (error) {
-      console.error('Error recording attendance:', error);
+      console.error("Error recording attendance:", error);
       toast({
         variant: "destructive",
         title: "Error",
@@ -74,7 +74,7 @@ export const AttendanceSheet = ({ students, isOpen, onClose }: AttendanceSheetPr
         <DialogHeader>
           <DialogTitle>Record Attendance</DialogTitle>
         </DialogHeader>
-        
+
         {currentStudent && (
           <div className="space-y-6">
             <div className="text-center">
@@ -83,20 +83,22 @@ export const AttendanceSheet = ({ students, isOpen, onClose }: AttendanceSheetPr
                 Student {currentIndex + 1} of {students.length}
               </p>
             </div>
+
+            {/* Attendance Buttons */}
             <div className="flex justify-center gap-4">
               <Button
-                onClick={() => handleAttendance('Present')}
+                onClick={() => handleAttendance("Present")}
                 disabled={isSubmitting}
-                className="w-32"
+                className="w-32 border-green-500 text-green-500 hover:bg-green-100 bg-transparent"
                 variant="outline"
               >
                 <Check className="mr-2 h-4 w-4" />
                 Present
               </Button>
               <Button
-                onClick={() => handleAttendance('Absent')}
+                onClick={() => handleAttendance("Absent")}
                 disabled={isSubmitting}
-                className="w-32"
+                className="w-32 border-red-500 text-red-500 hover:bg-red-100 bg-transparent"
                 variant="outline"
               >
                 <X className="mr-2 h-4 w-4" />

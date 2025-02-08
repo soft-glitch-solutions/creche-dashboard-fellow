@@ -13,7 +13,8 @@ import { useToast } from "@/hooks/use-toast";
 import { StudentProfileDrawer } from "@/components/students/StudentProfileDrawer";
 import { format } from "date-fns";
 import CalendarHeatmap from "react-calendar-heatmap";
-import "react-calendar-heatmap/dist/styles.css";
+import "./heatmapStyles.css";
+
 
 const StudentProfile = () => {
   const { id } = useParams();
@@ -249,22 +250,31 @@ const StudentProfile = () => {
     {attendance.length === 0 ? (
       <p className="text-muted-foreground">No attendance records found.</p>
     ) : (
-    <CalendarHeatmap
-      startDate={new Date(new Date().setFullYear(new Date().getFullYear() - 1))}
-      endDate={new Date()}
-      values={attendance.map((record) => ({
-        date: record.attendance_date,
-        status: record.status,
-      }))}
-      classForValue={(value) => {
-        if (!value) return "heatmap-empty";
-        return value.status === "Present"
-          ? "heatmap-medium"
-          : value.status === "Absent"
-          ? "heatmap-absent"
-          : "heatmap-low"; // Late
-      }}
-    />
+<CalendarHeatmap
+  startDate={new Date(new Date().setFullYear(new Date().getFullYear() - 1))}
+  endDate={new Date()}
+  values={attendance.map((record) => ({
+    date: record.attendance_date,
+    status: record.status,
+  }))}
+
+  classForValue={(value) => {
+    if (!value) return "heatmap-empty";
+    return value.status === "Present"
+      ? "heatmap-present"
+      : value.status === "Absent"
+      ? "heatmap-absent"
+      : "heatmap-late"; // Late
+  }}
+
+  tooltipDataAttrs={(value) => {
+    if (!value || !value.date) {
+      return { "data-tooltip": "No attendance record" };
+    }
+    return { "data-tooltip": `${value.date}: ${value.status}` };
+  }}
+/>
+
 
 
     )}
