@@ -488,7 +488,7 @@ const Applications = () => {
                               <Edit className="h-4 w-4" />
                             </Button>
                           </SheetTrigger>
-                          <SheetContent className="w-[400px] sm:w-[540px]">
+                          <SheetContent className="w-[1800px] sm:w-[840px]">
                             <SheetHeader>
                               <SheetTitle className="flex justify-between">
                                 Application Details
