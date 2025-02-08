@@ -1,4 +1,4 @@
-import { Mail, Phone, Clock, Edit, Save } from "lucide-react";
+import { Mail, Phone, Clock, Edit, Save, MapPin } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import type { Creche } from "@/types/creche";
@@ -70,6 +70,43 @@ export const BasicInfoCard = ({
                 placeholder="Operating hours"
               />
             </div>
+            {/* Larger Description Field */}
+            <div className="space-y-2">
+              <label className="text-sm text-gray-500">Description</label>
+              <textarea
+                className="w-full p-2 border rounded-lg resize-none"
+                value={crecheData.description || ''}
+                onChange={(e) => onInputChange('description', e.target.value)}
+                placeholder="Description"
+                rows={4} // Adjust the number of rows for the height of the textarea
+              />
+            </div>
+            {/* Other Fields */}
+            <div className="space-y-2">
+              <label className="text-sm text-gray-500">Address</label>
+              <Input
+                value={crecheData.address || ''}
+                onChange={(e) => onInputChange('address', e.target.value)}
+                placeholder="Address"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm text-gray-500">Capacity</label>
+              <Input
+                type="number"
+                value={crecheData.capacity || ''}
+                onChange={(e) => onInputChange('capacity', e.target.value)}
+                placeholder="Capacity"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm text-gray-500">Website</label>
+              <Input
+                value={crecheData.website_url || ''}
+                onChange={(e) => onInputChange('website_url', e.target.value)}
+                placeholder="Website URL"
+              />
+            </div>
           </>
         ) : (
           <>
@@ -88,6 +125,19 @@ export const BasicInfoCard = ({
             <div className="flex items-center gap-2 text-sm text-gray-500">
               <Clock className="h-4 w-4" />
               {crecheData.operating_hours || "Operating hours not specified"}
+            </div>
+            {/* Display Additional Fields */}
+            <div className="flex items-center gap-2 text-sm text-gray-500">
+              <MapPin className="h-4 w-4" />
+              {crecheData.address || "Address not provided"}
+            </div>
+            <div className="flex items-center gap-2 text-sm text-gray-500">
+              <span className="font-medium">Description:</span>
+              {crecheData.description || "No description provided"}
+            </div>
+            <div className="flex items-center gap-2 text-sm text-gray-500">
+              <span className="font-medium">Capacity:</span>
+              {crecheData.capacity || "Not specified"}
             </div>
           </>
         )}

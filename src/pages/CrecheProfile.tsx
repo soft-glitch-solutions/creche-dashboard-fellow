@@ -9,6 +9,8 @@ import { FinancialInfoCard } from "@/components/creche/CrecheFinancialInfo";
 import { SocialMediaCard } from "@/components/creche/CrecheSocialMedia";
 import { StudentsCard } from "@/components/creche/CrecheStudents";
 import type { Creche } from "@/types/creche";
+import { FacilitiesCard } from "@/components/creche/CrecheFacilitiesCard";
+import { ServicesCard } from "@/components/creche/CrecheServicesCard"; // Import the new ServicesCard
 
 const defaultCreche: Creche = {
   id: "",
@@ -46,12 +48,23 @@ const defaultCreche: Creche = {
     attendance_tracking: false,
     parent_communication: false,
   },
+  services: {
+    full_time_care: false,
+    part_time_care: false,
+    after_school_care: false,
+    meals_provided: false,
+    transportation: false,
+    special_education: false,
+  },
 };
 
 export const CrecheProfile = () => {
   const [crecheData, setCrecheData] = useState<Creche>(defaultCreche);
   const [editMode, setEditMode] = useState({
     basic: false,
+    services: false,
+    finance: false,
+    facilities: false,
     additional: false,
     social: false,
   });
@@ -109,8 +122,11 @@ export const CrecheProfile = () => {
     }
   };
 
-  const handleInputChange = (field: keyof Creche, value: string | number) => {
-    setCrecheData((prev) => ({ ...prev, [field]: value }));
+  const handleInputChange = (field: keyof Creche, value: string | number | boolean) => {
+    setCrecheData((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
   };
 
   if (!crecheData) return <div>Loading...</div>;
@@ -118,7 +134,9 @@ export const CrecheProfile = () => {
   // Define tabs
   const tabs = [
     { id: "basic", label: "Basic Info" },
-    { id: "financial", label: "Financial Info" },
+    { id: "services", label: "Services" },
+    { id: "facilities", label: "Facilities" },
+    { id: "financial", label: "Financial" },
     { id: "social", label: "Social Media" },
     { id: "students", label: "Students" },
     { id: "gallery", label: "Gallery" },
@@ -157,6 +175,26 @@ export const CrecheProfile = () => {
             editMode={editMode.basic}
             onEditToggle={() => setEditMode((prev) => ({ ...prev, basic: !prev.basic }))}
             onUpdate={() => handleUpdate("basic")}
+            onInputChange={handleInputChange}
+          />
+        )}
+
+        {activeTab === "services" && (
+          <ServicesCard
+            crecheData={crecheData}
+            editMode={editMode.services} // Update to control services edit mode
+            onEditToggle={() => setEditMode((prev) => ({ ...prev, services: !prev.services }))}
+            onUpdate={() => handleUpdate("services")}
+            onInputChange={handleInputChange}
+          />
+        )}
+
+        {activeTab === "facilities" && (
+          <FacilitiesCard
+            crecheData={crecheData}
+            editMode={editMode.facilities}
+            onEditToggle={() => setEditMode((prev) => ({ ...prev, facilities: !prev.facilities }))}
+            onUpdate={() => handleUpdate("facilities")}
             onInputChange={handleInputChange}
           />
         )}

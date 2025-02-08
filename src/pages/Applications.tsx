@@ -131,11 +131,6 @@ const Applications = () => {
       }
     } catch (error) {
       console.error("Error fetching applications:", error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to load applications",
-      });
     } finally {
       setIsLoading(false);
     }

@@ -1,4 +1,4 @@
-import { Users, Edit, Save } from "lucide-react";
+import { Users, Edit, Save , Banknote } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import type { Creche } from "@/types/creche";
@@ -74,6 +74,53 @@ export const FinancialInfoCard = ({
                 placeholder="Capacity"
               />
             </div>
+
+            <h2 className="text-lg md:text-xl text-primary flex items-center gap-2">
+            <Banknote className="h-5 w-5" />
+               Bank Detials
+            </h2>
+
+            {/* Bank Account Details Section */}
+            <div className="space-y-2">
+              <label className="text-sm text-gray-500">Bank Name</label>
+              <Input
+                value={crecheData.bank_name || ''}
+                onChange={(e) => onInputChange('bank_name', e.target.value)}
+                placeholder="Bank name"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm text-gray-500">Account Holder</label>
+              <Input
+                value={crecheData.account_holder || ''}
+                onChange={(e) => onInputChange('account_holder', e.target.value)}
+                placeholder="Account holder"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm text-gray-500">Account Number</label>
+              <Input
+                value={crecheData.account_number || ''}
+                onChange={(e) => onInputChange('account_number', e.target.value)}
+                placeholder="Account number"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm text-gray-500">Branch Code</label>
+              <Input
+                value={crecheData.branch_code || ''}
+                onChange={(e) => onInputChange('branch_code', e.target.value)}
+                placeholder="Branch code"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm text-gray-500">Account Type</label>
+              <Input
+                value={crecheData.account_type || ''}
+                onChange={(e) => onInputChange('account_type', e.target.value)}
+                placeholder="Account type"
+              />
+            </div>
           </>
         ) : (
           <>
@@ -91,10 +138,35 @@ export const FinancialInfoCard = ({
                 <span className="font-bold">R{crecheData.monthly_price || 0}</span>
               </div>
             </div>
+            
+
+            <h2 className="text-lg md:text-xl text-primary flex items-center gap-2">
+            <Banknote className="h-5 w-5" />
+               Bank Detials
+            </h2>
+
+
+            {/* Display Bank Account Details */}
             <div className="space-y-2">
-              <h4 className="font-semibold text-sm">Capacity:</h4>
-              <div className="grid grid-cols-2 gap-2 text-xs">
-                <div>Total: {crecheData.capacity || 0}</div>
+              <div className="flex justify-between text-sm">
+                <span>Bank Name:</span>
+                <span>{crecheData.bank_name || "Not provided"}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span>Account Holder:</span>
+                <span>{crecheData.account_holder || "Not provided"}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span>Account Number:</span>
+                <span>{crecheData.account_number || "Not provided"}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span>Branch Code:</span>
+                <span>{crecheData.branch_code || "Not provided"}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span>Account Type:</span>
+                <span>{crecheData.account_type || "Not provided"}</span>
               </div>
             </div>
           </>
