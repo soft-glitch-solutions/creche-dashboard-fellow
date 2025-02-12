@@ -59,8 +59,15 @@ const Login = () => {
       <div className="flex-1 flex flex-col lg:flex-row">
         <div className="flex-1 flex items-center justify-center p-8">
           <div className="w-full max-w-md space-y-8">
+            <div className="flex justify-center mb-8">
+              <img
+                src="/lovable-uploads/8ef99244-a049-43de-a377-a00253510856.png"
+                alt="Creche Spots"
+                className="h-58 w-auto"
+              />
+            </div>
             <div className="text-center">
-              <h1 className="text-4xl font-bold text-primary mb-2">Welcome Back!</h1>
+              <h1 className="text-4xl font-bold text-primary mb-2">Welcome </h1>
               <p className="text-gray-600">Login to your account</p>
             </div>
 
