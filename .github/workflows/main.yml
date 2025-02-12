@@ -4,11 +4,11 @@ on:
   push:
     branches:
       - main  # Deploy when pushing to the main branch
+      - demo  # Deploy when pushing to the demo branch
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -33,5 +33,5 @@ jobs:
           protocol: ftp
           port: ${{ secrets.FTP_PORT }}
           local-dir: dist/  # This is your build directory
-          server-dir: /portal.crechespots.co.za/  # Change this if needed
+          server-dir: ${{ github.ref == 'refs/heads/main' && '/portal.crechespots.co.za/' || '/demo.crechespots.co.za/' }}  # Change dynamically based on branch
           cleanup: true  # Remove old files before uploading
