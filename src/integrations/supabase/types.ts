@@ -103,6 +103,7 @@ export type Database = {
       applications: {
         Row: {
           application_status: string | null
+          child_id: string | null
           created_at: string | null
           creche_id: string | null
           id: string
@@ -120,6 +121,7 @@ export type Database = {
         }
         Insert: {
           application_status?: string | null
+          child_id?: string | null
           created_at?: string | null
           creche_id?: string | null
           id?: string
@@ -137,6 +139,7 @@ export type Database = {
         }
         Update: {
           application_status?: string | null
+          child_id?: string | null
           created_at?: string | null
           creche_id?: string | null
           id?: string
@@ -154,6 +157,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "applications_child_id_fkey"
+            columns: ["child_id"]
+            isOneToOne: false
+            referencedRelation: "children"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "applications_creche_id_fkey"
             columns: ["creche_id"]
             isOneToOne: false
@@ -169,11 +179,51 @@ export type Database = {
           },
         ]
       }
+      article_comments: {
+        Row: {
+          article_id: string
+          content: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          article_id: string
+          content: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          article_id?: string
+          content?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "article_comments_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "article_with_details"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "article_comments_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "articles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       articles: {
         Row: {
           author_id: string | null
           content: string
           created_at: string | null
+          creche_id: string | null
           hearts: number | null
           id: string
           latitude: number
@@ -186,6 +236,7 @@ export type Database = {
           author_id?: string | null
           content: string
           created_at?: string | null
+          creche_id?: string | null
           hearts?: number | null
           id?: string
           latitude: number
@@ -198,6 +249,7 @@ export type Database = {
           author_id?: string | null
           content?: string
           created_at?: string | null
+          creche_id?: string | null
           hearts?: number | null
           id?: string
           latitude?: number
@@ -212,6 +264,13 @@ export type Database = {
             columns: ["author_id"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "articles_creche_id_fkey"
+            columns: ["creche_id"]
+            isOneToOne: false
+            referencedRelation: "creches"
             referencedColumns: ["id"]
           },
         ]
@@ -279,6 +338,60 @@ export type Database = {
             columns: ["student_id"]
             isOneToOne: false
             referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      children: {
+        Row: {
+          created_at: string | null
+          creche_id: string | null
+          date_of_birth: string | null
+          first_name: string
+          gender: string | null
+          id: string
+          last_name: string
+          profile_picture_url: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          creche_id?: string | null
+          date_of_birth?: string | null
+          first_name: string
+          gender?: string | null
+          id?: string
+          last_name: string
+          profile_picture_url?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          creche_id?: string | null
+          date_of_birth?: string | null
+          first_name?: string
+          gender?: string | null
+          id?: string
+          last_name?: string
+          profile_picture_url?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "children_creche_id_fkey"
+            columns: ["creche_id"]
+            isOneToOne: true
+            referencedRelation: "creches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "children_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
             referencedColumns: ["id"]
           },
         ]
@@ -432,6 +545,7 @@ export type Database = {
           description: string | null
           email: string | null
           facebook_url: string | null
+          facilities: Json | null
           features: Json | null
           header_image: string | null
           id: string
@@ -447,7 +561,10 @@ export type Database = {
           phone_number: string | null
           plan: string | null
           price: number | null
+          province: string | null
           registered: boolean | null
+          services: Json | null
+          suburb: string | null
           telegram_number: string | null
           twitter_url: string | null
           updated_at: string | null
@@ -468,6 +585,7 @@ export type Database = {
           description?: string | null
           email?: string | null
           facebook_url?: string | null
+          facilities?: Json | null
           features?: Json | null
           header_image?: string | null
           id?: string
@@ -483,7 +601,10 @@ export type Database = {
           phone_number?: string | null
           plan?: string | null
           price?: number | null
+          province?: string | null
           registered?: boolean | null
+          services?: Json | null
+          suburb?: string | null
           telegram_number?: string | null
           twitter_url?: string | null
           updated_at?: string | null
@@ -504,6 +625,7 @@ export type Database = {
           description?: string | null
           email?: string | null
           facebook_url?: string | null
+          facilities?: Json | null
           features?: Json | null
           header_image?: string | null
           id?: string
@@ -519,7 +641,10 @@ export type Database = {
           phone_number?: string | null
           plan?: string | null
           price?: number | null
+          province?: string | null
           registered?: boolean | null
+          services?: Json | null
+          suburb?: string | null
           telegram_number?: string | null
           twitter_url?: string | null
           updated_at?: string | null
@@ -647,6 +772,45 @@ export type Database = {
           title?: string
           updated_at?: string | null
           updated_by?: string | null
+        }
+        Relationships: []
+      }
+      http_log: {
+        Row: {
+          duration: number | null
+          error: string | null
+          id: string
+          ip_address: string | null
+          method: string | null
+          path: string | null
+          request_id: string | null
+          request_time: string | null
+          status: number | null
+          user_agent: string | null
+        }
+        Insert: {
+          duration?: number | null
+          error?: string | null
+          id?: string
+          ip_address?: string | null
+          method?: string | null
+          path?: string | null
+          request_id?: string | null
+          request_time?: string | null
+          status?: number | null
+          user_agent?: string | null
+        }
+        Update: {
+          duration?: number | null
+          error?: string | null
+          id?: string
+          ip_address?: string | null
+          method?: string | null
+          path?: string | null
+          request_id?: string | null
+          request_time?: string | null
+          status?: number | null
+          user_agent?: string | null
         }
         Relationships: []
       }
@@ -1216,6 +1380,7 @@ export type Database = {
           parent_name: string | null
           parent_phone_number: string | null
           parent_whatsapp: string | null
+          profile_picture: string | null
           user_id: string | null
         }
         Insert: {
@@ -1235,6 +1400,7 @@ export type Database = {
           parent_name?: string | null
           parent_phone_number?: string | null
           parent_whatsapp?: string | null
+          profile_picture?: string | null
           user_id?: string | null
         }
         Update: {
@@ -1254,6 +1420,7 @@ export type Database = {
           parent_name?: string | null
           parent_phone_number?: string | null
           parent_whatsapp?: string | null
+          profile_picture?: string | null
           user_id?: string | null
         }
         Relationships: [
@@ -1283,35 +1450,72 @@ export type Database = {
       support_requests: {
         Row: {
           category: string
+          converted_at: string | null
+          converted_ticket_id: string | null
           created_at: string | null
+          creche_id: string | null
           id: string
           message: string
-          status: string | null
+          priority: string | null
+          resolved_at: string | null
+          status: Database["public"]["Enums"]["support_request_status"] | null
           title: string
           updated_at: string | null
           user_id: string | null
         }
         Insert: {
           category: string
+          converted_at?: string | null
+          converted_ticket_id?: string | null
           created_at?: string | null
+          creche_id?: string | null
           id?: string
           message: string
-          status?: string | null
+          priority?: string | null
+          resolved_at?: string | null
+          status?: Database["public"]["Enums"]["support_request_status"] | null
           title: string
           updated_at?: string | null
           user_id?: string | null
         }
         Update: {
           category?: string
+          converted_at?: string | null
+          converted_ticket_id?: string | null
           created_at?: string | null
+          creche_id?: string | null
           id?: string
           message?: string
-          status?: string | null
+          priority?: string | null
+          resolved_at?: string | null
+          status?: Database["public"]["Enums"]["support_request_status"] | null
           title?: string
           updated_at?: string | null
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fk_support_requests_user"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "support_requests_converted_ticket_id_fkey"
+            columns: ["converted_ticket_id"]
+            isOneToOne: false
+            referencedRelation: "support_tickets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "support_requests_creche_id_fkey"
+            columns: ["creche_id"]
+            isOneToOne: false
+            referencedRelation: "creches"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       support_tickets: {
         Row: {
@@ -1324,6 +1528,7 @@ export type Database = {
           organization_id: string | null
           priority: string
           resolved_at: string | null
+          source: string | null
           status_id: string | null
           title: string
           updated_at: string | null
@@ -1338,6 +1543,7 @@ export type Database = {
           organization_id?: string | null
           priority?: string
           resolved_at?: string | null
+          source?: string | null
           status_id?: string | null
           title: string
           updated_at?: string | null
@@ -1352,11 +1558,19 @@ export type Database = {
           organization_id?: string | null
           priority?: string
           resolved_at?: string | null
+          source?: string | null
           status_id?: string | null
           title?: string
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "support_tickets_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "support_tickets_creche_id_fkey"
             columns: ["creche_id"]
@@ -1408,6 +1622,48 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "ticket_comments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ticket_notes: {
+        Row: {
+          created_at: string | null
+          id: string
+          note: string
+          ticket_id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          note: string
+          ticket_id: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          note?: string
+          ticket_id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ticket_notes_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "support_tickets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ticket_notes_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "users"
@@ -1474,6 +1730,39 @@ export type Database = {
           },
         ]
       }
+      user_activity_logs: {
+        Row: {
+          created_at: string | null
+          event_details: Json | null
+          event_type: string
+          id: string
+          ip_address: string | null
+          session_id: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          event_details?: Json | null
+          event_type: string
+          id?: string
+          ip_address?: string | null
+          session_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          event_details?: Json | null
+          event_type?: string
+          id?: string
+          ip_address?: string | null
+          session_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       user_creche: {
         Row: {
           creche_id: string
@@ -1525,6 +1814,13 @@ export type Database = {
             foreignKeyName: "user_likes_article_id_fkey"
             columns: ["article_id"]
             isOneToOne: false
+            referencedRelation: "article_with_details"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_likes_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
             referencedRelation: "articles"
             referencedColumns: ["id"]
           },
@@ -1550,6 +1846,7 @@ export type Database = {
           last_name: string | null
           latitude: string | null
           longitude: string | null
+          payment_score: number | null
           phone_number: string | null
           price: string | null
           profile_picture_url: string | null
@@ -1570,6 +1867,7 @@ export type Database = {
           last_name?: string | null
           latitude?: string | null
           longitude?: string | null
+          payment_score?: number | null
           phone_number?: string | null
           price?: string | null
           profile_picture_url?: string | null
@@ -1590,6 +1888,7 @@ export type Database = {
           last_name?: string | null
           latitude?: string | null
           longitude?: string | null
+          payment_score?: number | null
           phone_number?: string | null
           price?: string | null
           profile_picture_url?: string | null
@@ -1608,9 +1907,138 @@ export type Database = {
           },
         ]
       }
+      webhook_configurations: {
+        Row: {
+          created_at: string | null
+          creche_id: string | null
+          enabled: boolean | null
+          fields_mapping: Json | null
+          id: string
+          last_used_at: string | null
+          name: string
+          source: string | null
+          status: string | null
+          target_table: string | null
+          updated_at: string | null
+          webhook_key: string
+        }
+        Insert: {
+          created_at?: string | null
+          creche_id?: string | null
+          enabled?: boolean | null
+          fields_mapping?: Json | null
+          id?: string
+          last_used_at?: string | null
+          name: string
+          source?: string | null
+          status?: string | null
+          target_table?: string | null
+          updated_at?: string | null
+          webhook_key?: string
+        }
+        Update: {
+          created_at?: string | null
+          creche_id?: string | null
+          enabled?: boolean | null
+          fields_mapping?: Json | null
+          id?: string
+          last_used_at?: string | null
+          name?: string
+          source?: string | null
+          status?: string | null
+          target_table?: string | null
+          updated_at?: string | null
+          webhook_key?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "webhook_configurations_creche_id_fkey"
+            columns: ["creche_id"]
+            isOneToOne: false
+            referencedRelation: "creches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      webhook_logs: {
+        Row: {
+          created_at: string | null
+          error_message: string | null
+          id: string
+          ip_address: string | null
+          payload: Json | null
+          status: string | null
+          user_agent: string | null
+          webhook_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          ip_address?: string | null
+          payload?: Json | null
+          status?: string | null
+          user_agent?: string | null
+          webhook_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          ip_address?: string | null
+          payload?: Json | null
+          status?: string | null
+          user_agent?: string | null
+          webhook_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "webhook_logs_webhook_id_fkey"
+            columns: ["webhook_id"]
+            isOneToOne: false
+            referencedRelation: "webhook_configurations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
-      [_ in never]: never
+      article_with_details: {
+        Row: {
+          author_id: string | null
+          author_name: string | null
+          author_picture: string | null
+          comment_count: number | null
+          content: string | null
+          created_at: string | null
+          creche_id: string | null
+          creche_logo: string | null
+          creche_name: string | null
+          hearts: number | null
+          id: string | null
+          latitude: number | null
+          longitude: number | null
+          title: string | null
+          type: string | null
+          updated_at: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "articles_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "articles_creche_id_fkey"
+            columns: ["creche_id"]
+            isOneToOne: false
+            referencedRelation: "creches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       generate_monthly_invoices: {
@@ -1620,6 +2048,12 @@ export type Database = {
     }
     Enums: {
       help_category: "documentation" | "faq" | "tutorial"
+      support_request_status:
+        | "open"
+        | "in_progress"
+        | "on_hold"
+        | "resolved"
+        | "closed"
     }
     CompositeTypes: {
       [_ in never]: never

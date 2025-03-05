@@ -31,6 +31,7 @@ import SupportChat from "./pages/help/Support-Chat";
 import Documentation from "./pages/help/Documentation";
 import Faqs from "./pages/help/Faqs";
 import Social from "./pages/Social";
+import ArticleDetail from "./pages/social/ArticleDetail";
 import CreateContent from "./pages/help/CreateContent";
 import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
@@ -78,6 +79,7 @@ const App = () => (
                 <Route path="finance/invoice/:id/pdf" element={<PrintInvoice />} />
                 <Route path="calendar" element={<Calender />} />
                 <Route path="social" element={<Social />} />
+                <Route path="social/:id" element={<ArticleDetail />} />
                 <Route path="reports" element={<Reports />} />
                 <Route path="settings" element={<Settings />} />
                 <Route path="settings/creche/:id" element={<CrecheProfile />} />
