@@ -23,6 +23,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import { ArticleSkeleton, PaginationSkeleton } from "@/components/social/SocialSkeletons";
 
 interface Article {
   id: string;
@@ -50,6 +51,7 @@ const Social = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -83,6 +85,8 @@ const Social = () => {
         description: "Failed to load articles",
         variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -291,92 +295,104 @@ const Social = () => {
       </div>
 
       <div className="grid gap-6">
-        {articles.map((article) => (
-          <Card key={article.id} className="p-6">
-            <div className="flex items-start justify-between">
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <h2 className="text-2xl font-semibold">{article.title}</h2>
-                  <span className="px-2 py-1 text-xs rounded-full bg-primary/10 text-primary">
-                    {article.type}
-                  </span>
+        {isLoading ? (
+          Array.from({ length: ITEMS_PER_PAGE }).map((_, index) => (
+            <ArticleSkeleton key={index} />
+          ))
+        ) : articles.length === 0 ? (
+          <div className="text-center text-gray-500">No articles found</div>
+        ) : (
+          articles.map((article) => (
+            <Card key={article.id} className="p-6">
+              <div className="flex items-start justify-between">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-2xl font-semibold">{article.title}</h2>
+                    <span className="px-2 py-1 text-xs rounded-full bg-primary/10 text-primary">
+                      {article.type}
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    By {article.author?.display_name || "Unknown"} • 
+                    {new Date(article.created_at).toLocaleDateString()}
+                  </p>
                 </div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  By {article.author?.display_name || "Unknown"} • 
-                  {new Date(article.created_at).toLocaleDateString()}
-                </p>
+                <div className="flex gap-2">
+                  <Button 
+                    variant="ghost" 
+                    size="icon"
+                    onClick={() => {
+                      setEditingArticle(article);
+                      setIsEditing(true);
+                    }}
+                  >
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    size="icon"
+                    onClick={() => deleteArticle(article.id)}
+                  >
+                    <Trash className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
-              <div className="flex gap-2">
-                <Button 
-                  variant="ghost" 
-                  size="icon"
-                  onClick={() => {
-                    setEditingArticle(article);
-                    setIsEditing(true);
-                  }}
+              <p className="mt-4">{article.content}</p>
+              <div className="mt-6 flex items-center gap-4">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="flex items-center gap-2"
+                  onClick={() => handleHeart(article.id, article.hearts)}
                 >
-                  <Edit className="h-4 w-4" />
+                  <Heart className="h-4 w-4" />
+                  {article.hearts}
                 </Button>
-                <Button 
-                  variant="ghost" 
-                  size="icon"
-                  onClick={() => deleteArticle(article.id)}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="flex items-center gap-2"
+                  onClick={() => navigate(`/dashboard/social/${article.id}`)}
                 >
-                  <Trash className="h-4 w-4" />
+                  <MessageCircle className="h-4 w-4" />
+                  Comments
                 </Button>
               </div>
-            </div>
-            <p className="mt-4">{article.content}</p>
-            <div className="mt-6 flex items-center gap-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="flex items-center gap-2"
-                onClick={() => handleHeart(article.id, article.hearts)}
-              >
-                <Heart className="h-4 w-4" />
-                {article.hearts}
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="flex items-center gap-2"
-                onClick={() => navigate(`/dashboard/social/${article.id}`)}
-              >
-                <MessageCircle className="h-4 w-4" />
-                Comments
-              </Button>
-            </div>
-          </Card>
-        ))}
+            </Card>
+          ))
+        )}
       </div>
 
-      <Pagination>
-        <PaginationContent>
-          <PaginationItem>
-            <PaginationPrevious 
-              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-              className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
-            />
-          </PaginationItem>
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-            <PaginationItem key={page}>
-              <PaginationLink
-                onClick={() => setCurrentPage(page)}
-                isActive={currentPage === page}
-              >
-                {page}
-              </PaginationLink>
+      {isLoading ? (
+        <PaginationSkeleton />
+      ) : (
+        <Pagination>
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationPrevious 
+                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+              />
             </PaginationItem>
-          ))}
-          <PaginationItem>
-            <PaginationNext 
-              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-              className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
-            />
-          </PaginationItem>
-        </PaginationContent>
-      </Pagination>
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <PaginationItem key={page}>
+                <PaginationLink
+                  onClick={() => setCurrentPage(page)}
+                  isActive={currentPage === page}
+                >
+                  {page}
+                </PaginationLink>
+              </PaginationItem>
+            ))}
+            <PaginationItem>
+              <PaginationNext 
+                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
+              />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
+      )}
     </div>
   );
 };
