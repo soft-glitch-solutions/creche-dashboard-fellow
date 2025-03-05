@@ -87,9 +87,9 @@ const App = () => {
                 {/* Finance */}
                 <Route path="finance" element={<Finance />} />
                 <Route path="finance/create-invoice" element={<CreateInvoice />} />
-                <Route path="finance/view-invoice/:id" element={<ViewInvoice />} />
-                <Route path="finance/edit-invoice/:id" element={<EditInvoice />} />
-                <Route path="finance/print-invoice/:id" element={<PrintInvoice />} />
+                <Route path="finance/invoice/:id" element={<ViewInvoice />} />
+                <Route path="finance/invoice/edit/:id" element={<EditInvoice />} />
+                <Route path="finance/invoice/:id/pdf" element={<PrintInvoice />} />
 
                 {/* Lessons */}
                 <Route path="lessons" element={<Lessons />} />

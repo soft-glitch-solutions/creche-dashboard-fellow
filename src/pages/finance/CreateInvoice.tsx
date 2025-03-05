@@ -14,6 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { CreateInvoiceSkeleton } from "@/components/finance/CreateInvoiceSkeleton";
 
 interface Student {
   id: string;
@@ -52,6 +53,7 @@ const CreateInvoice = () => {
     total_price: 0
   }]);
   const [title, setTitle] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const getUserCreche = async () => {
@@ -86,6 +88,7 @@ const CreateInvoice = () => {
           }
         }
       }
+      setIsLoading(false);
     };
 
     getUserCreche();
@@ -186,6 +189,10 @@ const CreateInvoice = () => {
       });
     }
   };
+
+  if (isLoading) {
+    return <CreateInvoiceSkeleton />;
+  }
 
   return (
     <div className="space-y-6">
