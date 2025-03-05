@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import {
   Card,
@@ -11,10 +12,19 @@ import {
   ChartLine,
   Calendar,
   Banknote,
+  FileCheck,
+  GraduationCap,
+  UserCheck,
+  Apple,
+  AlertTriangle,
 } from "lucide-react";
 import AttendanceReport from "./reports/AttendanceReport";
 import EnrollmentReport from "./reports/EnrollmentReport";
 import FinanceReport from "./reports/FinanceReport";
+import ComplianceReport from "./reports/ComplianceReport";
+import StaffTrainingReport from "./reports/StaffTrainingReport";
+import HealthNutritionReport from "./reports/HealthNutritionReport";
+import IncidentReport from "./reports/IncidentReport";
 
 const Reports = () => {
   const [selectedReport, setSelectedReport] = useState<string>("attendance");
@@ -37,9 +47,37 @@ const Reports = () => {
     {
       id: "finance",
       title: "Finance Report",
-      description: "Current and historical enrollment data",
+      description: "Financial statements and funding utilization",
       icon: Banknote,
       component: FinanceReport,
+    },
+    {
+      id: "compliance",
+      title: "Compliance Reports",
+      description: "Registration and regulatory compliance",
+      icon: FileCheck,
+      component: ComplianceReport,
+    },
+    {
+      id: "staff",
+      title: "Staff & Training",
+      description: "Qualifications and training records",
+      icon: UserCheck,
+      component: StaffTrainingReport,
+    },
+    {
+      id: "health",
+      title: "Health & Nutrition",
+      description: "Medical records and nutrition programs",
+      icon: Apple,
+      component: HealthNutritionReport,
+    },
+    {
+      id: "incidents",
+      title: "Incident Reports",
+      description: "Safety incidents and emergency reports",
+      icon: AlertTriangle,
+      component: IncidentReport,
     },
   ];
 
