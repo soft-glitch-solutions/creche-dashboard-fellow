@@ -122,7 +122,9 @@ const App = () => {
 
                 {/* Settings */}
                 <Route path="settings" element={<Settings />} />
-                <Route path="settings/user-management" element={<UserManagement />} />
+                <Route path="settings/users" element={<UserManagement />} />
+                <Route path="settings/creche/:id" element={<CrecheProfile />} />
+                <Route path="settings/integrations" element={<Integrations />} />
 
                 {/* Admin Routes */}
                 <Route path="admin" element={<AdminRoute />}>
