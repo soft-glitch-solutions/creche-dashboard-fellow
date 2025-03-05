@@ -25,7 +25,7 @@ import EditInvoice from "@/pages/finance/EditInvoice";
 import PrintInvoice from "@/pages/finance/PrintInvoice";
 import Settings from "@/pages/Settings";
 import UserManagement from "@/pages/settings/UserManagement";
-import AdminRoute from "@/components/AdminRoute";
+import { AdminRoute } from "@/components/AdminRoute";
 import UserProfile from "@/pages/admin/UserProfile";
 import CrecheManagement from "@/pages/admin/CrecheManagement";
 import CrecheDetails from "@/pages/admin/CrecheDetails";
@@ -55,7 +55,7 @@ const queryClient = new QueryClient();
 const App = () => {
   return (
     <BrowserRouter>
-      <ThemeProvider defaultTheme="light">
+      <ThemeProvider>
         <LanguageProvider>
           <QueryClientProvider client={queryClient}>
             <Routes>

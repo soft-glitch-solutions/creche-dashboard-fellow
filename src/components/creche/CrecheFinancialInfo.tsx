@@ -1,4 +1,5 @@
-import { Users, Edit, Save , Banknote } from "lucide-react";
+
+import { Users, Edit, Save, Banknote } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import type { Creche } from "@/types/creche";
@@ -8,7 +9,7 @@ interface FinancialInfoCardProps {
   editMode: boolean;
   onEditToggle: () => void;
   onUpdate: () => void;
-  onInputChange: (field: keyof Creche, value: string | number) => void;
+  onInputChange: (field: string, value: string | number) => void;
 }
 
 export const FinancialInfoCard = ({
@@ -77,7 +78,7 @@ export const FinancialInfoCard = ({
 
             <h2 className="text-lg md:text-xl text-primary flex items-center gap-2">
             <Banknote className="h-5 w-5" />
-               Bank Detials
+               Bank Details
             </h2>
 
             {/* Bank Account Details Section */}
@@ -139,12 +140,10 @@ export const FinancialInfoCard = ({
               </div>
             </div>
             
-
             <h2 className="text-lg md:text-xl text-primary flex items-center gap-2">
             <Banknote className="h-5 w-5" />
-               Bank Detials
+               Bank Details
             </h2>
-
 
             {/* Display Bank Account Details */}
             <div className="space-y-2">

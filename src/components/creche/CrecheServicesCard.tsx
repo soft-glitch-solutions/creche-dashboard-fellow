@@ -1,3 +1,4 @@
+
 import { Edit, Save, ClipboardList } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { Creche } from "@/types/creche";
@@ -7,7 +8,7 @@ interface ServicesCardProps {
   editMode: boolean;
   onEditToggle: () => void;
   onUpdate: () => void;
-  onInputChange: (field: keyof Creche['services'], value: boolean) => void;
+  onInputChange: (field: string, value: any) => void;
 }
 
 export const ServicesCard = ({
@@ -17,6 +18,10 @@ export const ServicesCard = ({
   onUpdate,
   onInputChange,
 }: ServicesCardProps) => {
+  const handleServiceChange = (field: string, value: boolean) => {
+    onInputChange(`services.${field}`, value);
+  };
+
   return (
     <div className="border-2 border-primary/20 rounded-lg">
       <div className="flex flex-row items-center justify-between p-4">
@@ -51,8 +56,8 @@ export const ServicesCard = ({
                 </label>
                 <input
                   type="checkbox"
-                  checked={crecheData.services[field] || false}
-                  onChange={(e) => onInputChange(field, e.target.checked)} // Properly handling the change
+                  checked={crecheData.services[field as keyof typeof crecheData.services] || false}
+                  onChange={(e) => handleServiceChange(field, e.target.checked)}
                 />
                 <span>Available</span>
               </div>

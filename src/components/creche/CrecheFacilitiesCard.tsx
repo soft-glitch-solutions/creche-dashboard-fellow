@@ -1,3 +1,4 @@
+
 import { Edit, Save, Home, Settings } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -8,7 +9,7 @@ interface FacilitiesCardProps {
   editMode: boolean;
   onEditToggle: () => void;
   onUpdate: () => void;
-  onInputChange: (field: keyof Creche, value: any) => void; // to handle both boolean and number inputs
+  onInputChange: (field: string, value: any) => void; 
 }
 
 export const FacilitiesCard = ({
@@ -18,6 +19,10 @@ export const FacilitiesCard = ({
   onUpdate,
   onInputChange,
 }: FacilitiesCardProps) => {
+  const handleFacilityChange = (field: string, value: boolean | number) => {
+    onInputChange(`facilities.${field}`, value);
+  };
+
   return (
     <div className="border-2 border-primary/20 rounded-lg">
       <div className="flex flex-row items-center justify-between p-4">
@@ -53,14 +58,14 @@ export const FacilitiesCard = ({
                 <div className="flex gap-2 items-center">
                   <Input
                     type="checkbox"
-                    checked={crecheData.facilities[field] || false}
-                    onChange={(e) => onInputChange(field, e.target.checked)}
+                    checked={crecheData.facilities[field as keyof typeof crecheData.facilities] as boolean || false}
+                    onChange={(e) => handleFacilityChange(field, e.target.checked)}
                   />
                   <span>Available</span>
                   <Input
                     type="number"
-                    value={crecheData.facilities[countField] || ''}
-                    onChange={(e) => onInputChange(countField, parseInt(e.target.value))}
+                    value={crecheData.facilities[countField as keyof typeof crecheData.facilities] as number || ''}
+                    onChange={(e) => handleFacilityChange(countField, parseInt(e.target.value))}
                     placeholder={`Number of ${label.toLowerCase()}`}
                     className="ml-2"
                   />

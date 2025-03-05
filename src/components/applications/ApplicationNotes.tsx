@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -9,8 +10,13 @@ import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "react-router-dom";
 import { ApplicationNote } from "@/types/application";
 
-export const ApplicationNotes = () => {
-  const [notes, setNotes] = useState<ApplicationNote[]>([]);
+interface ApplicationNotesProps {
+  notes?: ApplicationNote[];
+  onAddNote?: (note: string) => Promise<void>;
+}
+
+export const ApplicationNotes = ({ notes: propNotes, onAddNote }: ApplicationNotesProps) => {
+  const [notes, setNotes] = useState<ApplicationNote[]>(propNotes || []);
   const [newNote, setNewNote] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
@@ -24,7 +30,6 @@ export const ApplicationNotes = () => {
   };
 
   const applicationId = getApplicationIdFromUrl(location.pathname);
-  console.log("📌 Extracted applicationId:", applicationId);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -41,12 +46,12 @@ export const ApplicationNotes = () => {
   }, []);
 
   useEffect(() => {
-    if (!applicationId) {
-      console.warn("⚠️ No applicationId found in URL.");
-      return;
+    if (propNotes) {
+      setNotes(propNotes);
+    } else if (applicationId) {
+      fetchNotes();
     }
-    fetchNotes();
-  }, [applicationId]);
+  }, [applicationId, propNotes]);
 
   const fetchNotes = async () => {
     if (!applicationId) {
@@ -59,17 +64,26 @@ export const ApplicationNotes = () => {
       const { data, error } = await supabase
       .from("application_notes")
       .select(`
-        id, note, created_at, 
-        users!application_notes_user_id_fkey ( id, email, first_name, last_name, role_id )
+        id, note, created_at, application_id, user_id,
+        users:user_id ( id, email, first_name, last_name, role_id )
       `)
       .eq("application_id", applicationId)
       .order("created_at", { ascending: false });
     
-
       if (error) throw error;
 
-      setNotes(data || []);
-      console.log("✅ Notes fetched successfully:", data);
+      // Transform the data to match ApplicationNote type
+      const transformedNotes: ApplicationNote[] = data?.map(note => ({
+        id: note.id,
+        application_id: note.application_id,
+        user_id: note.user_id,
+        note: note.note,
+        created_at: note.created_at,
+        user: note.users
+      })) || [];
+
+      setNotes(transformedNotes);
+      console.log("✅ Notes fetched successfully:", transformedNotes);
     } catch (error) {
       console.error("🔥 Error fetching notes:", error);
       toast({
@@ -81,6 +95,11 @@ export const ApplicationNotes = () => {
   };
 
   const handleAddNote = async (note: string) => {
+    if (onAddNote) {
+      await onAddNote(note);
+      return;
+    }
+
     if (!userId) {
       toast({
         variant: "destructive",
@@ -132,7 +151,6 @@ export const ApplicationNotes = () => {
     <div className="space-y-4">
       <h3 className="text-sm font-medium">Application Notes</h3>
 
-
       {/* Notes list */}
       <div className="space-y-4 mt-6">
         {notes.map((note) => (
@@ -146,10 +164,10 @@ export const ApplicationNotes = () => {
               <div className="flex items-center justify-between">
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                  <h4 className="text-sm font-medium">
-                      {note.users?.first_name || note.users?.email || "Unknown User"}
+                    <h4 className="text-sm font-medium">
+                      {note.user?.first_name || note.user?.email || "Unknown User"}
                     </h4>
-                    {note.user?.role?.role_name && (
+                    {note.user?.role && (
                       <Badge variant="secondary" className="text-xs">
                         {note.user.role.role_name}
                       </Badge>
@@ -171,7 +189,6 @@ export const ApplicationNotes = () => {
         )}
       </div>
 
-      
       {/* Add new note */}
       <div className="space-y-2">
         <Textarea

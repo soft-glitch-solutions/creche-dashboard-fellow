@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -8,9 +9,9 @@ import { BasicInfoCard } from "@/components/creche/CrecheBasicInfo";
 import { FinancialInfoCard } from "@/components/creche/CrecheFinancialInfo";
 import { SocialMediaCard } from "@/components/creche/CrecheSocialMedia";
 import { StudentsCard } from "@/components/creche/CrecheStudents";
-import type { Creche } from "@/types/creche";
+import type { Creche, CrechePlan } from "@/types/creche";
 import { FacilitiesCard } from "@/components/creche/CrecheFacilitiesCard";
-import { ServicesCard } from "@/components/creche/CrecheServicesCard"; // Import the new ServicesCard
+import { ServicesCard } from "@/components/creche/CrecheServicesCard";
 
 const defaultCreche: Creche = {
   id: "",
@@ -39,7 +40,7 @@ const defaultCreche: Creche = {
   longitude: null,
   monthly_price: null,
   weekly_price: null,
-  plan: "free",
+  plan: "free" as CrechePlan,
   features: {
     event_calendar: false,
     staff_management: false,
@@ -56,6 +57,25 @@ const defaultCreche: Creche = {
     transportation: false,
     special_education: false,
   },
+  facilities: {
+    teachers: false,
+    classrooms: false,
+    toilets: false,
+    playground: false,
+    kitchen: false,
+    parking: false,
+    teachers_count: 0,
+    classrooms_count: 0,
+    toilets_count: 0,
+    playground_count: 0,
+    kitchen_count: 0,
+    parking_count: 0,
+  },
+  bank_name: null,
+  account_holder: null,
+  account_number: null,
+  branch_code: null,
+  account_type: null,
 };
 
 export const CrecheProfile = () => {
@@ -86,7 +106,16 @@ export const CrecheProfile = () => {
 
       if (error) throw error;
       if (creche) {
-        setCrecheData(creche);
+        // Ensure the data conforms to our Creche type
+        const typedCreche: Creche = {
+          ...defaultCreche,
+          ...creche,
+          plan: (creche.plan || 'free') as CrechePlan,
+          features: creche.features || defaultCreche.features,
+          services: creche.services || defaultCreche.services,
+          facilities: creche.facilities || defaultCreche.facilities,
+        };
+        setCrecheData(typedCreche);
       }
     } catch (error) {
       console.error("Error loading creche:", error);
@@ -95,6 +124,26 @@ export const CrecheProfile = () => {
         title: "Error",
         description: "Failed to load creche details",
       });
+    }
+  };
+
+  const handleInputChange = (field: string, value: any) => {
+    if (field.includes('.')) {
+      // Handle nested properties like 'services.full_time_care'
+      const [parentField, childField] = field.split('.');
+      setCrecheData(prev => ({
+        ...prev,
+        [parentField]: {
+          ...prev[parentField as keyof Creche],
+          [childField]: value
+        }
+      }));
+    } else {
+      // Handle top-level properties
+      setCrecheData(prev => ({
+        ...prev,
+        [field]: value
+      }));
     }
   };
 
@@ -120,13 +169,6 @@ export const CrecheProfile = () => {
         description: "Failed to update creche details",
       });
     }
-  };
-
-  const handleInputChange = (field: keyof Creche, value: string | number | boolean) => {
-    setCrecheData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
   };
 
   if (!crecheData) return <div>Loading...</div>;

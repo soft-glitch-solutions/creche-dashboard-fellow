@@ -1,9 +1,10 @@
+
 import { useEffect, useState } from "react";
-import { Navigate, useLocation } from "react-router-dom";
+import { Navigate, useLocation, Outlet } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { AccessDenied } from "./AccessDenied";
 
-export const AdminRoute = ({ children }: { children: React.ReactNode }) => {
+export const AdminRoute = () => {
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const location = useLocation();
 
@@ -48,5 +49,5 @@ export const AdminRoute = ({ children }: { children: React.ReactNode }) => {
       <Navigate to="/dashboard" replace />;
   }
 
-  return <>{children}</>;
+  return <Outlet />;
 };
