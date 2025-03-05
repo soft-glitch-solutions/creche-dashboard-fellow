@@ -23,6 +23,12 @@ import {
   PenSquare,
   Calendar,
 } from "lucide-react";
+import {
+  ApplicationsCardSkeleton,
+  CrecheProfileCardSkeleton,
+  StudentsCardSkeleton,
+  UpcomingEventsCardSkeleton,
+} from "@/components/dashboard/DashboardSkeletons";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -36,6 +42,7 @@ const Dashboard = () => {
     weeklyFee: "",
   });
   const [upcomingEvents, setUpcomingEvents] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Load all dashboard data in one function
   const loadDashboardData = async () => {
@@ -85,9 +92,10 @@ const Dashboard = () => {
     } catch (error) {
       console.error("Error loading dashboard data:", error);
       toast({ variant: "destructive", title: "Error", description: "Failed to load dashboard data." });
+    } finally {
+      setIsLoading(false);
     }
   };
-
 
   // Load data on component mount
   useEffect(() => {
@@ -162,7 +170,7 @@ const Dashboard = () => {
           alt="Creche Logo"
           className="w-16 h-16"
         />
-        <h1 className="text-3xl font-bold 0">
+        <h1 className="text-3xl font-bold">
           {crecheData?.name || "Loading..."}
         </h1>
       </div>
@@ -170,49 +178,54 @@ const Dashboard = () => {
       {/* Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
         {/* Applications Card */}
-        <Card className="border-2 border-secondary/20">
-          <CardHeader className="flex flex-row items-center justify-between">
-
-            <CardTitle className="text-lg md:text-xl text-secondary">
-              My Applications
-            </CardTitle>
-            <div className="flex gap-2">
-            <Button
+        {isLoading ? (
+          <ApplicationsCardSkeleton />
+        ) : (
+          <Card className="border-2 border-secondary/20">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle className="text-lg md:text-xl text-secondary">
+                My Applications
+              </CardTitle>
+              <div className="flex gap-2">
+                <Button
                   variant="ghost"
                   size="icon"
                   onClick={() => navigate(`/dashboard/applications`)}
                 >
                   <Eye className="h-4 w-4" />
-            </Button>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="flex items-center gap-2 text-sm md:text-base">
-                <Mail className="h-4 w-4" />
-                Received
-              </span>
-              <span className="font-bold">5</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="flex items-center gap-2 text-sm md:text-base">
-                <Clock className="h-4 w-4" />
-                Pending
-              </span>
-              <span className="font-bold">10</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="flex items-center gap-2 text-sm md:text-base">
-                <Users className="h-4 w-4" />
-                To be contacted
-              </span>
-              <span className="font-bold">3</span>
-            </div>
-          </CardContent>
-        </Card>
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="flex items-center gap-2 text-sm md:text-base">
+                  <Mail className="h-4 w-4" />
+                  Received
+                </span>
+                <span className="font-bold">5</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="flex items-center gap-2 text-sm md:text-base">
+                  <Clock className="h-4 w-4" />
+                  Pending
+                </span>
+                <span className="font-bold">10</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="flex items-center gap-2 text-sm md:text-base">
+                  <Users className="h-4 w-4" />
+                  To be contacted
+                </span>
+                <span className="font-bold">3</span>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Creche Profile Card */}
-        {crecheData && (
+        {isLoading ? (
+          <CrecheProfileCardSkeleton />
+        ) : crecheData ? (
           <Card className="border-2 border-primary/20">
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="text-lg md:text-xl text-primary">
@@ -295,91 +308,99 @@ const Dashboard = () => {
               </div>
             </CardContent>
           </Card>
-        )}
+        ) : null}
 
         {/* Students Card */}
-        <Card className="border-2 border-accent/20">
-          <CardHeader  className="flex flex-row items-center justify-between">
-            <CardTitle className="text-lg md:text-xl text-accent">My Students</CardTitle>
-            <div className="flex gap-2">
-            <Button
+        {isLoading ? (
+          <StudentsCardSkeleton />
+        ) : (
+          <Card className="border-2 border-accent/20">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle className="text-lg md:text-xl text-accent">My Students</CardTitle>
+              <div className="flex gap-2">
+                <Button
                   variant="ghost"
                   size="icon"
                   onClick={() => navigate(`/dashboard/students`)}
                 >
                   <Eye className="h-4 w-4" />
-            </Button>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="flex items-center gap-2 text-sm md:text-base">
-                <GraduationCap className="h-4 w-4" />
-                Grade R
-              </span>
-              <span className="font-bold">15</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="flex items-center gap-2 text-sm md:text-base">
-                <Building2 className="h-4 w-4" />
-                Grade 0
-              </span>
-              <span className="font-bold">12</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="flex items-center gap-2 text-sm md:text-base">
-                <Clock className="h-4 w-4" />
-                After-care
-              </span>
-              <span className="font-bold">20</span>
-            </div>
-          </CardContent>
-        </Card>
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="flex items-center gap-2 text-sm md:text-base">
+                  <GraduationCap className="h-4 w-4" />
+                  Grade R
+                </span>
+                <span className="font-bold">15</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="flex items-center gap-2 text-sm md:text-base">
+                  <Building2 className="h-4 w-4" />
+                  Grade 0
+                </span>
+                <span className="font-bold">12</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="flex items-center gap-2 text-sm md:text-base">
+                  <Clock className="h-4 w-4" />
+                  After-care
+                </span>
+                <span className="font-bold">20</span>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       {/* Upcoming Events Card */}
-      <Card className="border-2 border-primary/20">
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-lg md:text-xl text-primary flex items-center gap-2">
-            <Calendar className="h-5 w-5" />
-            Upcoming Events
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {upcomingEvents.length > 0 ? (
-              upcomingEvents.map((event) => (
-                <div
-                  key={event.id}
-                  className="flex items-start space-x-4 p-3 hover:bg-gray-50 rounded-lg transition-colors"
-                >
-                  <div className="flex-shrink-0 w-16 text-center">
-                    <div className="text-2xl font-bold text-primary">
-                      {formatEventDate(event.start).split(' ')[1]}
+      {isLoading ? (
+        <UpcomingEventsCardSkeleton />
+      ) : (
+        <Card className="border-2 border-primary/20">
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className="text-lg md:text-xl text-primary flex items-center gap-2">
+              <Calendar className="h-5 w-5" />
+              Upcoming Events
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {upcomingEvents.length > 0 ? (
+                upcomingEvents.map((event) => (
+                  <div
+                    key={event.id}
+                    className="flex items-start space-x-4 p-3 hover:bg-gray-50 rounded-lg transition-colors"
+                  >
+                    <div className="flex-shrink-0 w-16 text-center">
+                      <div className="text-2xl font-bold text-primary">
+                        {formatEventDate(event.start).split(' ')[1]}
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        {formatEventDate(event.start).split(' ')[0]}
+                      </div>
                     </div>
-                    <div className="text-sm text-gray-500">
-                      {formatEventDate(event.start).split(' ')[0]}
+                    <div className="flex-1">
+                      <h4 className="font-semibold">{event.title}</h4>
+                      <p className="text-sm text-gray-500">{event.description}</p>
+                      {event.location && (
+                        <p className="text-sm text-gray-500 mt-1">
+                          📍 {event.location}
+                        </p>
+                      )}
                     </div>
                   </div>
-                  <div className="flex-1">
-                    <h4 className="font-semibold">{event.title}</h4>
-                    <p className="text-sm text-gray-500">{event.description}</p>
-                    {event.location && (
-                      <p className="text-sm text-gray-500 mt-1">
-                        📍 {event.location}
-                      </p>
-                    )}
-                  </div>
+                ))
+              ) : (
+                <div className="text-center text-gray-500">
+                  No upcoming events scheduled
                 </div>
-              ))
-            ) : (
-              <div className="text-center text-gray-500">
-                No upcoming events scheduled
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };
