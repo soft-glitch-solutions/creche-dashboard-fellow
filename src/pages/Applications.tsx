@@ -37,6 +37,7 @@ import { ApplicationLifecycle } from "@/components/applications/ApplicationLifec
 import { ApplicationNotes } from "@/components/applications/ApplicationNotes";
 import { ApplicationNote, ApplicationLifecycleStage } from "@/types/application";
 import { useNavigate } from 'react-router-dom';
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface Application {
   source: ReactNode;
@@ -279,6 +280,74 @@ const Applications = () => {
     currentPage * ITEMS_PER_PAGE
   );
 
+  const ListSkeleton = () => (
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>Source</TableHead>
+          <TableHead>Parent Name</TableHead>
+          <TableHead>Email</TableHead>
+          <TableHead>Phone</TableHead>
+          <TableHead>Status</TableHead>
+          <TableHead className="text-right">Actions</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {Array.from({ length: ITEMS_PER_PAGE }).map((_, index) => (
+          <TableRow key={index}>
+            <TableCell>
+              <Skeleton className="h-4 w-20" />
+            </TableCell>
+            <TableCell>
+              <div className="flex items-center gap-2">
+                <Skeleton className="h-8 w-8 rounded-full" />
+                <Skeleton className="h-4 w-32" />
+              </div>
+            </TableCell>
+            <TableCell>
+              <Skeleton className="h-4 w-40" />
+            </TableCell>
+            <TableCell>
+              <Skeleton className="h-4 w-24" />
+            </TableCell>
+            <TableCell>
+              <Skeleton className="h-4 w-20" />
+            </TableCell>
+            <TableCell className="text-right">
+              <div className="flex justify-end gap-2">
+                <Skeleton className="h-8 w-8 rounded-md" />
+                <Skeleton className="h-8 w-8 rounded-md" />
+                <Skeleton className="h-8 w-8 rounded-md" />
+              </div>
+            </TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  );
+
+  const GridSkeleton = () => (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {Array.from({ length: ITEMS_PER_PAGE }).map((_, index) => (
+        <Card key={index} className="border-2 border-primary/20">
+          <CardHeader>
+            <CardTitle>
+              <Skeleton className="h-6 w-24" />
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="bg-blue-100 p-4 rounded-lg space-y-2">
+              <Skeleton className="h-4 w-32" />
+              <Skeleton className="h-4 w-40" />
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-4 w-20" />
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -426,32 +495,28 @@ const Applications = () => {
 
       {viewType === "list" ? (
         <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Source</TableHead>
-                <TableHead>Parent Name</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Phone</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isLoading ? (
+          {isLoading ? (
+            <ListSkeleton />
+          ) : paginatedApplications.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={5} className="text-center">
+                No applications found
+              </TableCell>
+            </TableRow>
+          ) : (
+            <Table>
+              <TableHeader>
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center">
-                    Loading applications...
-                  </TableCell>
+                  <TableHead>Source</TableHead>
+                  <TableHead>Parent Name</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Phone</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
-              ) : paginatedApplications.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center">
-                    No applications found
-                  </TableCell>
-                </TableRow>
-              ) : (
-                paginatedApplications.map((application) => (
+              </TableHeader>
+              <TableBody>
+                {paginatedApplications.map((application) => (
                   <TableRow key={application.id}>
                     <TableCell>{application.source}</TableCell>
                     <TableCell className="font-medium">
@@ -627,10 +692,10 @@ const Applications = () => {
                       </div>
                     </TableCell>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+                ))}
+              </TableBody>
+            </Table>
+          )}
           {totalPages > 1 && (
             <div className="flex justify-center gap-2 p-4">
               <Button
@@ -655,86 +720,92 @@ const Applications = () => {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {paginatedApplications.map((application) => (
-            <Card key={application.id} className="border-2 border-primary/20">
-              <CardHeader>
-                <CardTitle className="text-xl text-purple-600">
-                  {application.application_status}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="bg-blue-100 p-4 rounded-lg space-y-2">
-                  <p className="text-gray-700">Parent: {application.parent_name}</p>
-                  <p className="text-gray-700">Email: {application.parent_email}</p>
-                  <p className="text-gray-700">Phone: {application.parent_phone_number}</p>
-                  <Sheet>
-                    <SheetTrigger asChild>
-                      <Button 
-                        variant="ghost" 
-                        className="p-0 h-auto hover:bg-transparent hover:text-purple-700"
-                        onClick={() => setSelectedApplication(application)}
-                      >
-                        <span className="text-purple-600 underline flex items-center gap-2">
-                          View Details
-                          <Eye className="h-4 w-4" />
-                        </span>
-                      </Button>
-                    </SheetTrigger>
-                    <SheetContent className="w-[400px] sm:w-[880px]">
-                      <SheetHeader>
-                        <SheetTitle className="flex justify-between">
-                          Application Details
-                          <Button 
-                            variant="ghost" 
-                            size="icon"
-                            onClick={() => setSelectedApplication(null)}
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        </SheetTitle>
-                      </SheetHeader>
-                      <div className="mt-6 space-y-6">
-                        <div className="space-y-2">
-                          <h3 className="text-sm font-medium">Application Status</h3>
-                          <Select 
-                            onValueChange={handleStatusChange} 
-                            defaultValue={application.application_status}
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select status" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="New">New</SelectItem>
-                              <SelectItem value="Pending documents">Pending documents</SelectItem>
-                              <SelectItem value="Approved">Approved</SelectItem>
-                              <SelectItem value="Rejected">Rejected</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        
-                        <div className="space-y-2">
-                          <h3 className="text-sm font-medium">Parent Information</h3>
-                          <div className="bg-muted p-4 rounded-lg space-y-2">
-                            <p>Name: {application.parent_name}</p>
-                            <p>Email: {application.parent_email}</p>
-                            <p>Phone: {application.parent_phone_number}</p>
-                            <p>Address: {application.parent_address || 'Not provided'}</p>
-                            <p>Number of Children: {application.number_of_children || 'Not specified'}</p>
+          {isLoading ? (
+            <GridSkeleton />
+          ) : paginatedApplications.length === 0 ? (
+            <div className="col-span-full text-center">No applications found</div>
+          ) : (
+            paginatedApplications.map((application) => (
+              <Card key={application.id} className="border-2 border-primary/20">
+                <CardHeader>
+                  <CardTitle className="text-xl text-purple-600">
+                    {application.application_status}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="bg-blue-100 p-4 rounded-lg space-y-2">
+                    <p className="text-gray-700">Parent: {application.parent_name}</p>
+                    <p className="text-gray-700">Email: {application.parent_email}</p>
+                    <p className="text-gray-700">Phone: {application.parent_phone_number}</p>
+                    <Sheet>
+                      <SheetTrigger asChild>
+                        <Button 
+                          variant="ghost" 
+                          className="p-0 h-auto hover:bg-transparent hover:text-purple-700"
+                          onClick={() => setSelectedApplication(application)}
+                        >
+                          <span className="text-purple-600 underline flex items-center gap-2">
+                            View Details
+                            <Eye className="h-4 w-4" />
+                          </span>
+                        </Button>
+                      </SheetTrigger>
+                      <SheetContent className="w-[400px] sm:w-[880px]">
+                        <SheetHeader>
+                          <SheetTitle className="flex justify-between">
+                            Application Details
+                            <Button 
+                              variant="ghost" 
+                              size="icon"
+                              onClick={() => setSelectedApplication(null)}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </SheetTitle>
+                        </SheetHeader>
+                        <div className="mt-6 space-y-6">
+                          <div className="space-y-2">
+                            <h3 className="text-sm font-medium">Application Status</h3>
+                            <Select 
+                              onValueChange={handleStatusChange} 
+                              defaultValue={application.application_status}
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select status" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="New">New</SelectItem>
+                                <SelectItem value="Pending documents">Pending documents</SelectItem>
+                                <SelectItem value="Approved">Approved</SelectItem>
+                                <SelectItem value="Rejected">Rejected</SelectItem>
+                              </SelectContent>
+                            </Select>
                           </div>
-                        </div>
+                          
+                          <div className="space-y-2">
+                            <h3 className="text-sm font-medium">Parent Information</h3>
+                            <div className="bg-muted p-4 rounded-lg space-y-2">
+                              <p>Name: {application.parent_name}</p>
+                              <p>Email: {application.parent_email}</p>
+                              <p>Phone: {application.parent_phone_number}</p>
+                              <p>Address: {application.parent_address || 'Not provided'}</p>
+                              <p>Number of Children: {application.number_of_children || 'Not specified'}</p>
+                            </div>
+                          </div>
 
-                        <div className="space-y-2">
-                          <h3 className="text-sm font-medium">Message</h3>
-                          <p className="bg-muted p-4 rounded-lg">{application.message}</p>
-                        </div>
+                          <div className="space-y-2">
+                            <h3 className="text-sm font-medium">Message</h3>
+                            <p className="bg-muted p-4 rounded-lg">{application.message}</p>
+                          </div>
 
-                      </div>
-                    </SheetContent>
-                  </Sheet>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                        </div>
+                      </SheetContent>
+                    </Sheet>
+                  </div>
+                </CardContent>
+              </Card>
+            ))
+          )}
         </div>
       )}
     </div>
