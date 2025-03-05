@@ -1,15 +1,18 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -22,6 +25,8 @@ import {
   Eye,
   PenSquare,
   Calendar,
+  Plus,
+  Edit,
 } from "lucide-react";
 import {
   ApplicationsCardSkeleton,
@@ -43,6 +48,15 @@ const Dashboard = () => {
   });
   const [upcomingEvents, setUpcomingEvents] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isAddEventOpen, setIsAddEventOpen] = useState(false);
+  const [isEditEventOpen, setIsEditEventOpen] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState(null);
+  const [eventForm, setEventForm] = useState({
+    title: "",
+    description: "",
+    start: "",
+    location: "",
+  });
 
   // Load all dashboard data in one function
   const loadDashboardData = async () => {
@@ -159,6 +173,121 @@ const Dashboard = () => {
       month: 'long',
       day: 'numeric',
     });
+  };
+
+  // Handle adding a new event
+  const handleAddEvent = async () => {
+    try {
+      if (!crecheData) return;
+
+      const startDate = new Date(eventForm.start);
+      const endTime = new Date(startDate);
+      endTime.setHours(startDate.getHours() + 1);
+
+      const { error } = await supabase
+        .from('events')
+        .insert([
+          {
+            title: eventForm.title,
+            description: eventForm.description,
+            start: startDate.toISOString(),
+            end_time: endTime.toISOString(),
+            location: eventForm.location,
+            creche_id: crecheData.id,
+            all_day: false,
+            color_code: "#2563eb"
+          }
+        ]);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Event created successfully",
+      });
+      setIsAddEventOpen(false);
+      setEventForm({
+        title: "",
+        description: "",
+        start: "",
+        location: "",
+      });
+      
+      // Reload events
+      loadDashboardData();
+    } catch (error) {
+      console.error('Error creating event:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to create event",
+      });
+    }
+  };
+
+  // Handle editing an event
+  const handleEditEvent = async () => {
+    try {
+      if (!crecheData || !selectedEvent) return;
+
+      const startDate = new Date(eventForm.start);
+      const endTime = new Date(startDate);
+      endTime.setHours(startDate.getHours() + 1);
+
+      const { error } = await supabase
+        .from('events')
+        .update({
+          title: eventForm.title,
+          description: eventForm.description,
+          start: startDate.toISOString(),
+          end_time: endTime.toISOString(),
+          location: eventForm.location,
+        })
+        .eq('id', selectedEvent.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Event updated successfully",
+      });
+      setIsEditEventOpen(false);
+      setSelectedEvent(null);
+      setEventForm({
+        title: "",
+        description: "",
+        start: "",
+        location: "",
+      });
+      
+      // Reload events
+      loadDashboardData();
+    } catch (error) {
+      console.error('Error updating event:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to update event",
+      });
+    }
+  };
+
+  // Open edit event dialog with selected event data
+  const openEditEventDialog = (event) => {
+    setSelectedEvent(event);
+    
+    // Format datetime string for datetime-local input
+    const startDateTime = new Date(event.start);
+    const formattedStart = startDateTime.toISOString().slice(0, 16);
+    
+    setEventForm({
+      title: event.title,
+      description: event.description || "",
+      start: formattedStart,
+      location: event.location || "",
+    });
+    
+    setIsEditEventOpen(true);
   };
 
   return (
@@ -364,6 +493,63 @@ const Dashboard = () => {
               <Calendar className="h-5 w-5" />
               Upcoming Events
             </CardTitle>
+            <Dialog open={isAddEventOpen} onOpenChange={setIsAddEventOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <Plus className="h-4 w-4 mr-1" />
+                  Add Event
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Add New Event</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4 mt-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="event-title">Event Title</Label>
+                    <Input
+                      id="event-title"
+                      value={eventForm.title}
+                      onChange={(e) => setEventForm(prev => ({ ...prev, title: e.target.value }))}
+                      placeholder="Enter event title"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="event-description">Description</Label>
+                    <Textarea
+                      id="event-description"
+                      value={eventForm.description}
+                      onChange={(e) => setEventForm(prev => ({ ...prev, description: e.target.value }))}
+                      placeholder="Enter event description"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="event-date">Date & Time</Label>
+                    <Input
+                      id="event-date"
+                      type="datetime-local"
+                      value={eventForm.start}
+                      onChange={(e) => setEventForm(prev => ({ ...prev, start: e.target.value }))}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="event-location">Location (Optional)</Label>
+                    <Input
+                      id="event-location"
+                      value={eventForm.location}
+                      onChange={(e) => setEventForm(prev => ({ ...prev, location: e.target.value }))}
+                      placeholder="Enter event location"
+                    />
+                  </div>
+                </div>
+                <DialogFooter className="mt-4">
+                  <Button variant="outline" onClick={() => setIsAddEventOpen(false)}>Cancel</Button>
+                  <Button onClick={handleAddEvent} disabled={!eventForm.title || !eventForm.start}>
+                    Add Event
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
@@ -371,7 +557,7 @@ const Dashboard = () => {
                 upcomingEvents.map((event) => (
                   <div
                     key={event.id}
-                    className="flex items-start space-x-4 p-3 hover:bg-gray-50 rounded-lg transition-colors"
+                    className="flex items-start space-x-4 p-3 hover:bg-gray-50 rounded-lg transition-colors relative group"
                   >
                     <div className="flex-shrink-0 w-16 text-center">
                       <div className="text-2xl font-bold text-primary">
@@ -390,6 +576,14 @@ const Dashboard = () => {
                         </p>
                       )}
                     </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="opacity-0 group-hover:opacity-100 transition-opacity absolute top-3 right-3"
+                      onClick={() => openEditEventDialog(event)}
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
                   </div>
                 ))
               ) : (
@@ -401,6 +595,59 @@ const Dashboard = () => {
           </CardContent>
         </Card>
       )}
+
+      {/* Edit Event Dialog */}
+      <Dialog open={isEditEventOpen} onOpenChange={setIsEditEventOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Event</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 mt-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-event-title">Event Title</Label>
+              <Input
+                id="edit-event-title"
+                value={eventForm.title}
+                onChange={(e) => setEventForm(prev => ({ ...prev, title: e.target.value }))}
+                placeholder="Enter event title"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-event-description">Description</Label>
+              <Textarea
+                id="edit-event-description"
+                value={eventForm.description}
+                onChange={(e) => setEventForm(prev => ({ ...prev, description: e.target.value }))}
+                placeholder="Enter event description"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-event-date">Date & Time</Label>
+              <Input
+                id="edit-event-date"
+                type="datetime-local"
+                value={eventForm.start}
+                onChange={(e) => setEventForm(prev => ({ ...prev, start: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-event-location">Location (Optional)</Label>
+              <Input
+                id="edit-event-location"
+                value={eventForm.location}
+                onChange={(e) => setEventForm(prev => ({ ...prev, location: e.target.value }))}
+                placeholder="Enter event location"
+              />
+            </div>
+          </div>
+          <DialogFooter className="mt-4">
+            <Button variant="outline" onClick={() => setIsEditEventOpen(false)}>Cancel</Button>
+            <Button onClick={handleEditEvent} disabled={!eventForm.title || !eventForm.start}>
+              Update Event
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

@@ -17,6 +17,7 @@ import {
   UserCheck,
   Apple,
   AlertTriangle,
+  Package,
 } from "lucide-react";
 import AttendanceReport from "./reports/AttendanceReport";
 import EnrollmentReport from "./reports/EnrollmentReport";
@@ -25,6 +26,7 @@ import ComplianceReport from "./reports/ComplianceReport";
 import StaffTrainingReport from "./reports/StaffTrainingReport";
 import HealthNutritionReport from "./reports/HealthNutritionReport";
 import IncidentReport from "./reports/IncidentReport";
+import InventoryReport from "./reports/InventoryReport";
 
 const Reports = () => {
   const [selectedReport, setSelectedReport] = useState<string>("attendance");
@@ -78,6 +80,13 @@ const Reports = () => {
       description: "Safety incidents and emergency reports",
       icon: AlertTriangle,
       component: IncidentReport,
+    },
+    {
+      id: "inventory",
+      title: "Inventory & Supply",
+      description: "Stock tracking and restock alerts",
+      icon: Package,
+      component: InventoryReport,
     },
   ];
 
