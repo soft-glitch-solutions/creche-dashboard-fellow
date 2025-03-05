@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -78,6 +77,45 @@ const defaultCreche: Creche = {
   account_type: null,
 };
 
+// Skeleton Loading Component
+const SkeletonLoading = () => {
+  return (
+    <div className="space-y-6 animate-pulse">
+      {/* Header Skeleton */}
+      <div className="flex items-center space-x-4">
+        <div className="h-24 w-24 bg-gray-200 rounded-full"></div>
+        <div className="space-y-2">
+          <div className="h-6 w-48 bg-gray-200 rounded"></div>
+          <div className="h-4 w-64 bg-gray-200 rounded"></div>
+          <div className="h-4 w-56 bg-gray-200 rounded"></div>
+        </div>
+      </div>
+
+      {/* Tabs Skeleton */}
+      <div className="flex space-x-4 border-b">
+        {[...Array(5)].map((_, index) => (
+          <div key={index} className="h-10 w-24 bg-gray-200 rounded"></div>
+        ))}
+      </div>
+
+      {/* Tab Content Skeleton */}
+      <div className="mt-6 space-y-6">
+        <div className="space-y-4">
+          <div className="h-6 w-32 bg-gray-200 rounded"></div>
+          <div className="h-4 w-64 bg-gray-200 rounded"></div>
+          <div className="h-4 w-56 bg-gray-200 rounded"></div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          {[...Array(4)].map((_, index) => (
+            <div key={index} className="h-32 bg-gray-200 rounded"></div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export const CrecheProfile = () => {
   const [crecheData, setCrecheData] = useState<Creche>(defaultCreche);
   const [editMode, setEditMode] = useState({
@@ -89,6 +127,7 @@ export const CrecheProfile = () => {
     social: false,
   });
   const [activeTab, setActiveTab] = useState("basic"); // State for active tab
+  const [isLoading, setIsLoading] = useState(true); // Loading state
   const { id } = useParams();
   const { toast } = useToast();
 
@@ -97,6 +136,7 @@ export const CrecheProfile = () => {
   }, [id]);
 
   const loadCrecheDetails = async () => {
+    setIsLoading(true);
     try {
       const { data: creche, error } = await supabase
         .from("creches")
@@ -124,6 +164,8 @@ export const CrecheProfile = () => {
         title: "Error",
         description: "Failed to load creche details",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -171,7 +213,10 @@ export const CrecheProfile = () => {
     }
   };
 
-  if (!crecheData) return <div>Loading...</div>;
+  // Skeleton Loading State
+  if (isLoading) {
+    return <SkeletonLoading />;
+  }
 
   // Define tabs
   const tabs = [
@@ -224,7 +269,7 @@ export const CrecheProfile = () => {
         {activeTab === "services" && (
           <ServicesCard
             crecheData={crecheData}
-            editMode={editMode.services} // Update to control services edit mode
+            editMode={editMode.services}
             onEditToggle={() => setEditMode((prev) => ({ ...prev, services: !prev.services }))}
             onUpdate={() => handleUpdate("services")}
             onInputChange={handleInputChange}

@@ -48,6 +48,7 @@ import CreateContent from "@/pages/help/CreateContent";
 import EditContent from "@/pages/help/EditContent";
 import SupportRequestDetail from "@/pages/help/SupportRequestDetail";
 import { Toaster } from "@/components/ui/sonner";
+import SocialProfile from "./pages/social/SocialProfile";
 
 // Create a client
 const queryClient = new QueryClient();
@@ -102,7 +103,8 @@ const App = () => {
 
                 {/* Social */}
                 <Route path="social" element={<Social />} />
-                <Route path="social/article/:id" element={<ArticleDetail />} />
+                <Route path="social/:id" element={<ArticleDetail />} />
+                <Route path="social/profile/:id" element={<SocialProfile />} />
 
                 {/* Profile */}
                 <Route path="profile" element={<Profile />} />
