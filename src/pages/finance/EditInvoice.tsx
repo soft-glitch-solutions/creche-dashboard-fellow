@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Select,
   SelectContent,
@@ -188,7 +189,18 @@ const EditInvoice = () => {
   };
 
   if (isLoading) {
-    return <div>Loading...</div>;
+      return (
+        <div className="space-y-6">
+          <Skeleton className="h-10 w-48" />
+          <Skeleton className="h-6 w-32" />
+          <Card className="p-6 space-y-6">
+            <Skeleton className="h-6 w-full" />
+            <Skeleton className="h-6 w-full" />
+            <Skeleton className="h-6 w-full" />
+            <Skeleton className="h-10 w-full" />
+          </Card>
+        </div>
+      );
   }
 
   return (

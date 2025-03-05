@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Printer, ArrowLeft, Edit } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Select,
   SelectContent,
@@ -106,7 +107,18 @@ const ViewInvoice = () => {
   };
 
   if (!invoice) {
-    return <div>Loading...</div>;
+      return (
+        <div className="space-y-6">
+          <Skeleton className="h-10 w-48" />
+          <Skeleton className="h-6 w-32" />
+          <Card className="p-6 space-y-6">
+            <Skeleton className="h-6 w-full" />
+            <Skeleton className="h-6 w-full" />
+            <Skeleton className="h-6 w-full" />
+            <Skeleton className="h-10 w-full" />
+          </Card>
+        </div>
+      );
   }
 
   return (
