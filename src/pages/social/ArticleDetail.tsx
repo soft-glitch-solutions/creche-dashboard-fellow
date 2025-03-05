@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -63,14 +62,12 @@ const ArticleDetail = () => {
 
   const fetchArticle = async () => {
     try {
-      // Try to get from the view first for more details
       let { data, error } = await supabase
         .from('article_with_details')
         .select('*')
         .eq('id', id)
         .single();
 
-      // Fallback to regular articles table if view doesn't exist yet
       if (error) {
         const { data: fallbackData, error: fallbackError } = await supabase
           .from('articles')
@@ -84,7 +81,6 @@ const ArticleDetail = () => {
           
         if (fallbackError) throw fallbackError;
         
-        // Transform to expected format
         data = {
           ...fallbackData,
           creche_name: fallbackData.creche?.name,
@@ -293,7 +289,7 @@ const ArticleDetail = () => {
 
   const handleViewCreche = () => {
     if (article?.creche_id) {
-      navigate(`/dashboard/creche/${article.creche_id}`);
+      navigate(`/dashboard/social/profile/${article.creche_id}`);
     }
   };
 

@@ -36,7 +36,7 @@ const ArticleCard = ({ article, onEdit, onDelete, onHeart, currentUserId }: Prop
   const handleViewCreche = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (article.creche_id) {
-      navigate(`/dashboard/creche/${article.creche_id}`);
+      navigate(`/dashboard/social/profile/${article.creche_id}`);
     }
   };
 
