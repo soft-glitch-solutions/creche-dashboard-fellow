@@ -174,7 +174,7 @@ const FinanceReport = () => {
                   <BarChart data={annualFinancialData}>
                     <XAxis dataKey="month" />
                     <YAxis />
-                    <Tooltip formatter={(value) => `$${value}`} />
+                    <Tooltip formatter={(value) => `R${value}`} />
                     <Bar dataKey="income" fill="var(--color-income)" />
                     <Bar dataKey="expenses" fill="var(--color-expenses)" />
                   </BarChart>
@@ -236,7 +236,7 @@ const FinanceReport = () => {
                           {format(new Date(record.created_at), "MMM dd, yyyy")}
                         </TableCell>
                         <TableCell>{record.client?.name || "Unknown"}</TableCell>
-                        <TableCell>${record.total_amount?.toFixed(2) || "0.00"}</TableCell>
+                        <TableCell>R{record.total_amount?.toFixed(2) || "0.00"}</TableCell>
                         <TableCell>{record.status}</TableCell>
                       </TableRow>
                     ))
@@ -349,23 +349,23 @@ const FinanceReport = () => {
                 <TableBody>
                   <TableRow>
                     <TableCell className="font-medium">Government ECD Subsidy</TableCell>
-                    <TableCell>$25,000.00</TableCell>
-                    <TableCell>$18,750.00</TableCell>
-                    <TableCell>$6,250.00</TableCell>
+                    <TableCell>R25,000.00</TableCell>
+                    <TableCell>R18,750.00</TableCell>
+                    <TableCell>R6,250.00</TableCell>
                     <TableCell>Sep 30, 2024</TableCell>
                   </TableRow>
                   <TableRow>
                     <TableCell className="font-medium">Local Community Grant</TableCell>
-                    <TableCell>$5,000.00</TableCell>
-                    <TableCell>$3,500.00</TableCell>
-                    <TableCell>$1,500.00</TableCell>
+                    <TableCell>R5,000.00</TableCell>
+                    <TableCell>R3,500.00</TableCell>
+                    <TableCell>R1,500.00</TableCell>
                     <TableCell>Nov 15, 2024</TableCell>
                   </TableRow>
                   <TableRow>
                     <TableCell className="font-medium">Corporate Sponsorship</TableCell>
-                    <TableCell>$10,000.00</TableCell>
-                    <TableCell>$7,200.00</TableCell>
-                    <TableCell>$2,800.00</TableCell>
+                    <TableCell>R10,000.00</TableCell>
+                    <TableCell>R7,200.00</TableCell>
+                    <TableCell>R2,800.00</TableCell>
                     <TableCell>Dec 31, 2024</TableCell>
                   </TableRow>
                 </TableBody>
