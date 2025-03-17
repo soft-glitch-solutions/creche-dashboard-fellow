@@ -65,7 +65,7 @@ export const ApplicationNotes = ({ notes: propNotes, onAddNote }: ApplicationNot
       .from("application_notes")
       .select(`
         id, note, created_at, application_id, user_id,
-        users:user_id ( id, email, first_name, last_name, role_id )
+        users:user_id (id, email, first_name, last_name, role_id)
       `)
       .eq("application_id", applicationId)
       .order("created_at", { ascending: false });
@@ -73,14 +73,14 @@ export const ApplicationNotes = ({ notes: propNotes, onAddNote }: ApplicationNot
       if (error) throw error;
 
       // Transform the data to match ApplicationNote type
-      const transformedNotes: ApplicationNote[] = data?.map(note => ({
+      const transformedNotes = data?.map(note => ({
         id: note.id,
         application_id: note.application_id,
         user_id: note.user_id,
         note: note.note,
         created_at: note.created_at,
-        user: note.users
-      })) || [];
+        user: note.users // Map the nested user object
+      })) as ApplicationNote[];
 
       setNotes(transformedNotes);
       console.log("✅ Notes fetched successfully:", transformedNotes);
