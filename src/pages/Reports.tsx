@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -19,6 +19,8 @@ import {
   AlertTriangle,
   Package,
 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 import AttendanceReport from "./reports/AttendanceReport";
 import EnrollmentReport from "./reports/EnrollmentReport";
 import FinanceReport from "./reports/FinanceReport";
@@ -30,6 +32,37 @@ import InventoryReport from "./reports/InventoryReport";
 
 const Reports = () => {
   const [selectedReport, setSelectedReport] = useState<string>("attendance");
+  const [currentCrecheId, setCurrentCrecheId] = useState<string | null>(null);
+  const { toast } = useToast();
+
+  // Fetch current user's creche
+  useEffect(() => {
+    const fetchUserCreche = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        const { data: userCreche } = await supabase
+          .from('user_creche')
+          .select('creche_id')
+          .eq('user_id', user.id)
+          .single();
+
+        if (userCreche) {
+          setCurrentCrecheId(userCreche.creche_id);
+        }
+      } catch (error) {
+        console.error('Error fetching user creche:', error);
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Unable to fetch creche data. Please try again later."
+        });
+      }
+    };
+
+    fetchUserCreche();
+  }, [toast]);
 
   const reports = [
     {
@@ -114,7 +147,7 @@ const Reports = () => {
         ))}
       </div>
 
-      {ReportComponent && <ReportComponent />}
+      {ReportComponent && <ReportComponent crecheId={currentCrecheId} />}
     </div>
   );
 };

@@ -396,6 +396,56 @@ export type Database = {
           },
         ]
       }
+      compliance_documents: {
+        Row: {
+          created_at: string | null
+          creche_id: string
+          document_name: string
+          document_type: string
+          expiry_date: string | null
+          file_url: string | null
+          id: string
+          notes: string | null
+          status: string
+          submission_date: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          creche_id: string
+          document_name: string
+          document_type: string
+          expiry_date?: string | null
+          file_url?: string | null
+          id?: string
+          notes?: string | null
+          status: string
+          submission_date?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          creche_id?: string
+          document_name?: string
+          document_type?: string
+          expiry_date?: string | null
+          file_url?: string | null
+          id?: string
+          notes?: string | null
+          status?: string
+          submission_date?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "compliance_documents_creche_id_fkey"
+            columns: ["creche_id"]
+            isOneToOne: false
+            referencedRelation: "creches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       conversations: {
         Row: {
           created_at: string | null
@@ -507,6 +557,56 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "creche_gallery_creche_id_fkey"
+            columns: ["creche_id"]
+            isOneToOne: false
+            referencedRelation: "creches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      creche_policies: {
+        Row: {
+          created_at: string | null
+          creche_id: string
+          file_url: string | null
+          id: string
+          last_updated: string
+          notes: string | null
+          policy_name: string
+          policy_type: string
+          review_due: string
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          creche_id: string
+          file_url?: string | null
+          id?: string
+          last_updated: string
+          notes?: string | null
+          policy_name: string
+          policy_type: string
+          review_due: string
+          status: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          creche_id?: string
+          file_url?: string | null
+          id?: string
+          last_updated?: string
+          notes?: string | null
+          policy_name?: string
+          policy_type?: string
+          review_due?: string
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "creche_policies_creche_id_fkey"
             columns: ["creche_id"]
             isOneToOne: false
             referencedRelation: "creches"
@@ -813,6 +913,56 @@ export type Database = {
           user_agent?: string | null
         }
         Relationships: []
+      }
+      inventory_items: {
+        Row: {
+          category: string
+          created_at: string | null
+          creche_id: string
+          current_quantity: number
+          id: string
+          last_restocked: string | null
+          minimum_threshold: number
+          name: string
+          notes: string | null
+          unit: string
+          updated_at: string | null
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          creche_id: string
+          current_quantity: number
+          id?: string
+          last_restocked?: string | null
+          minimum_threshold: number
+          name: string
+          notes?: string | null
+          unit: string
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          creche_id?: string
+          current_quantity?: number
+          id?: string
+          last_restocked?: string | null
+          minimum_threshold?: number
+          name?: string
+          notes?: string | null
+          unit?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_items_creche_id_fkey"
+            columns: ["creche_id"]
+            isOneToOne: false
+            referencedRelation: "creches"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       invoice_items: {
         Row: {
@@ -1320,6 +1470,66 @@ export type Database = {
             columns: ["creche_id"]
             isOneToOne: false
             referencedRelation: "creches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      staff_training: {
+        Row: {
+          certification_url: string | null
+          completion_date: string | null
+          created_at: string | null
+          creche_id: string
+          expiry_date: string | null
+          id: string
+          notes: string | null
+          staff_id: string | null
+          status: string
+          training_name: string
+          training_type: string
+          updated_at: string | null
+        }
+        Insert: {
+          certification_url?: string | null
+          completion_date?: string | null
+          created_at?: string | null
+          creche_id: string
+          expiry_date?: string | null
+          id?: string
+          notes?: string | null
+          staff_id?: string | null
+          status: string
+          training_name: string
+          training_type: string
+          updated_at?: string | null
+        }
+        Update: {
+          certification_url?: string | null
+          completion_date?: string | null
+          created_at?: string | null
+          creche_id?: string
+          expiry_date?: string | null
+          id?: string
+          notes?: string | null
+          staff_id?: string | null
+          status?: string
+          training_name?: string
+          training_type?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "staff_training_creche_id_fkey"
+            columns: ["creche_id"]
+            isOneToOne: false
+            referencedRelation: "creches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "staff_training_staff_id_fkey"
+            columns: ["staff_id"]
+            isOneToOne: false
+            referencedRelation: "staff"
             referencedColumns: ["id"]
           },
         ]

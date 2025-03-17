@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -38,8 +38,20 @@ import {
 } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
-import { Download, Plus, Bell, AlertTriangle, Package, PackageCheck, Search } from "lucide-react";
+import { Download, Plus, Bell, AlertTriangle, Package, PackageCheck, Search, Loader2 } from "lucide-react";
 import * as XLSX from "xlsx";
+import { format } from "date-fns";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 
 interface InventoryItem {
   id: string;
@@ -53,123 +65,90 @@ interface InventoryItem {
   creche_id: string;
 }
 
+const inventoryFormSchema = z.object({
+  name: z.string().min(2, { message: "Item name must be at least 2 characters." }),
+  category: z.string(),
+  current_quantity: z.number().min(0, { message: "Quantity cannot be negative." }),
+  minimum_threshold: z.number().min(0, { message: "Threshold cannot be negative." }),
+  unit: z.string().min(1, { message: "Unit is required." }),
+  notes: z.string().optional(),
+});
+
 const InventoryReport = () => {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("inventory");
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [isAddItemDialogOpen, setIsAddItemDialogOpen] = useState(false);
-  const [newItem, setNewItem] = useState({
-    name: "",
-    category: "stationery",
-    current_quantity: 0,
-    minimum_threshold: 10,
-    unit: "units",
-    notes: "",
+  const [currentCrecheId, setCurrentCrecheId] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const inventoryForm = useForm<z.infer<typeof inventoryFormSchema>>({
+    resolver: zodResolver(inventoryFormSchema),
+    defaultValues: {
+      name: "",
+      category: "stationery",
+      current_quantity: 0,
+      minimum_threshold: 10,
+      unit: "units",
+      notes: "",
+    },
   });
 
-  // Sample inventory data - in a real app, this would come from the database
-  const inventoryData: InventoryItem[] = [
-    {
-      id: "1",
-      name: "Crayons",
-      category: "stationery",
-      current_quantity: 45,
-      minimum_threshold: 20,
-      unit: "boxes",
-      last_restocked: "2024-06-01",
-      notes: "Assorted colors, 24 count boxes",
-      creche_id: "1",
-    },
-    {
-      id: "2",
-      name: "Construction Paper",
-      category: "stationery",
-      current_quantity: 15,
-      minimum_threshold: 10,
-      unit: "packs",
-      last_restocked: "2024-05-15",
-      notes: "Multicolor, 50 sheets per pack",
-      creche_id: "1",
-    },
-    {
-      id: "3",
-      name: "Baby Wipes",
-      category: "cleaning",
-      current_quantity: 8,
-      minimum_threshold: 10,
-      unit: "packs",
-      last_restocked: "2024-05-25",
-      notes: "Fragrance-free, 80 wipes per pack",
-      creche_id: "1",
-    },
-    {
-      id: "4",
-      name: "Disposable Gloves",
-      category: "cleaning",
-      current_quantity: 5,
-      minimum_threshold: 6,
-      unit: "boxes",
-      last_restocked: "2024-05-10",
-      notes: "Latex-free, 100 gloves per box",
-      creche_id: "1",
-    },
-    {
-      id: "5",
-      name: "Diapers Size 3",
-      category: "diapers",
-      current_quantity: 35,
-      minimum_threshold: 30,
-      unit: "packs",
-      last_restocked: "2024-06-05",
-      notes: "30 diapers per pack",
-      creche_id: "1",
-    },
-    {
-      id: "6",
-      name: "Diapers Size 4",
-      category: "diapers",
-      current_quantity: 12,
-      minimum_threshold: 20,
-      unit: "packs",
-      last_restocked: "2024-05-20",
-      notes: "28 diapers per pack",
-      creche_id: "1",
-    },
-    {
-      id: "7",
-      name: "Rice",
-      category: "food",
-      current_quantity: 25,
-      minimum_threshold: 10,
-      unit: "kg",
-      last_restocked: "2024-05-28",
-      notes: "Long grain",
-      creche_id: "1",
-    },
-    {
-      id: "8",
-      name: "Apple Juice",
-      category: "food",
-      current_quantity: 8,
-      minimum_threshold: 12,
-      unit: "bottles",
-      last_restocked: "2024-05-18",
-      notes: "1L bottles, no added sugar",
-      creche_id: "1",
-    },
-  ];
+  // Fetch current user's creche
+  useEffect(() => {
+    const fetchUserCreche = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
 
-  const filteredInventory = inventoryData.filter((item) => {
-    const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                         item.category.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = categoryFilter === "all" || item.category === categoryFilter;
-    return matchesSearch && matchesCategory;
+        const { data: userCreche } = await supabase
+          .from('user_creche')
+          .select('creche_id')
+          .eq('user_id', user.id)
+          .single();
+
+        if (userCreche) {
+          setCurrentCrecheId(userCreche.creche_id);
+        }
+      } catch (error) {
+        console.error('Error fetching user creche:', error);
+      }
+    };
+
+    fetchUserCreche();
+  }, []);
+
+  // Fetch inventory data from Supabase
+  const { data: inventoryData, isLoading, error, refetch } = useQuery({
+    queryKey: ['inventory', currentCrecheId],
+    queryFn: async () => {
+      if (!currentCrecheId) return [];
+      const { data, error } = await supabase
+        .from('inventory_items')
+        .select('*')
+        .eq('creche_id', currentCrecheId);
+      
+      if (error) throw error;
+      return data as InventoryItem[];
+    },
+    enabled: !!currentCrecheId
   });
 
-  const restockAlerts = inventoryData.filter(
-    (item) => item.current_quantity <= item.minimum_threshold
-  );
+  const filteredInventory = inventoryData 
+    ? inventoryData.filter((item) => {
+        const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                            item.category.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesCategory = categoryFilter === "all" || item.category === categoryFilter;
+        return matchesSearch && matchesCategory;
+      })
+    : [];
+
+  const restockAlerts = inventoryData 
+    ? inventoryData.filter(
+        (item) => item.current_quantity <= item.minimum_threshold
+      )
+    : [];
 
   const handleExportExcel = () => {
     const dataToExport = activeTab === "inventory" ? filteredInventory : restockAlerts;
@@ -186,20 +165,53 @@ const InventoryReport = () => {
     });
   };
 
-  const handleAddNewItem = () => {
-    toast({
-      title: "Item Added",
-      description: `${newItem.name} has been added to inventory`,
-    });
-    setIsAddItemDialogOpen(false);
-    setNewItem({
-      name: "",
-      category: "stationery",
-      current_quantity: 0,
-      minimum_threshold: 10,
-      unit: "units",
-      notes: "",
-    });
+  const onSubmit = async (data: z.infer<typeof inventoryFormSchema>) => {
+    if (!currentCrecheId) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "No creche associated with current user"
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const { error } = await supabase
+        .from('inventory_items')
+        .insert({
+          ...data,
+          creche_id: currentCrecheId,
+          last_restocked: new Date().toISOString()
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Item Added",
+        description: `${data.name} has been added to inventory`,
+      });
+      
+      refetch();
+      setIsAddItemDialogOpen(false);
+      inventoryForm.reset({
+        name: "",
+        category: "stationery",
+        current_quantity: 0,
+        minimum_threshold: 10,
+        unit: "units",
+        notes: "",
+      });
+    } catch (error) {
+      console.error("Error adding inventory item:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to add inventory item"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const getStockLevelColor = (item: InventoryItem) => {
@@ -212,6 +224,15 @@ const InventoryReport = () => {
   const calculateStockPercentage = (item: InventoryItem) => {
     return Math.min(Math.round((item.current_quantity / (item.minimum_threshold * 2)) * 100), 100);
   };
+
+  if (error) {
+    return (
+      <div className="p-6 rounded-md bg-red-50 text-red-500">
+        <h3 className="text-lg font-medium">Error loading inventory</h3>
+        <p className="mt-1 text-sm">{error.message}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -237,71 +258,122 @@ const InventoryReport = () => {
               <DialogHeader>
                 <DialogTitle>Add New Inventory Item</DialogTitle>
               </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="name">Item Name</Label>
-                  <Input
-                    id="name"
-                    value={newItem.name}
-                    onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
+              <Form {...inventoryForm}>
+                <form onSubmit={inventoryForm.handleSubmit(onSubmit)} className="space-y-4">
+                  <FormField
+                    control={inventoryForm.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Item Name</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="category">Category</Label>
-                  <Select
-                    value={newItem.category}
-                    onValueChange={(value) => setNewItem({ ...newItem, category: value })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="stationery">Stationery</SelectItem>
-                      <SelectItem value="cleaning">Cleaning Supplies</SelectItem>
-                      <SelectItem value="diapers">Diapers</SelectItem>
-                      <SelectItem value="food">Food</SelectItem>
-                      <SelectItem value="other">Other</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="current_quantity">Current Quantity</Label>
-                    <Input
-                      id="current_quantity"
-                      type="number"
-                      value={newItem.current_quantity}
-                      onChange={(e) => setNewItem({ ...newItem, current_quantity: Number(e.target.value) })}
+                  <FormField
+                    control={inventoryForm.control}
+                    name="category"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Category</FormLabel>
+                        <Select 
+                          onValueChange={field.onChange} 
+                          defaultValue={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select category" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="stationery">Stationery</SelectItem>
+                            <SelectItem value="cleaning">Cleaning Supplies</SelectItem>
+                            <SelectItem value="diapers">Diapers</SelectItem>
+                            <SelectItem value="food">Food</SelectItem>
+                            <SelectItem value="other">Other</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                      control={inventoryForm.control}
+                      name="current_quantity"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Current Quantity</FormLabel>
+                          <FormControl>
+                            <Input 
+                              type="number" 
+                              {...field}
+                              onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={inventoryForm.control}
+                      name="unit"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Unit</FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
                     />
                   </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="unit">Unit</Label>
-                    <Input
-                      id="unit"
-                      value={newItem.unit}
-                      onChange={(e) => setNewItem({ ...newItem, unit: e.target.value })}
-                    />
-                  </div>
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="minimum_threshold">Minimum Threshold</Label>
-                  <Input
-                    id="minimum_threshold"
-                    type="number"
-                    value={newItem.minimum_threshold}
-                    onChange={(e) => setNewItem({ ...newItem, minimum_threshold: Number(e.target.value) })}
+                  <FormField
+                    control={inventoryForm.control}
+                    name="minimum_threshold"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Minimum Threshold</FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="number" 
+                            {...field}
+                            onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="notes">Notes</Label>
-                  <Input
-                    id="notes"
-                    value={newItem.notes}
-                    onChange={(e) => setNewItem({ ...newItem, notes: e.target.value })}
+                  <FormField
+                    control={inventoryForm.control}
+                    name="notes"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Notes</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
-                </div>
-              </div>
-              <Button onClick={handleAddNewItem}>Add Item</Button>
+                  <Button type="submit" className="w-full" disabled={isSubmitting}>
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Adding...
+                      </>
+                    ) : (
+                      "Add Item"
+                    )}
+                  </Button>
+                </form>
+              </Form>
             </DialogContent>
           </Dialog>
         </div>
@@ -356,50 +428,58 @@ const InventoryReport = () => {
               <CardDescription>All supplies and materials in stock</CardDescription>
             </CardHeader>
             <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Item Name</TableHead>
-                    <TableHead>Category</TableHead>
-                    <TableHead>Quantity</TableHead>
-                    <TableHead>Stock Level</TableHead>
-                    <TableHead>Last Restocked</TableHead>
-                    <TableHead>Notes</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredInventory.length > 0 ? (
-                    filteredInventory.map((item) => (
-                      <TableRow key={item.id}>
-                        <TableCell className="font-medium">{item.name}</TableCell>
-                        <TableCell className="capitalize">{item.category}</TableCell>
-                        <TableCell>
-                          {item.current_quantity} {item.unit}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <Progress 
-                              value={calculateStockPercentage(item)} 
-                              className={`h-2 w-20 ${getStockLevelColor(item)}`} 
-                            />
-                            {item.current_quantity < item.minimum_threshold && (
-                              <AlertTriangle className="h-4 w-4 text-red-500" />
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell>{new Date(item.last_restocked).toLocaleDateString()}</TableCell>
-                        <TableCell className="max-w-[200px] truncate">{item.notes}</TableCell>
-                      </TableRow>
-                    ))
-                  ) : (
+              {isLoading ? (
+                <div className="flex justify-center items-center py-8">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
                     <TableRow>
-                      <TableCell colSpan={6} className="text-center py-4">
-                        No items found
-                      </TableCell>
+                      <TableHead>Item Name</TableHead>
+                      <TableHead>Category</TableHead>
+                      <TableHead>Quantity</TableHead>
+                      <TableHead>Stock Level</TableHead>
+                      <TableHead>Last Restocked</TableHead>
+                      <TableHead>Notes</TableHead>
                     </TableRow>
-                  )}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredInventory.length > 0 ? (
+                      filteredInventory.map((item) => (
+                        <TableRow key={item.id}>
+                          <TableCell className="font-medium">{item.name}</TableCell>
+                          <TableCell className="capitalize">{item.category}</TableCell>
+                          <TableCell>
+                            {item.current_quantity} {item.unit}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <Progress 
+                                value={calculateStockPercentage(item)} 
+                                className={`h-2 w-20 ${getStockLevelColor(item)}`} 
+                              />
+                              {item.current_quantity < item.minimum_threshold && (
+                                <AlertTriangle className="h-4 w-4 text-red-500" />
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell>{new Date(item.last_restocked).toLocaleDateString()}</TableCell>
+                          <TableCell className="max-w-[200px] truncate">{item.notes}</TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={6} className="text-center py-4">
+                          {inventoryData?.length === 0 
+                            ? "No inventory items found. Add your first item to get started." 
+                            : "No items match your search criteria."}
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -411,7 +491,11 @@ const InventoryReport = () => {
               <CardDescription>Items that need to be restocked soon</CardDescription>
             </CardHeader>
             <CardContent>
-              {restockAlerts.length > 0 ? (
+              {isLoading ? (
+                <div className="flex justify-center items-center py-8">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                </div>
+              ) : restockAlerts.length > 0 ? (
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -455,7 +539,12 @@ const InventoryReport = () => {
             </CardContent>
             {restockAlerts.length > 0 && (
               <CardFooter>
-                <Button variant="outline" className="w-full">
+                <Button variant="outline" className="w-full" onClick={() => {
+                  toast({
+                    title: "Purchase Order",
+                    description: "Purchase order functionality will be available soon"
+                  });
+                }}>
                   Create Purchase Order
                 </Button>
               </CardFooter>
