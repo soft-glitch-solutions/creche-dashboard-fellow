@@ -914,6 +914,72 @@ export type Database = {
         }
         Relationships: []
       }
+      incident_reports: {
+        Row: {
+          action_taken: string
+          created_at: string | null
+          creche_id: string
+          description: string
+          id: string
+          incident_date: string
+          incident_time: string
+          incident_type: string
+          location: string
+          reported_by: string | null
+          severity: string
+          student_id: string | null
+          updated_at: string | null
+          witness: string | null
+        }
+        Insert: {
+          action_taken: string
+          created_at?: string | null
+          creche_id: string
+          description: string
+          id?: string
+          incident_date: string
+          incident_time: string
+          incident_type: string
+          location: string
+          reported_by?: string | null
+          severity: string
+          student_id?: string | null
+          updated_at?: string | null
+          witness?: string | null
+        }
+        Update: {
+          action_taken?: string
+          created_at?: string | null
+          creche_id?: string
+          description?: string
+          id?: string
+          incident_date?: string
+          incident_time?: string
+          incident_type?: string
+          location?: string
+          reported_by?: string | null
+          severity?: string
+          student_id?: string | null
+          updated_at?: string | null
+          witness?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "incident_reports_creche_id_fkey"
+            columns: ["creche_id"]
+            isOneToOne: false
+            referencedRelation: "creches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incident_reports_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       inventory_items: {
         Row: {
           category: string
@@ -1258,6 +1324,56 @@ export type Database = {
           },
         ]
       }
+      nutrition_meal_plans: {
+        Row: {
+          created_at: string | null
+          creche_id: string
+          friday_menu: string | null
+          id: string
+          meal_type: string
+          monday_menu: string | null
+          thursday_menu: string | null
+          tuesday_menu: string | null
+          updated_at: string | null
+          wednesday_menu: string | null
+          week_starting: string
+        }
+        Insert: {
+          created_at?: string | null
+          creche_id: string
+          friday_menu?: string | null
+          id?: string
+          meal_type: string
+          monday_menu?: string | null
+          thursday_menu?: string | null
+          tuesday_menu?: string | null
+          updated_at?: string | null
+          wednesday_menu?: string | null
+          week_starting: string
+        }
+        Update: {
+          created_at?: string | null
+          creche_id?: string
+          friday_menu?: string | null
+          id?: string
+          meal_type?: string
+          monday_menu?: string | null
+          thursday_menu?: string | null
+          tuesday_menu?: string | null
+          updated_at?: string | null
+          wednesday_menu?: string | null
+          week_starting?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nutrition_meal_plans_creche_id_fkey"
+            columns: ["creche_id"]
+            isOneToOne: false
+            referencedRelation: "creches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organization_users: {
         Row: {
           created_at: string | null
@@ -1427,6 +1543,63 @@ export type Database = {
         }
         Relationships: []
       }
+      safeguarding_concerns: {
+        Row: {
+          action_taken: string
+          concern_date: string
+          concern_type: string
+          created_at: string | null
+          creche_id: string
+          description: string
+          id: string
+          reported_by: string | null
+          status: string
+          student_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          action_taken: string
+          concern_date: string
+          concern_type: string
+          created_at?: string | null
+          creche_id: string
+          description: string
+          id?: string
+          reported_by?: string | null
+          status: string
+          student_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          action_taken?: string
+          concern_date?: string
+          concern_type?: string
+          created_at?: string | null
+          creche_id?: string
+          description?: string
+          id?: string
+          reported_by?: string | null
+          status?: string
+          student_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "safeguarding_concerns_creche_id_fkey"
+            columns: ["creche_id"]
+            isOneToOne: false
+            referencedRelation: "creches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "safeguarding_concerns_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       staff: {
         Row: {
           created_at: string | null
@@ -1565,6 +1738,60 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "student_documents_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      student_medical_records: {
+        Row: {
+          allergies: string | null
+          created_at: string | null
+          creche_id: string
+          id: string
+          immunization_status: string
+          last_checkup: string | null
+          medical_notes: string | null
+          next_checkup: string | null
+          student_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          allergies?: string | null
+          created_at?: string | null
+          creche_id: string
+          id?: string
+          immunization_status: string
+          last_checkup?: string | null
+          medical_notes?: string | null
+          next_checkup?: string | null
+          student_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          allergies?: string | null
+          created_at?: string | null
+          creche_id?: string
+          id?: string
+          immunization_status?: string
+          last_checkup?: string | null
+          medical_notes?: string | null
+          next_checkup?: string | null
+          student_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_medical_records_creche_id_fkey"
+            columns: ["creche_id"]
+            isOneToOne: false
+            referencedRelation: "creches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "student_medical_records_student_id_fkey"
             columns: ["student_id"]
             isOneToOne: false
             referencedRelation: "students"
