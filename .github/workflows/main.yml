@@ -27,8 +27,8 @@ jobs:
 
       - name: Debug dist folder contents
         run: |
-          echo "Checking contents of dist/"
-          ls -la dist
+          echo "Listing contents of dist/"
+          ls -la dist || echo "dist/ does not exist!"
 
       - name: Deploy via SCP
         uses: appleboy/scp-action@v0.1.3
