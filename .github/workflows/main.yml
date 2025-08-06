@@ -36,7 +36,9 @@ jobs:
           host: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           key: ${{ secrets.SFTP_SSH_KEY }}
+          passphrase: ${{ secrets.SFTP_SSH_KEY_PASSPHRASE }}
           port: ${{ secrets.FTP_PORT || 22 }}
           source: "dist/*"
           target: ${{ github.ref == 'refs/heads/main' && '/portal.crechespots.co.za/' || '/demo.crechespots.co.za/' }}
           rm: true
+
