@@ -65,7 +65,7 @@ export const ApplicationNotes = ({ notes: propNotes, onAddNote }: ApplicationNot
       .from("application_notes")
       .select(`
         id, note, created_at, application_id, user_id,
-        users:user_id (id, email, first_name, last_name, role_id)
+        users!user_id (id, email, first_name, last_name, role_id, roles!role_id (role_name))
       `)
       .eq("application_id", applicationId)
       .order("created_at", { ascending: false });

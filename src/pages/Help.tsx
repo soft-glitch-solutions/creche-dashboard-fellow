@@ -2,30 +2,32 @@ import { Card } from "@/components/ui/card";
 import { HelpCircle, Book, MessageSquare, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "@/hooks/useTranslation";
 
 const Help = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const helpResources = [
     {
-      title: "Documentation",
+      title: t("documentation"),
       icon: Book,
-      description: "Read our comprehensive guides and documentation",
+      description: t("readGuides"),
     },
     {
-      title: "FAQs",
+      title: t("faqs"),
       icon: HelpCircle,
-      description: "Find answers to commonly asked questions",
+      description: t("findAnswers"),
     },
     {
-      title: "Support Chat",
+      title: t("supportChat"),
       icon: MessageSquare,
-      description: "Chat with our support team",
+      description: t("chatSupport"),
     },
     {
-      title: "Tutorials",
+      title: t("tutorials"),
       icon: FileText,
-      description: "Learn how to use the platform effectively",
+      description: t("learnPlatform"),
     },
   ];
 
@@ -34,9 +36,9 @@ const Help = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-3xl font-bold tracking-tight">Help Centre</h2>
+        <h2 className="text-3xl font-bold tracking-tight">{t("helpCentre")}</h2>
         <p className="text-muted-foreground">
-          Find help and learn how to use the platform
+          {t("findHelp")}
         </p>
       </div>
 
@@ -55,7 +57,7 @@ const Help = () => {
                 variant="outline"
                 onClick={() => navigate(`/dashboard/help/${toSlug(resource.title)}`)}
               >
-                View
+                {t("view")}
               </Button>
             </div>
           </Card>

@@ -37,6 +37,7 @@ import { ApplicationLifecycle } from "@/components/applications/ApplicationLifec
 import { ApplicationNotes } from "@/components/applications/ApplicationNotes";
 import { ApplicationNote, ApplicationLifecycleStage } from "@/types/application";
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from "@/hooks/useTranslation";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface Application {
@@ -70,6 +71,7 @@ const Applications = () => {
   const [applicationNotes, setApplicationNotes] = useState<ApplicationNote[]>([]);
   const [userCreche, setUserCreche] = useState<string | null>(null);
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   // New application form state
   const [newApplication, setNewApplication] = useState({
@@ -148,8 +150,12 @@ const Applications = () => {
 
       if (error) throw error;
 
-      // Update local state
-      setApplications((prev) => [data, ...prev]);
+      // Update local state with proper typing
+      const transformedData = {
+        ...data,
+        lifecycle_stage: (data.lifecycle_stage || "New") as ApplicationLifecycleStage
+      };
+      setApplications((prev) => [transformedData, ...prev]);
       localStorage.setItem("applications", JSON.stringify([data, ...applications]));
 
       toast({
@@ -351,22 +357,22 @@ const Applications = () => {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-4xl font-bold text-primary">Applications</h1>
+        <h1 className="text-4xl font-bold text-primary">{t("applications")}</h1>
         <div className="flex gap-4">
           <Dialog>
             <DialogTrigger asChild>
               <Button className="gap-2">
                 <Plus className="h-4 w-4" />
-                New Application
+                {t("newApplication")}
               </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
               <DialogHeader>
-                <DialogTitle>Create New Application</DialogTitle>
+                <DialogTitle>{t("createApplication")}</DialogTitle>
               </DialogHeader>
               <div className="grid gap-4 py-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="parent_name">Parent Name</Label>
+                  <Label htmlFor="parent_name">{t("parentName")}</Label>
                   <Input
                     id="parent_name"
                     value={newApplication.parent_name}
@@ -379,7 +385,7 @@ const Applications = () => {
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="parent_email">Email</Label>
+                  <Label htmlFor="parent_email">{t("parentEmail")}</Label>
                   <Input
                     id="parent_email"
                     type="email"
@@ -393,7 +399,7 @@ const Applications = () => {
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="parent_phone">Phone Number</Label>
+                  <Label htmlFor="parent_phone">{t("phoneNumber")}</Label>
                   <Input
                     id="parent_phone"
                     value={newApplication.parent_phone_number}
@@ -406,7 +412,7 @@ const Applications = () => {
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="parent_whatsapp">WhatsApp (Optional)</Label>
+                  <Label htmlFor="parent_whatsapp">{t("whatsapp")} (Optional)</Label>
                   <Input
                     id="parent_whatsapp"
                     value={newApplication.parent_whatsapp}
@@ -419,7 +425,7 @@ const Applications = () => {
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="parent_address">Address</Label>
+                  <Label htmlFor="parent_address">{t("applicationAddress")}</Label>
                   <Input
                     id="parent_address"
                     value={newApplication.parent_address}
@@ -432,7 +438,7 @@ const Applications = () => {
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="number_of_children">Number of Children</Label>
+                  <Label htmlFor="number_of_children">{t("numberOfChildren")}</Label>
                   <Input
                     id="number_of_children"
                     type="number"
@@ -447,7 +453,7 @@ const Applications = () => {
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="message">Message</Label>
+                  <Label htmlFor="message">{t("message")}</Label>
                   <Textarea
                     id="message"
                     value={newApplication.message}
@@ -460,7 +466,7 @@ const Applications = () => {
                   />
                 </div>
               </div>
-              <Button onClick={handleCreateApplication}>Create Application</Button>
+              <Button onClick={handleCreateApplication}>{t("createApplication")}</Button>
             </DialogContent>
           </Dialog>
           <div className="flex gap-2">
@@ -485,7 +491,7 @@ const Applications = () => {
       <div className="flex gap-4 mb-4">
         <div className="relative flex-1">
           <Input
-            placeholder="Search applications..."
+            placeholder={t("searchApplications")}
             onChange={(e) => debouncedSearch(e.target.value)}
             className="pl-10"
           />

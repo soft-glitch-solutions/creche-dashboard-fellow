@@ -1,42 +1,44 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { Users, Building2, Link, DollarSign } from "lucide-react"; // Change the icon to something more relevant like DollarSign for payments
+import { useTranslation } from "@/hooks/useTranslation";
+import { Users, Building2, Link, DollarSign } from "lucide-react";
 
 const Settings = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const settingsSections = [
     {
-      title: "User Access",
+      title: t("userAccess"),
       icon: Users,
-      description: "View and manage users assigned to your creche",
+      description: t("manageUsers"),
       action: () => navigate("/dashboard/settings/users"),
     },
     {
-      title: "Creche Profile",
+      title: t("crecheProfile"),
       icon: Building2,
-      description: "View and update your creche profile information",
+      description: t("updateProfile"),
       action: () => navigate("/dashboard/settings/creche/:id"),
     },
     {
-      title: "Integrations",
+      title: t("integrations"),
       icon: Link,
-      description: "Set up and manage third-party integrations",
+      description: t("setupIntegrations"),
       action: () => navigate("/dashboard/settings/integrations"),
     },
     {
-      title: "Payments",
-      icon: DollarSign, // New icon for payments
-      description: "Manage payment settings, plans, and billing",
-      action: () => navigate("/dashboard/settings/payments"), // New route for payments
+      title: t("payments"),
+      icon: DollarSign,
+      description: t("managePayments"),
+      action: () => navigate("/dashboard/settings/payments"),
     },
   ];
 
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-3xl font-bold tracking-tight">Settings</h2>
+        <h2 className="text-3xl font-bold tracking-tight">{t("settings")}</h2>
         <p className="text-muted-foreground">
           Manage your creche settings and preferences
         </p>
@@ -54,7 +56,7 @@ const Settings = () => {
                 </p>
               </div>
               <Button variant="outline" onClick={section.action}>
-                Configure
+                {t("configure")}
               </Button>
             </div>
           </Card>

@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useTranslation } from "@/hooks/useTranslation";
 import AttendanceReport from "./reports/AttendanceReport";
 import EnrollmentReport from "./reports/EnrollmentReport";
 import FinanceReport from "./reports/FinanceReport";
@@ -34,6 +35,7 @@ const Reports = () => {
   const [selectedReport, setSelectedReport] = useState<string>("attendance");
   const [currentCrecheId, setCurrentCrecheId] = useState<string | null>(null);
   const { toast } = useToast();
+  const { t } = useTranslation();
 
   // Fetch current user's creche
   useEffect(() => {
@@ -67,7 +69,7 @@ const Reports = () => {
   const reports = [
     {
       id: "attendance",
-      title: "Attendance Report",
+      title: t("attendanceReport"),
       description: "Daily and monthly attendance tracking",
       icon: Calendar,
       component: AttendanceReport,
@@ -81,7 +83,7 @@ const Reports = () => {
     },
     {
       id: "finance",
-      title: "Finance Report",
+      title: t("financeReport"),
       description: "Financial statements and funding utilization",
       icon: Banknote,
       component: FinanceReport,

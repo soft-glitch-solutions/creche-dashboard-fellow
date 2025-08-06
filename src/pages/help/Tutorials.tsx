@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Editor } from "@/components/help/Editor";
 import { supabase } from "@/integrations/supabase/client";
+import { useTranslation } from "@/hooks/useTranslation";
 import { Plus } from "lucide-react";
 import { Card } from "@/components/ui/card";
 
@@ -10,6 +11,7 @@ const Tutorials = () => {
   const [tutorials, setTutorials] = useState<any[]>([]);
   const [isAdmin, setIsAdmin] = useState(false);
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   useEffect(() => {
     fetchTutorials();
@@ -54,11 +56,11 @@ const Tutorials = () => {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-4xl font-bold text-primary">Tutorials</h1>
+        <h1 className="text-4xl font-bold text-primary">{t("tutorials")}</h1>
         {isAdmin && (
           <Button onClick={() => navigate('new')}>
             <Plus className="h-4 w-4 mr-2" />
-            New Tutorial
+            {t("newTutorial")}
           </Button>
         )}
       </div>
@@ -76,7 +78,7 @@ const Tutorials = () => {
                 variant="outline"
                 onClick={() => navigate(`view/${tutorial.id}`)}
               >
-                View Tutorial
+                {t("viewTutorial")}
               </Button>
               {isAdmin && (
                 <Button 
@@ -84,7 +86,7 @@ const Tutorials = () => {
                   className="ml-2"
                   onClick={() => navigate(`edit/${tutorial.id}`)}
                 >
-                  Edit
+                  {t("edit")}
                 </Button>
               )}
             </div>
