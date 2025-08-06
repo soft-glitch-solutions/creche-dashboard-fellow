@@ -9,6 +9,7 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -16,7 +17,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '20'  # Updated from 16 to 20 to match required engines
+          node-version: '18'
 
       - name: Install dependencies
         run: npm install
@@ -24,14 +25,13 @@ jobs:
       - name: Build the app
         run: npm run build
 
-      - name: Deploy to cPanel via FTP
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+      - name: Deploy via SCP (no rsync)
+        uses: appleboy/scp-action@v0.1.3
         with:
-          server: ${{ secrets.FTP_SERVER }}
+          host: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          protocol: ftp
-          port: ${{ secrets.FTP_PORT }}
+          key: ${{ secrets.SFTP_SSH_KEY }}
+          port: ${{ secrets.FTP_PORT || 22 }}
           local-dir: dist/  # This is your build directory
           server-dir: ${{ github.ref == 'refs/heads/main' && '/portal.crechespots.co.za/' || '/demo.crechespots.co.za/' }}  # Change dynamically based on branch
           cleanup: true  # Remove old files before uploading
