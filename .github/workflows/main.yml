@@ -25,11 +25,6 @@ jobs:
       - name: Build the app
         run: npm run build
 
-      - name: Debug dist folder contents
-        run: |
-          echo "Listing contents of dist/"
-          ls -la dist || echo "dist/ does not exist!"
-
       - name: Deploy via SCP
         uses: appleboy/scp-action@v0.1.3
         with:
