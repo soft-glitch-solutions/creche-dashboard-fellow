@@ -3,8 +3,8 @@ name: Deploy via FTP
 on:
   push:
     branches:
-      - main  # Deploy when pushing to the main branch
-      - demo  # Deploy when pushing to the demo branch
+      - main
+      - demo
 
 jobs:
   deploy:
@@ -25,13 +25,18 @@ jobs:
       - name: Build the app
         run: npm run build
 
-      - name: Deploy via SCP (no rsync)
+      - name: Debug dist folder contents
+        run: |
+          echo "Checking contents of dist/"
+          ls -la dist
+
+      - name: Deploy via SCP
         uses: appleboy/scp-action@v0.1.3
         with:
           host: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           key: ${{ secrets.SFTP_SSH_KEY }}
           port: ${{ secrets.FTP_PORT || 22 }}
-          local-dir: dist/  # This is your build directory
-          server-dir: ${{ github.ref == 'refs/heads/main' && '/portal.crechespots.co.za/' || '/demo.crechespots.co.za/' }}  # Change dynamically based on branch
-          cleanup: true  # Remove old files before uploading
+          local-dir: dist/
+          server-dir: ${{ github.ref == 'refs/heads/main' && '/portal.crechespots.co.za/' || '/demo.crechespots.co.za/' }}
+          cleanup: true
