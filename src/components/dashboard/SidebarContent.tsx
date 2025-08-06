@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/hooks/useTranslation";
 import { Button } from "@/components/ui/button";
 import { Lock, Menu, Shield } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -26,19 +27,20 @@ export const SidebarContent = ({
   crecheLogo,
 }: SidebarContentProps) => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const menuItems = [
-    { label: "Dashboard", path: "/dashboard", icon: "/images/icons/dashboard.png", bgColor: "#F684A3" },
-    { label: "Applications", path: "/dashboard/applications", icon: "/images/icons/applications.png", bgColor: "#84A7F6" },
-    { label: "Students", path: "/dashboard/students", icon: "/images/icons/students.png", bgColor: "#BD84F6" },
-    { label: "Lesson Plan", path: "/dashboard/lessons", icon: "/images/icons/book.png", bgColor: "#F684A3" },
-    { label: "Photo Book", path: "/dashboard/photobook", icon: "/images/icons/photo-album.png", bgColor: "#84A7F6" },
-    { label: "Finance", path: "/dashboard/finance", icon: "/images/icons/finance.png", bgColor: "#9CDBC8" },
-    { label: "Calendar", path: "/dashboard/calendar", icon: "/images/icons/calendar.png", bgColor: "#84A7F6" },
-    { label: "Social", path: "/dashboard/social", icon: "/images/icons/social.png", bgColor: "#F7CD85" },
-    { label: "Reports", path: "/dashboard/reports", icon: "/images/icons/reports.png", bgColor: "#F684A3" },
-    { label: "Settings", path: "/dashboard/settings", icon: "/images/icons/settings.png", bgColor: "#BD84F6" },
-    { label: "Help Centre", path: "/dashboard/help", icon: "/images/icons/help.png", bgColor: "#F7CD85" },
+    { label: t("dashboard"), path: "/dashboard", icon: "/images/icons/dashboard.png", bgColor: "#F684A3" },
+    { label: t("applications"), path: "/dashboard/applications", icon: "/images/icons/applications.png", bgColor: "#84A7F6" },
+    { label: t("students"), path: "/dashboard/students", icon: "/images/icons/students.png", bgColor: "#BD84F6" },
+    { label: t("lessons"), path: "/dashboard/lessons", icon: "/images/icons/book.png", bgColor: "#F684A3" },
+    { label: t("photobook"), path: "/dashboard/photobook", icon: "/images/icons/photo-album.png", bgColor: "#84A7F6" },
+    { label: t("finance"), path: "/dashboard/finance", icon: "/images/icons/finance.png", bgColor: "#9CDBC8" },
+    { label: t("calendar"), path: "/dashboard/calendar", icon: "/images/icons/calendar.png", bgColor: "#84A7F6" },
+    { label: t("social"), path: "/dashboard/social", icon: "/images/icons/social.png", bgColor: "#F7CD85" },
+    { label: t("reports"), path: "/dashboard/reports", icon: "/images/icons/reports.png", bgColor: "#F684A3" },
+    { label: t("settings"), path: "/dashboard/settings", icon: "/images/icons/settings.png", bgColor: "#BD84F6" },
+    { label: t("help"), path: "/dashboard/help", icon: "/images/icons/help.png", bgColor: "#F7CD85" },
   ];
 
   const adminItems = [

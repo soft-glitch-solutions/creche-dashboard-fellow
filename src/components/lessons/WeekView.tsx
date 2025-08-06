@@ -72,7 +72,6 @@ const WeekView = () => {
       if (error) throw error;
 
       toast({
-        variant: "success",
         title: "Success",
         description: "Lesson deleted successfully.",
       });

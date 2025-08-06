@@ -59,7 +59,6 @@ const WeekTable = () => {
       if (error) throw error;
 
       toast({
-        variant: "success",
         title: "Success",
         description: "Lesson deleted successfully.",
       });
@@ -89,21 +88,7 @@ const WeekTable = () => {
 
   return (
     <div>
-      <WeekView
-        lessons={lessons}
-        setLessons={setLessons}
-        handleLessonClick={handleLessonClick}
-        handleDeleteLesson={handleDeleteLesson}
-      />
-
-      {/* Edit Modal */}
-      {selectedLesson && (
-        <EditLessonDialog
-          lesson={selectedLesson}
-          onClose={() => setSelectedLesson(null)} // Close modal
-          onSave={handleSaveChanges} // Save updated lesson
-        />
-      )}
+      <WeekView />
     </div>
   );
 };

@@ -66,7 +66,6 @@ const EditLessonDialog: React.FC<EditLessonDialogProps> = ({ lesson, onClose, on
       if (error) throw error;
 
       toast({
-        variant: "success",
         title: "Success",
         description: "Lesson updated successfully.",
       });
