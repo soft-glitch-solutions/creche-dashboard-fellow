@@ -277,6 +277,7 @@ const IncidentReport = ({ crecheId }: { crecheId: string | null }) => {
 
       const incidentData = {
         ...formData,
+        student_id: formData.student_id === 'none' ? null : formData.student_id,
         creche_id: crecheId,
         reported_by: userId
       };
@@ -828,7 +829,7 @@ const IncidentReport = ({ crecheId }: { crecheId: string | null }) => {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="">None/Not Applicable</SelectItem>
+                              <SelectItem value="none">None/Not Applicable</SelectItem>
                               {students.map((student) => (
                                 <SelectItem key={student.id} value={student.id}>
                                   {student.name}
