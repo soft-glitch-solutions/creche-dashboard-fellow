@@ -37,6 +37,6 @@ jobs:
           username: ${{ secrets.FTP_USERNAME }}
           key: ${{ secrets.SFTP_SSH_KEY }}
           port: ${{ secrets.FTP_PORT || 22 }}
-          local-dir: dist/
-          server-dir: ${{ github.ref == 'refs/heads/main' && '/portal.crechespots.co.za/' || '/demo.crechespots.co.za/' }}
-          cleanup: true
+          source: "dist/*"
+          target: ${{ github.ref == 'refs/heads/main' && '/portal.crechespots.co.za/' || '/demo.crechespots.co.za/' }}
+          rm: true
