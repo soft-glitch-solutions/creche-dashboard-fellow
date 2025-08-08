@@ -25,6 +25,8 @@ export const SidebarContent = ({
 }: SidebarContentProps) => {
   const navigate = useNavigate();
   const [features, setFeatures] = useState<Record<string, any>>({});
+  const [permDefined, setPermDefined] = useState<Set<string>>(new Set());
+  const [userPerms, setUserPerms] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     const loadFeatures = async () => {
@@ -38,6 +40,48 @@ export const SidebarContent = ({
     loadFeatures();
   }, []);
 
+  useEffect(() => {
+    const loadPerms = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data: userRow } = await supabase
+        .from("users")
+        .select("roles(id, role_name), role_id")
+        .eq("id", user.id)
+        .maybeSingle();
+      const roleId = (userRow as any)?.roles?.id || (userRow as any)?.role_id;
+      const featureKeys = [
+        "event_calendar",
+        "financial_tracking",
+        "reports_analytics",
+        "parent_communication",
+        "lessons",
+        "photobook",
+      ];
+      const names = featureKeys.map((k) => `feature:${k}`);
+      const { data: permList } = await supabase
+        .from("permissions")
+        .select("id,name")
+        .in("name", names);
+      const permNameSet = new Set((permList || []).map((p: any) => p.name as string));
+      setPermDefined(permNameSet);
+      if (roleId && permList && permList.length) {
+        const { data: rp } = await supabase
+          .from("role_permissions")
+          .select("permission_id")
+          .eq("role_id", roleId);
+        const idSet = new Set((rp || []).map((r: any) => r.permission_id));
+        const userNameSet = new Set(
+          (permList || [])
+            .filter((p: any) => idSet.has(p.id))
+            .map((p: any) => p.name as string)
+        );
+        setUserPerms(userNameSet);
+      }
+    };
+    loadPerms();
+  }, []);
+
   const layout = (features?.sidebar_layout as string) || "default"; // default | compact | icons
   const effectiveOpen = layout === "icons" ? false : isSidebarOpen;
 
@@ -46,8 +90,8 @@ export const SidebarContent = ({
       { labelKey: "dashboard", path: "/dashboard", icon: "/images/icons/dashboard.png", bgColor: "#F684A3" },
       { labelKey: "applications", path: "/dashboard/applications", icon: "/images/icons/applications.png", bgColor: "#84A7F6" },
       { labelKey: "students", path: "/dashboard/students", icon: "/images/icons/students.png", bgColor: "#BD84F6" },
-      { labelKey: "lessons", path: "/dashboard/lessons", icon: "/images/icons/book.png", bgColor: "#F684A3" },
-      { labelKey: "photobook", path: "/dashboard/photobook", icon: "/images/icons/photo-album.png", bgColor: "#84A7F6" },
+      { labelKey: "lessons", path: "/dashboard/lessons", icon: "/images/icons/book.png", bgColor: "#F684A3", requires: "lessons" },
+      { labelKey: "photobook", path: "/dashboard/photobook", icon: "/images/icons/photo-album.png", bgColor: "#84A7F6", requires: "photobook" },
       { labelKey: "finance", path: "/dashboard/finance", icon: "/images/icons/finance.png", bgColor: "#9CDBC8", requires: "financial_tracking" },
       { labelKey: "calendar", path: "/dashboard/calendar", icon: "/images/icons/calendar.png", bgColor: "#84A7F6", requires: "event_calendar" },
       { labelKey: "social", path: "/dashboard/social", icon: "/images/icons/social.png", bgColor: "#F7CD85", requires: "parent_communication" },
@@ -55,7 +99,12 @@ export const SidebarContent = ({
       { labelKey: "settings", path: "/dashboard/settings", icon: "/images/icons/settings.png", bgColor: "#BD84F6" },
       { labelKey: "help", path: "/dashboard/help", icon: "/images/icons/help.png", bgColor: "#F7CD85" },
     ];
-    return all.filter(item => !item.requires || features?.[item.requires] !== false);
+    return all.filter((item) => {
+      const featureAllowed = !item.requires || features?.[item.requires] !== false;
+      const permName = item.requires ? `feature:${item.requires}` : null;
+      const roleAllowed = !permName || !permDefined.has(permName) || userPerms.has(permName);
+      return featureAllowed && roleAllowed;
+    });
   }, [features]);
 
   const label = (key: string) => key.charAt(0).toUpperCase() + key.slice(1);
