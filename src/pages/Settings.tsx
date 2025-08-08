@@ -2,7 +2,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "@/hooks/useTranslation";
-import { Users, Building2, Link, DollarSign } from "lucide-react";
+import { Users, Building2, Link, DollarSign, Bell, SlidersHorizontal } from "lucide-react";
 
 const Settings = () => {
   const navigate = useNavigate();
@@ -32,6 +32,18 @@ const Settings = () => {
       icon: DollarSign,
       description: t("managePayments"),
       action: () => navigate("/dashboard/settings/payments"),
+    },
+    {
+      title: t("notifications"),
+      icon: Bell,
+      description: t("manageNotificationSettings"),
+      action: () => navigate("/dashboard/settings/notifications"),
+    },
+    {
+      title: t("features"),
+      icon: SlidersHorizontal,
+      description: t("manageFeaturesAndMenu"),
+      action: () => navigate("/dashboard/settings/features"),
     },
   ];
 

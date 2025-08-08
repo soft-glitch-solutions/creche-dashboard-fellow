@@ -49,6 +49,8 @@ import EditContent from "@/pages/help/EditContent";
 import SupportRequestDetail from "@/pages/help/SupportRequestDetail";
 import { Toaster } from "@/components/ui/sonner";
 import SocialProfile from "./pages/social/SocialProfile";
+import NotificationsSettings from "@/pages/settings/Notifications";
+import FeaturesSettings from "@/pages/settings/Features";
 
 // Create a client
 const queryClient = new QueryClient();
@@ -125,6 +127,8 @@ const App = () => {
                 <Route path="settings/users" element={<UserManagement />} />
                 <Route path="settings/creche/:id" element={<CrecheProfile />} />
                 <Route path="settings/integrations" element={<Integrations />} />
+                <Route path="settings/notifications" element={<NotificationsSettings />} />
+                <Route path="settings/features" element={<FeaturesSettings />} />
 
                 {/* Admin Routes */}
                 <Route path="admin" element={<AdminRoute />}>

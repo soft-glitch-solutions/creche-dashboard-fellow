@@ -94,11 +94,15 @@ const translations: Translations = {
     crecheProfile: "Creche Profile",
     integrations: "Integrations",
     payments: "Payments",
+    notifications: "Notifications",
+    features: "Features",
     configure: "Configure",
     manageUsers: "View and manage users assigned to your creche",
     updateProfile: "View and update your creche profile information",
     setupIntegrations: "Set up and manage third-party integrations",
     managePayments: "Manage payment settings, plans, and billing",
+    manageNotificationSettings: "Choose which alerts you receive",
+    manageFeaturesAndMenu: "Show/hide sections and change sidebar layout",
     
     // Help & Documentation
     helpCentre: "Help Centre",
@@ -243,11 +247,15 @@ const translations: Translations = {
     crecheProfile: "Creche Profiel",
     integrations: "Integrasies",
     payments: "Betalings",
+    notifications: "Kennisgewings",
+    features: "Kenmerke",
     configure: "Konfigureer",
     manageUsers: "Bekyk en bestuur gebruikers wat aan jou creche toegewys is",
     updateProfile: "Bekyk en werk jou creche profiel inligting by",
     setupIntegrations: "Stel derdeparty integrasies op en bestuur dit",
     managePayments: "Bestuur betaling instellings, planne en fakturering",
+    manageNotificationSettings: "Kies watter waarskuwings jy wil ontvang",
+    manageFeaturesAndMenu: "Wys/steek afdelings weg en verander sybalk uitleg",
     
     // Help & Documentation
     helpCentre: "Hulp Sentrum",
@@ -392,11 +400,15 @@ const translations: Translations = {
     crecheProfile: "Iprofayile Yekreshi",
     integrations: "Ukudityaniswa",
     payments: "Iintlawulo",
+    notifications: "Izaziso",
+    features: "Iimbonakalo",
     configure: "Hlela",
     manageUsers: "Jonga kwaye ulawule abasebenzisi ababelwe ikreshi yakho",
     updateProfile: "Jonga kwaye uhlaziye inkcukacha zeprofayile yekreshi yakho",
     setupIntegrations: "Misela kwaye ulawule ukudityaniswa kwenkcubeko yesithathu",
     managePayments: "Lawula izicwangciso zentlawulo, izicwangciso kunye nokubhayisela",
+    manageNotificationSettings: "Khetha ukuba zeziphi izilumkiso ofunayo",
+    manageFeaturesAndMenu: "Bonisa/fihla amacandelo uze utshintshe uyilo lwe-sidebar",
     
     // Help & Documentation
     helpCentre: "Iziko Loncedo",
