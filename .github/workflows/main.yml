@@ -1,10 +1,10 @@
-name: Deploy via FTP
+name: Deploy via SSH
 
 on:
   push:
     branches:
-      - main  # Deploy when pushing to the main branch
-      - demo  # Deploy when pushing to the demo branch
+      - main
+      - demo
 
 jobs:
   deploy:
@@ -16,7 +16,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '20'  # Updated from 16 to 20 to match required engines
+          node-version: '20'
 
       - name: Install dependencies
         run: npm install
@@ -24,14 +24,20 @@ jobs:
       - name: Build the app
         run: npm run build
 
-      - name: Deploy to cPanel via FTP
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
-        with:
-          server: ${{ secrets.FTP_SERVER }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          protocol: ftp
-          port: ${{ secrets.FTP_PORT }}
-          local-dir: dist/  # This is your build directory
-          server-dir: ${{ github.ref == 'refs/heads/main' && '/portal.crechespots.co.za/' || '/demo.crechespots.co.za/' }}  # Change dynamically based on branch
-          cleanup: true  # Remove old files before uploading
+      - name: Install SSH and Rsync
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y openssh-client rsync
+
+      - name: Configure SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SFTP_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          echo -e "Host *\n\tStrictHostKeyChecking no\n" > ~/.ssh/config
+
+      - name: Deploy via Rsync
+        run: |
+          rsync -avz --delete --progress -e "ssh -p ${{ secrets.FTP_PORT || 22 }}" \
+          dist/ \
+          ${{ secrets.FTP_USERNAME }}@${{ secrets.FTP_SERVER }}:${{ github.ref == 'refs/heads/main' && '/portal.crechespots.co.za/' || '/demo.crechespots.co.za/' }}
