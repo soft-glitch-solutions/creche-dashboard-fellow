@@ -31,9 +31,10 @@ jobs:
           host: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           key: ${{ secrets.SFTP_SSH_KEY }}
-          passphrase: ${{ secrets.SFTP_SSH_KEY_PASSPHRASE }}
+          passphrase: ${{ secrets.SFTP_SSH_KEY_PASSPHRASE }} # Only if key has passphrase
           port: ${{ secrets.FTP_PORT || 22 }}
           source: "dist/*"
           target: ${{ github.ref == 'refs/heads/main' && '/portal.crechespots.co.za/' || '/demo.crechespots.co.za/' }}
           rm: true
-
+          debug: true  # Crucial for troubleshooting
+          strip_components: 0  # Add this if having path issues
