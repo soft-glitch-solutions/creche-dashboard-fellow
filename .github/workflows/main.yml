@@ -24,11 +24,6 @@ jobs:
       - name: Build the app
         run: npm run build
 
-      - name: Install SSH and Rsync
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y openssh-client rsync
-
       - name: Configure SSH
         run: |
           mkdir -p ~/.ssh
@@ -36,8 +31,16 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           echo -e "Host *\n\tStrictHostKeyChecking no\n" > ~/.ssh/config
 
-      - name: Deploy via Rsync
+      - name: Deploy via SSH
         run: |
-          rsync -avz --delete --progress -e "ssh -p ${{ secrets.FTP_PORT || 22 }}" \
-          dist/ \
-          ${{ secrets.FTP_USERNAME }}@${{ secrets.FTP_SERVER }}:${{ github.ref == 'refs/heads/main' && '/portal.crechespots.co.za/' || '/demo.crechespots.co.za/' }}
+          # Create target directory if needed
+          ssh -p ${{ secrets.FTP_PORT || 22 }} \
+            -i ~/.ssh/id_rsa \
+            ${{ secrets.FTP_USERNAME }}@${{ secrets.FTP_HOST }} \
+            "mkdir -p ${{ github.ref == 'refs/heads/main' && '/portal.crechespots.co.za/' || '/demo.crechespots.co.za/' }}"
+
+          # Rsync files (only transfers changed files)
+          rsync -avz --delete --progress \
+            -e "ssh -p ${{ secrets.FTP_PORT || 22 }} -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no" \
+            dist/ \
+            ${{ secrets.FTP_USERNAME }}@${{ secrets.FTP_HOST }}:${{ github.ref == 'refs/heads/main' && '/portal.crechespots.co.za/' || '/demo.crechespots.co.za/' }}
