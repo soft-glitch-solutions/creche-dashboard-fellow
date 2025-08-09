@@ -3,13 +3,12 @@ name: Deploy via FTP
 on:
   push:
     branches:
-      - main
-      - demo
+      - main  # Deploy when pushing to the main branch
+      - demo  # Deploy when pushing to the demo branch
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -17,7 +16,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '20'
+          node-version: '20'  # Updated from 16 to 20 to match required engines
 
       - name: Install dependencies
         run: npm install
@@ -34,5 +33,5 @@ jobs:
           protocol: ftp
           port: ${{ secrets.FTP_PORT }}
           local-dir: dist/  # This is your build directory
-          server-dir: /public_html/  # Change this if needed
+          server-dir: ${{ github.ref == 'refs/heads/main' && '/portal.crechespots.co.za/' || '/demo.crechespots.co.za/' }}  # Change dynamically based on branch
           cleanup: true  # Remove old files before uploading
