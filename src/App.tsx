@@ -51,6 +51,7 @@ import { Toaster } from "@/components/ui/sonner";
 import SocialProfile from "./pages/social/SocialProfile";
 import NotificationsSettings from "@/pages/settings/Notifications";
 import FeaturesSettings from "@/pages/settings/Features";
+import PaymentsSettings from "@/pages/settings/Payments";
 
 // Create a client
 const queryClient = new QueryClient();
@@ -114,19 +115,26 @@ const App = () => {
                 {/* Help Center */}
                 <Route path="help" element={<Help />} />
                 <Route path="help/faqs" element={<Faqs />} />
+                <Route path="help/faqs/new" element={<CreateContent />} />
+                <Route path="help/faqs/edit/:id" element={<EditContent />} />
+                <Route path="help/faqs/view/:id" element={<ViewContent />} />
                 <Route path="help/documentation" element={<Documentation />} />
+                <Route path="help/documentation/new" element={<CreateContent />} />
+                <Route path="help/documentation/edit/:id" element={<EditContent />} />
+                <Route path="help/documentation/view/:id" element={<ViewContent />} />
                 <Route path="help/tutorials" element={<Tutorials />} />
+                <Route path="help/tutorials/new" element={<CreateContent />} />
+                <Route path="help/tutorials/edit/:id" element={<EditContent />} />
+                <Route path="help/tutorials/view/:id" element={<ViewContent />} />
                 <Route path="help/support-chat" element={<SupportChat />} />
                 <Route path="help/support-request/:id" element={<SupportRequestDetail />} />
-                <Route path="help/view/:id" element={<ViewContent />} />
-                <Route path="help/create" element={<CreateContent />} />
-                <Route path="help/edit/:id" element={<EditContent />} />
 
                 {/* Settings */}
                 <Route path="settings" element={<Settings />} />
                 <Route path="settings/users" element={<UserManagement />} />
                 <Route path="settings/creche/:id" element={<CrecheProfile />} />
                 <Route path="settings/integrations" element={<Integrations />} />
+                <Route path="settings/payments" element={<PaymentsSettings />} />
                 <Route path="settings/notifications" element={<NotificationsSettings />} />
                 <Route path="settings/features" element={<FeaturesSettings />} />
 
