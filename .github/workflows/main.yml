@@ -24,12 +24,29 @@ jobs:
       - name: Build the app
         run: npm run build
 
-      - name: Deploy via SFTP
-        uses: wlixcc/SFTP-Deploy-Action@v1.2.4
-        with:
-          username: 'njfhditm'
-          server: '102.212.247.146'
-          port: '1624'
-          password: ${{ secrets.FTP_PASSWORD }}
-          local_path: 'dist/*'
-          remote_path: ${{ github.ref == 'refs/heads/main' && '/portal.crechespots.co.za/' || '/demo.crechespots.co.za/' }}
+      - name: Install sshpass
+        run: sudo apt-get update && sudo apt-get install -y sshpass
+
+      - name: Deploy to Production (main branch)
+        if: github.ref == 'refs/heads/main'
+        run: |
+          echo "${{ secrets.FTP_PASSWORD }}" > /tmp/password
+          sshpass -f /tmp/password sftp -oPort=1624 -oStrictHostKeyChecking=no njfhditm@102.212.247.146 <<EOF
+          cd /home/njfhditm/portal.crechespots.co.za
+          lcd dist
+          put -r *
+          quit
+          EOF
+          rm /tmp/password
+
+      - name: Deploy to Demo (demo branch)
+        if: github.ref == 'refs/heads/demo'
+        run: |
+          echo "${{ secrets.FTP_PASSWORD }}" > /tmp/password
+          sshpass -f /tmp/password sftp -oPort=1624 -oStrictHostKeyChecking=no njfhditm@102.212.247.146 <<EOF
+          cd /home/njfhditm/demo.crechespots.co.za
+          lcd dist
+          put -r *
+          quit
+          EOF
+          rm /tmp/password
