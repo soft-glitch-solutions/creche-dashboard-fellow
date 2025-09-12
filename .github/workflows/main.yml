@@ -31,7 +31,7 @@ jobs:
           server: 102.212.247.146
           port: 1624
           username: njfhditm
-          password: ${{ secrets.SFTP_PASSWORD }}
+          password: ${{ secrets.FTP_PASSWORD }}
           protocol: ftp
           local-dir: dist/
           server-dir: /portal.crechespots.co.za/
