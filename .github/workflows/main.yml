@@ -1,4 +1,4 @@
-name: Deploy via FTP
+name: Deploy via SFTP
 
 on:
   push:
@@ -24,24 +24,28 @@ jobs:
       - name: Build the app
         run: npm run build
 
-      - name: Deploy to Production (main branch)
+      - name: Deploy to Production via SFTP
         if: github.ref == 'refs/heads/main'
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
         with:
-          server: 102.212.247.147
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
+          server: 102.212.247.146
+          port: 1624
+          username: njfhditm
+          password: ${{ secrets.SFTP_PASSWORD }}
+          protocol: ftp
           local-dir: dist/
           server-dir: /portal.crechespots.co.za/
           dangerous-clean-slate: true
 
-      - name: Deploy to Demo (demo branch)
+      - name: Deploy to Demo via SFTP
         if: github.ref == 'refs/heads/demo'
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
         with:
-          server: 102.212.247.147
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
+          server: 102.212.247.146
+          port: 1624
+          username: njfhditm
+          password: ${{ secrets.SFTP_PASSWORD }}
+          protocol: ftp
           local-dir: dist/
           server-dir: /demo.crechespots.co.za/
           dangerous-clean-slate: true
