@@ -1,4 +1,4 @@
-name: Deploy via SSH
+name: Deploy via FTP
 
 on:
   push:
@@ -24,21 +24,24 @@ jobs:
       - name: Build the app
         run: npm run build
 
-      - name: Configure SSH
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SFTP_SSH_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          echo -e "Host *\n\tStrictHostKeyChecking no\n" > ~/.ssh/config
+      - name: Deploy to Production (main branch)
+        if: github.ref == 'refs/heads/main'
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+        with:
+          server: 102.212.247.147
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: dist/
+          server-dir: /portal.crechespots.co.za/
+          dangerous-clean-slate: true
 
-      - name: Deploy via SSH
-        run: |
-          # Create target directory
-          ssh -p 1624 -i ~/.ssh/id_rsa njfhditm@102.212.247.147 \
-            "mkdir -p ${{ github.ref == 'refs/heads/main' && '/portal.crechespots.co.za/' || '/demo.crechespots.co.za/' }}"
-
-          # Sync files
-          rsync -avz --delete --progress \
-            -e "ssh -p 1624 -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no" \
-            dist/ \
-            njfhditm@102.212.247.147:${{ github.ref == 'refs/heads/main' && '/portal.crechespots.co.za/' || '/demo.crechespots.co.za/' }}
+      - name: Deploy to Demo (demo branch)
+        if: github.ref == 'refs/heads/demo'
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+        with:
+          server: 102.212.247.147
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: dist/
+          server-dir: /demo.crechespots.co.za/
+          dangerous-clean-slate: true
