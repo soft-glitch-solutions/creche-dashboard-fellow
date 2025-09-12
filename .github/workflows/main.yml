@@ -24,28 +24,12 @@ jobs:
       - name: Build the app
         run: npm run build
 
-      - name: Deploy to Production via SFTP
-        if: github.ref == 'refs/heads/main'
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+      - name: Deploy via SFTP
+        uses: wlixcc/SFTP-Deploy-Action@v1.2.4
         with:
-          server: 102.212.247.146
-          port: 1624
-          username: njfhditm
+          username: 'njfhditm'
+          server: '102.212.247.146'
+          port: '1624'
           password: ${{ secrets.FTP_PASSWORD }}
-          protocol: ftp
-          local-dir: dist/
-          server-dir: /portal.crechespots.co.za/
-          dangerous-clean-slate: true
-
-      - name: Deploy to Demo via SFTP
-        if: github.ref == 'refs/heads/demo'
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
-        with:
-          server: 102.212.247.146
-          port: 1624
-          username: njfhditm
-          password: ${{ secrets.FTP_PASSWORD }}
-          protocol: ftp
-          local-dir: dist/
-          server-dir: /demo.crechespots.co.za/
-          dangerous-clean-slate: true
+          local_path: 'dist/*'
+          remote_path: ${{ github.ref == 'refs/heads/main' && '/portal.crechespots.co.za/' || '/demo.crechespots.co.za/' }}
