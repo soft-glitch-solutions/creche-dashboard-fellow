@@ -65,8 +65,8 @@ const App = () => {
           <QueryClientProvider client={queryClient}>
             <Routes>
               {/* Landing/Auth Routes */}
-              <Route path="/" element={<Login />} />
-              <Route path="/login" element={<Login />} />
+              <Route path="/" element={<Auth />} />
+              <Route path="/login" element={<Auth />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
