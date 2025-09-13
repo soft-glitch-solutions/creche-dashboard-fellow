@@ -13,6 +13,7 @@ import Students from "@/pages/Students";
 import StudentProfile from "@/pages/students/StudentProfile";
 import CrecheProfile from "@/pages/CrecheProfile";
 import Login from "@/pages/Login";
+import Auth from "@/pages/Auth";
 import Index from "@/pages/Index";
 import NotFound from "@/pages/NotFound";
 import AdminUserManagement from "@/pages/admin/AdminUserManagement";
@@ -66,6 +67,7 @@ const App = () => {
               {/* Landing/Auth Routes */}
               <Route path="/" element={<Login />} />
               <Route path="/login" element={<Login />} />
+              <Route path="/auth" element={<Auth />} />
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/complete-profile" element={<CompleteProfile />} />

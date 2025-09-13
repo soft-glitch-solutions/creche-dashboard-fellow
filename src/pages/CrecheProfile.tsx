@@ -151,9 +151,12 @@ export const CrecheProfile = () => {
           ...defaultCreche,
           ...creche,
           plan: (creche.plan || 'free') as CrechePlan,
-          features: creche.features || defaultCreche.features,
-          services: creche.services || defaultCreche.services,
-          facilities: creche.facilities || defaultCreche.facilities,
+          features: (typeof creche.features === 'object' && creche.features !== null) ? 
+            creche.features as any : defaultCreche.features,
+          services: (typeof creche.services === 'object' && creche.services !== null) ? 
+            creche.services as any : defaultCreche.services,
+          facilities: (typeof creche.facilities === 'object' && creche.facilities !== null) ? 
+            creche.facilities as any : defaultCreche.facilities,
         };
         setCrecheData(typedCreche);
       }
@@ -176,7 +179,7 @@ export const CrecheProfile = () => {
       setCrecheData(prev => ({
         ...prev,
         [parentField]: {
-          ...prev[parentField as keyof Creche],
+          ...(prev[parentField as keyof Creche] as any),
           [childField]: value
         }
       }));
@@ -191,9 +194,15 @@ export const CrecheProfile = () => {
 
   const handleUpdate = async (section: keyof typeof editMode) => {
     try {
+      const updateData = {
+        ...crecheData,
+        features: crecheData.features as any,
+        services: crecheData.services as any,
+        facilities: crecheData.facilities as any,
+      };
       const { error } = await supabase
         .from("creches")
-        .update(crecheData)
+        .update(updateData)
         .eq("id", id);
 
       if (error) throw error;
