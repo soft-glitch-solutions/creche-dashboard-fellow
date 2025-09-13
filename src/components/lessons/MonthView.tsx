@@ -8,35 +8,8 @@ import { useToast } from "@/hooks/use-toast";
 // Set up the localizer for moment.js
 const localizer = momentLocalizer(moment);
 
-const MonthView = () => {
-  const { toast } = useToast();
+const MonthView = ({ lessons }: { lessons: any[] }) => {
   const [date, setDate] = useState(new Date());
-  const [lessons, setLessons] = useState<any[]>([]);
-
-  // Fetch lessons from the database
-  const fetchLessons = async () => {
-    try {
-      const { data, error } = await supabase
-        .from("lessons")
-        .select("*, creche_classes (id, name, color)") // Fetch class details
-        .eq("active", true);
-
-      if (error) throw error;
-
-      setLessons(data || []);
-    } catch (error) {
-      console.error("Error fetching lessons:", error.message);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error.message || "Failed to fetch lessons",
-      });
-    }
-  };
-
-  useEffect(() => {
-    fetchLessons();
-  }, []);
 
   // Map lessons to events for the calendar
   const events = lessons.map((lesson) => {

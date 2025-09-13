@@ -88,7 +88,7 @@ const WeekTable = () => {
 
   return (
     <div>
-      <WeekView />
+      <WeekView lessons={lessons} />
     </div>
   );
 };

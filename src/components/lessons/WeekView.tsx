@@ -15,9 +15,9 @@ interface Lesson {
   creche_classes?: { id: string; name: string; color: string };
 }
 
-const WeekView = () => {
+const WeekView = ({ lessons }: { lessons: Lesson[] }) => {
   const { toast } = useToast();
-  const [lessons, setLessons] = useState<Lesson[]>([]);
+  const [localLessons, setLocalLessons] = useState<Lesson[]>(lessons);
   const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
 
   const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
@@ -26,34 +26,13 @@ const WeekView = () => {
     "12:00", "13:00", "14:00", "15:00"
   ];
 
-  // Fetch lessons from the database with class details
-  const fetchLessons = async () => {
-    try {
-      const { data, error } = await supabase
-        .from("lessons")
-        .select("*, creche_classes (id, name, color)") // Fetch class details
-        .eq("active", true);
-
-      if (error) throw error;
-
-      setLessons(data || []);
-    } catch (error) {
-      console.error("Error fetching lessons:", error.message);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error.message || "Failed to fetch lessons",
-      });
-    }
-  };
-
   useEffect(() => {
-    fetchLessons();
-  }, []);
+    setLocalLessons(lessons);
+  }, [lessons]);
 
   // Get lessons for a specific day and time slot
   const getLessonsForSlot = (day: string, time: string) => {
-    return lessons.filter(
+    return localLessons.filter(
       (lesson) => lesson.day_of_week === day && lesson.start_time === time
     );
   };
@@ -77,7 +56,7 @@ const WeekView = () => {
       });
 
       // Update the local state to remove the deleted lesson
-      setLessons((prevLessons) =>
+      setLocalLessons((prevLessons) =>
         prevLessons.filter((lesson) => lesson.id !== lessonId)
       );
     } catch (error) {
@@ -159,7 +138,7 @@ const WeekView = () => {
           lesson={selectedLesson}
           onClose={() => setSelectedLesson(null)} // Close the modal
           onSave={(updatedLesson) => {
-            setLessons((prevLessons) =>
+            setLocalLessons((prevLessons) =>
               prevLessons.map((lesson) =>
                 lesson.id === updatedLesson.id ? updatedLesson : lesson
               )

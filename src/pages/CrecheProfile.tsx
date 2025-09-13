@@ -138,10 +138,33 @@ export const CrecheProfile = () => {
   const loadCrecheDetails = async () => {
     setIsLoading(true);
     try {
+      // Get the current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error("User not authenticated");
+      }
+
+      let crecheId = id;
+      
+      // If no ID is provided in the URL, get the user's assigned creche
+      if (!id) {
+        const { data: userCreche, error: ucError } = await supabase
+          .from("user_creche")
+          .select("creche_id")
+          .eq("user_id", user.id)
+          .maybeSingle();
+
+        if (ucError) throw ucError;
+        if (!userCreche?.creche_id) {
+          throw new Error("No creche assigned to this user");
+        }
+        crecheId = userCreche.creche_id;
+      }
+
       const { data: creche, error } = await supabase
         .from("creches")
         .select("*")
-        .eq("id", id)
+        .eq("id", crecheId)
         .maybeSingle();
 
       if (error) throw error;
@@ -203,7 +226,7 @@ export const CrecheProfile = () => {
       const { error } = await supabase
         .from("creches")
         .update(updateData)
-        .eq("id", id);
+        .eq("id", crecheData.id);
 
       if (error) throw error;
 
@@ -317,7 +340,7 @@ export const CrecheProfile = () => {
 
         {activeTab === "students" && <StudentsCard />}
 
-        {activeTab === "gallery" && <CrecheGallery crecheId={id} />}
+        {activeTab === "gallery" && <CrecheGallery crecheId={crecheData.id} />}
       </div>
     </div>
   );
