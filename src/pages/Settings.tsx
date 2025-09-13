@@ -3,10 +3,44 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "@/hooks/useTranslation";
 import { Users, Building2, Link, DollarSign, Bell, SlidersHorizontal } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useState, useEffect } from "react";
 
 const Settings = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const [crecheId, setCrecheId] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchCrecheId = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        const { data: userCreches, error } = await supabase
+          .from("user_creche")
+          .select("creche_id")
+          .eq("user_id", user.id)
+          .single();
+
+        if (error) {
+          console.error("Error fetching creche ID:", error);
+          return;
+        }
+
+        if (userCreches) {
+          setCrecheId(userCreches.creche_id);
+        }
+      } catch (error) {
+        console.error("Error in fetchCrecheId:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchCrecheId();
+  }, []);
 
   const settingsSections = [
     {
@@ -19,7 +53,8 @@ const Settings = () => {
       title: t("crecheProfile"),
       icon: Building2,
       description: t("updateProfile"),
-      action: () => navigate("/dashboard/settings/creche/:id"),
+      action: () => navigate(crecheId ? `/dashboard/settings/creche/${crecheId}` : "#"),
+      disabled: !crecheId
     },
     {
       title: t("integrations"),
@@ -67,7 +102,11 @@ const Settings = () => {
                   {section.description}
                 </p>
               </div>
-              <Button variant="outline" onClick={section.action}>
+              <Button 
+                variant="outline" 
+                onClick={section.action}
+                disabled={section.disabled || isLoading}
+              >
                 {t("configure")}
               </Button>
             </div>
