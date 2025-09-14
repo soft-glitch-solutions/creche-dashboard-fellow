@@ -257,30 +257,51 @@ const EditInvoice = () => {
 
             {items.map((item, index) => (
               <div key={index} className="grid grid-cols-5 gap-4">
-                <Input
-                  placeholder="Item description"
-                  value={item.title}
-                  onChange={(e) => handleItemChange(index, "title", e.target.value)}
-                />
-                <Input
-                  type="number"
-                  placeholder="Quantity"
-                  value={item.quantity}
-                  onChange={(e) => handleItemChange(index, "quantity", parseFloat(e.target.value))}
-                />
-                <Input
-                  type="number"
-                  placeholder="Unit Price (R)"
-                  value={item.unit_price}
-                  onChange={(e) => handleItemChange(index, "unit_price", parseFloat(e.target.value))}
-                />
-                <Input
-                  type="number"
-                  placeholder="Discount %"
-                  value={item.discount}
-                  onChange={(e) => handleItemChange(index, "discount", parseFloat(e.target.value))}
-                />
-                <div>R{item.total_price.toFixed(2)}</div>
+                <div className="col-span-2">
+                  <Label htmlFor={`title-${index}`}>Description</Label>
+                  <Input
+                    id={`title-${index}`}
+                    placeholder="Item description"
+                    value={item.title}
+                    onChange={(e) => handleItemChange(index, "title", e.target.value)}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor={`quantity-${index}`}>Quantity</Label>
+                  <Input
+                    id={`quantity-${index}`}
+                    type="number"
+                    placeholder="Quantity"
+                    value={item.quantity}
+                    onChange={(e) => handleItemChange(index, "quantity", parseFloat(e.target.value))}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor={`unit-price-${index}`}>Unit Price (R)</Label>
+                  <Input
+                    id={`unit-price-${index}`}
+                    type="number"
+                    placeholder="Unit Price"
+                    value={item.unit_price}
+                    onChange={(e) => handleItemChange(index, "unit_price", parseFloat(e.target.value))}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor={`discount-${index}`}>Discount (%)</Label>
+                  <Input
+                    id={`discount-${index}`}
+                    type="number"
+                    placeholder="Discount %"
+                    value={item.discount}
+                    onChange={(e) => handleItemChange(index, "discount", parseFloat(e.target.value))}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor={`total-${index}`}>Total</Label>
+                  <div id={`total-${index}`} className="h-10 flex items-center justify-center border border-input rounded-md bg-muted px-3 py-2">
+                    R{item.total_price.toFixed(2)}
+                  </div>
+                </div>
               </div>
             ))}
           </div>
