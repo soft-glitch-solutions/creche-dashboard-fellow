@@ -1,20 +1,12 @@
+
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Heart, MessageCircle, Edit, Trash } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import ArticleForm from "@/components/social/ArticleForm";
+import ArticleCard from "@/components/social/ArticleCard";
+import { ArticleSkeleton, PaginationSkeleton } from "@/components/social/SocialSkeletons";
 import {
   Pagination,
   PaginationContent,
@@ -32,8 +24,8 @@ interface Article {
   author_id: string;
   created_at: string;
   type: string;
-  latitude: number;
-  longitude: number;
+  creche_id?: string;
+  creche_name?: string;
   author?: {
     display_name: string;
     profile_picture_url: string;
@@ -50,12 +42,55 @@ const Social = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [isLoading, setIsLoading] = useState(true);
+  const [user, setUser] = useState<{ id: string } | null>(null);
+  const [creches, setCreches] = useState<{ id: string; name: string }[]>([]);
+  const [selectedCreche, setSelectedCreche] = useState<string | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
 
   useEffect(() => {
+    checkAuth();
     fetchArticles();
+    fetchUserCreches();
   }, [currentPage]);
+
+  const checkAuth = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    setUser(user);
+  };
+
+  const fetchUserCreches = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from('user_creche')
+        .select('creche_id')
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      if (data && data.length > 0) {
+        const crecheIds = data.map(item => item.creche_id);
+        const { data: crecheData, error: crecheError } = await supabase
+          .from('creches')
+          .select('id, name')
+          .in('id', crecheIds);
+
+        if (crecheError) throw crecheError;
+        setCreches(crecheData || []);
+
+        // Set the first creche as selected by default
+        if (crecheData && crecheData.length > 0) {
+          setSelectedCreche(crecheData[0].id);
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching user creches:", error);
+    }
+  };
 
   const fetchArticles = async () => {
     try {
@@ -65,17 +100,36 @@ const Social = () => {
 
       setTotalPages(Math.ceil((count || 0) / ITEMS_PER_PAGE));
 
-      const { data: articles, error } = await supabase
-        .from("articles")
-        .select(`
-          *,
-          author:users(display_name, profile_picture_url)
-        `)
-        .order("created_at", { ascending: false })
+      // Try to get articles from view first
+      let { data, error } = await supabase
+        .from('article_with_details')
+        .select('*')
+        .order('created_at', { ascending: false })
         .range((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE - 1);
 
-      if (error) throw error;
-      setArticles(articles || []);
+      // Fallback to regular articles table if view doesn't exist
+      if (error) {
+        const { data: fallbackData, error: fallbackError } = await supabase
+          .from('articles')
+          .select(`
+            *,
+            author:users(display_name, profile_picture_url),
+            creche:creches(id, name, logo)
+          `)
+          .order('created_at', { ascending: false })
+          .range((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE - 1);
+          
+        if (fallbackError) throw fallbackError;
+        
+        // Transform data to have creche_name directly
+        data = fallbackData.map(article => ({
+          ...article,
+          creche_name: article.creche?.name,
+          creche_id: article.creche?.id,
+        }));
+      }
+
+      setArticles(data || []);
     } catch (error) {
       console.error("Error fetching articles:", error);
       toast({
@@ -83,6 +137,8 @@ const Social = () => {
         description: "Failed to load articles",
         variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -90,6 +146,7 @@ const Social = () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
+      if (!selectedCreche) throw new Error("No creche selected");
 
       const { data, error } = await supabase
         .from("articles")
@@ -99,6 +156,7 @@ const Social = () => {
             content: newArticle.content,
             type: newArticle.type,
             author_id: user.id,
+            creche_id: selectedCreche,
             hearts: 0,
             latitude: 0,
             longitude: 0,
@@ -206,177 +264,101 @@ const Social = () => {
     }
   };
 
+  const handleEditArticle = (article: Article) => {
+    setEditingArticle(article);
+    setIsEditing(true);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-4xl font-bold text-primary">Social Feed</h1>
-        <Dialog open={isCreating} onOpenChange={setIsCreating}>
-          <DialogTrigger asChild>
-            <Button>Create Post</Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
-            <DialogHeader>
-              <DialogTitle>Create New Post</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              <Input
-                placeholder="Title"
-                value={newArticle.title}
-                onChange={(e) => setNewArticle({ ...newArticle, title: e.target.value })}
-              />
-              <Select
-                value={newArticle.type}
-                onValueChange={(value) => setNewArticle({ ...newArticle, type: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select post type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Event">Event</SelectItem>
-                  <SelectItem value="Helpful">Helpful</SelectItem>
-                  <SelectItem value="Donation">Donation</SelectItem>
-                </SelectContent>
-              </Select>
-              <Textarea
-                placeholder="Write your post..."
-                value={newArticle.content}
-                onChange={(e) => setNewArticle({ ...newArticle, content: e.target.value })}
-                className="min-h-[200px]"
-              />
-              <div className="flex justify-end">
-                <Button onClick={createArticle}>Publish</Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
-
-        <Dialog open={isEditing} onOpenChange={setIsEditing}>
-          <DialogContent className="sm:max-w-[425px]">
-            <DialogHeader>
-              <DialogTitle>Edit Post</DialogTitle>
-            </DialogHeader>
-            {editingArticle && (
-              <div className="space-y-4">
-                <Input
-                  placeholder="Title"
-                  value={editingArticle.title}
-                  onChange={(e) => setEditingArticle({ ...editingArticle, title: e.target.value })}
-                />
-                <Select
-                  value={editingArticle.type}
-                  onValueChange={(value) => setEditingArticle({ ...editingArticle, type: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select post type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Event">Event</SelectItem>
-                    <SelectItem value="Helpful">Helpful</SelectItem>
-                    <SelectItem value="Donation">Donation</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Textarea
-                  placeholder="Write your post..."
-                  value={editingArticle.content}
-                  onChange={(e) => setEditingArticle({ ...editingArticle, content: e.target.value })}
-                  className="min-h-[200px]"
-                />
-                <div className="flex justify-end">
-                  <Button onClick={updateArticle}>Save Changes</Button>
-                </div>
-              </div>
-            )}
-          </DialogContent>
-        </Dialog>
+        <Button 
+          onClick={() => {
+            if (creches.length === 0) {
+              toast({
+                title: "No creches available",
+                description: "You need to be associated with at least one creche to create posts",
+                variant: "destructive",
+              });
+              return;
+            }
+            setIsCreating(true);
+          }}
+        >
+          Create Post
+        </Button>
       </div>
+
+      <ArticleForm
+        isOpen={isCreating}
+        onClose={() => setIsCreating(false)}
+        onSave={createArticle}
+        initialData={newArticle}
+      />
+
+      <ArticleForm
+        isOpen={isEditing}
+        onClose={() => setIsEditing(false)}
+        onSave={updateArticle}
+        initialData={editingArticle ? {
+          title: editingArticle.title,
+          content: editingArticle.content,
+          type: editingArticle.type,
+        } : null}
+      />
 
       <div className="grid gap-6">
-        {articles.map((article) => (
-          <Card key={article.id} className="p-6">
-            <div className="flex items-start justify-between">
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <h2 className="text-2xl font-semibold">{article.title}</h2>
-                  <span className="px-2 py-1 text-xs rounded-full bg-primary/10 text-primary">
-                    {article.type}
-                  </span>
-                </div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  By {article.author?.display_name || "Unknown"} • 
-                  {new Date(article.created_at).toLocaleDateString()}
-                </p>
-              </div>
-              <div className="flex gap-2">
-                <Button 
-                  variant="ghost" 
-                  size="icon"
-                  onClick={() => {
-                    setEditingArticle(article);
-                    setIsEditing(true);
-                  }}
-                >
-                  <Edit className="h-4 w-4" />
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  size="icon"
-                  onClick={() => deleteArticle(article.id)}
-                >
-                  <Trash className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-            <p className="mt-4">{article.content}</p>
-            <div className="mt-6 flex items-center gap-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="flex items-center gap-2"
-                onClick={() => handleHeart(article.id, article.hearts)}
-              >
-                <Heart className="h-4 w-4" />
-                {article.hearts}
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="flex items-center gap-2"
-                onClick={() => navigate(`/dashboard/social/${article.id}`)}
-              >
-                <MessageCircle className="h-4 w-4" />
-                Comments
-              </Button>
-            </div>
-          </Card>
-        ))}
+        {isLoading ? (
+          Array.from({ length: ITEMS_PER_PAGE }).map((_, index) => (
+            <ArticleSkeleton key={index} />
+          ))
+        ) : articles.length === 0 ? (
+          <div className="text-center text-gray-500">No articles found</div>
+        ) : (
+          articles.map((article) => (
+            <ArticleCard
+              key={article.id}
+              article={article}
+              onEdit={handleEditArticle}
+              onDelete={deleteArticle}
+              onHeart={handleHeart}
+              currentUserId={user?.id}
+            />
+          ))
+        )}
       </div>
 
-      <Pagination>
-        <PaginationContent>
-          <PaginationItem>
-            <PaginationPrevious 
-              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-              className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
-            />
-          </PaginationItem>
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-            <PaginationItem key={page}>
-              <PaginationLink
-                onClick={() => setCurrentPage(page)}
-                isActive={currentPage === page}
-              >
-                {page}
-              </PaginationLink>
+      {isLoading ? (
+        <PaginationSkeleton />
+      ) : (
+        <Pagination>
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationPrevious 
+                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+              />
             </PaginationItem>
-          ))}
-          <PaginationItem>
-            <PaginationNext 
-              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-              className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
-            />
-          </PaginationItem>
-        </PaginationContent>
-      </Pagination>
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <PaginationItem key={page}>
+                <PaginationLink
+                  onClick={() => setCurrentPage(page)}
+                  isActive={currentPage === page}
+                >
+                  {page}
+                </PaginationLink>
+              </PaginationItem>
+            ))}
+            <PaginationItem>
+              <PaginationNext 
+                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
+              />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
+      )}
     </div>
   );
 };

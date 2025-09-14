@@ -3,7 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Eye, EyeOff } from "lucide-react";
 
@@ -27,11 +27,30 @@ const Login = () => {
       });
 
       if (error) {
-        toast({
-          variant: "destructive",
-          title: "Login failed",
-          description: error.message,
-        });
+        console.log("Login error:", error);
+        
+        // Handle specific error cases
+        if (error.status === 400 || error.message?.toLowerCase().includes("invalid") || 
+            error.message?.toLowerCase().includes("credentials")) {
+          toast({
+            variant: "destructive",
+            title: "Login failed",
+            description: "Invalid email or password. Please try again.",
+          });
+        } else if (error.message?.toLowerCase().includes("email not confirmed") || 
+                  error.message?.toLowerCase().includes("verify")) {
+          toast({
+            variant: "destructive",
+            title: "Email not verified",
+            description: "Please check your email to verify your account before logging in.",
+          });
+        } else {
+          toast({
+            variant: "destructive",
+            title: "Login failed",
+            description: error.message || "An error occurred during login",
+          });
+        }
         return;
       }
 
@@ -51,6 +70,48 @@ const Login = () => {
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email) {
+      toast({
+        variant: "destructive",
+        title: "Email required",
+        description: "Please enter your email address to reset your password",
+      });
+      return;
+    }
+
+    setIsResetting(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+
+      if (error) {
+        toast({
+          variant: "destructive",
+          title: "Reset failed",
+          description: error.message,
+        });
+        return;
+      }
+
+      toast({
+        title: "Check your email",
+        description: "We've sent you a password reset link",
+      });
+    } catch (error) {
+      console.error("Reset password error:", error);
+      toast({
+        variant: "destructive",
+        title: "Reset failed",
+        description: "An unexpected error occurred",
+      });
+    } finally {
+      setIsResetting(false);
     }
   };
 
@@ -99,6 +160,7 @@ const Login = () => {
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                    disabled={isLoading}
                   >
                     {showPassword ? (
                       <EyeOff className="h-5 w-5" />
@@ -107,6 +169,21 @@ const Login = () => {
                     )}
                   </button>
                 </div>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <label className="flex items-center">
+                  <input type="checkbox" className="rounded border-gray-300" />
+                  <span className="ml-2 text-sm text-gray-600">Remember me</span>
+                </label>
+                <Button
+                  type="button"
+                  variant="link"
+                  className="text-primary"
+                  asChild
+                >
+                  <Link to="/forgot-password">Forgot password?</Link>
+                </Button>
               </div>
 
               <Button type="submit" className="w-full" disabled={isLoading}>

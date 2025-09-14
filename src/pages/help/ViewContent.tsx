@@ -3,13 +3,26 @@ import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Editor } from "@/components/help/Editor";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, Edit } from "lucide-react";
+import { ArrowLeft, Edit, Trash2 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 const ViewContent = () => {
   const [content, setContent] = useState<any>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const navigate = useNavigate();
   const { id } = useParams();
+  const { toast } = useToast();
 
   useEffect(() => {
     fetchContent();
@@ -51,6 +64,30 @@ const ViewContent = () => {
     );
   };
 
+  const handleDelete = async () => {
+    try {
+      const { error } = await supabase
+        .from('help_content')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Content deleted successfully"
+      });
+      navigate(`/dashboard/help/${content.category}`);
+    } catch (error) {
+      console.error('Error deleting content:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete content",
+        variant: "destructive"
+      });
+    }
+  };
+
   if (!content) return null;
 
   return (
@@ -63,10 +100,32 @@ const ViewContent = () => {
           <h1 className="text-4xl font-bold text-primary">{content.title}</h1>
         </div>
         {isAdmin && (
-          <Button onClick={() => navigate(`/dashboard/help/${content.category}/edit/${content.id}`)}>
-            <Edit className="h-4 w-4 mr-2" />
-            Edit
-          </Button>
+          <div className="flex gap-2">
+            <Button onClick={() => navigate(`/dashboard/help/${content.category}/edit/${content.id}`)}>
+              <Edit className="h-4 w-4 mr-2" />
+              Edit
+            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive">
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This action cannot be undone. This will permanently delete the content.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
         )}
       </div>
 

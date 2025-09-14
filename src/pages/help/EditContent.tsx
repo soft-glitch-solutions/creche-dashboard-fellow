@@ -80,7 +80,7 @@ const EditContent = () => {
       title: "Success",
       description: "Content updated successfully",
     });
-    navigate(-1);
+    navigate(`/dashboard/help/${category}`);
   };
 
   // Wrap the editor section with an event handler that prevents closing when interacting

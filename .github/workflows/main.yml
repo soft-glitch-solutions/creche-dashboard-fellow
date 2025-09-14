@@ -1,10 +1,9 @@
-name: Deploy via FTP
+name: Deploy via SFTP
 
 on:
   push:
     branches:
       - main  # Deploy when pushing to the main branch
-      - demo  # Deploy when pushing to the demo branch
 
 jobs:
   deploy:
@@ -16,7 +15,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '16'
+          node-version: '20'
 
       - name: Install dependencies
         run: npm install
@@ -33,5 +32,5 @@ jobs:
           protocol: ftp
           port: ${{ secrets.FTP_PORT }}
           local-dir: dist/  # This is your build directory
-          server-dir: ${{ github.ref == 'refs/heads/main' && '/portal.crechespots.co.za/' || '/demo.crechespots.co.za/' }}  # Change dynamically based on branch
+          server-dir: /portal.crechespots.co.za/  # Change this if needed
           cleanup: true  # Remove old files before uploading

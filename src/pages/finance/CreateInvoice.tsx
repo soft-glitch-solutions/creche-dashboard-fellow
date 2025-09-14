@@ -14,6 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { CreateInvoiceSkeleton } from "@/components/finance/CreateInvoiceSkeleton";
 
 interface Student {
   id: string;
@@ -52,6 +53,7 @@ const CreateInvoice = () => {
     total_price: 0
   }]);
   const [title, setTitle] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const getUserCreche = async () => {
@@ -86,6 +88,7 @@ const CreateInvoice = () => {
           }
         }
       }
+      setIsLoading(false);
     };
 
     getUserCreche();
@@ -187,6 +190,10 @@ const CreateInvoice = () => {
     }
   };
 
+  if (isLoading) {
+    return <CreateInvoiceSkeleton />;
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -247,14 +254,18 @@ const CreateInvoice = () => {
             {items.map((item, index) => (
               <div key={index} className="grid grid-cols-5 gap-4">
                 <div className="col-span-2">
+                  <Label htmlFor={`title-${index}`}>Description</Label>
                   <Input
+                    id={`title-${index}`}
                     placeholder="Item description"
                     value={item.title}
                     onChange={(e) => handleItemChange(index, 'title', e.target.value)}
                   />
                 </div>
                 <div>
+                  <Label htmlFor={`quantity-${index}`}>Quantity</Label>
                   <Input
+                    id={`quantity-${index}`}
                     type="number"
                     placeholder="Quantity"
                     value={item.quantity}
@@ -262,15 +273,19 @@ const CreateInvoice = () => {
                   />
                 </div>
                 <div>
+                  <Label htmlFor={`unit-price-${index}`}>Unit Price (R)</Label>
                   <Input
+                    id={`unit-price-${index}`}
                     type="number"
-                    placeholder="Unit Price (R)"
+                    placeholder="Unit Price"
                     value={item.unit_price}
                     onChange={(e) => handleItemChange(index, 'unit_price', parseFloat(e.target.value))}
                   />
                 </div>
                 <div>
+                  <Label htmlFor={`discount-${index}`}>Discount (%)</Label>
                   <Input
+                    id={`discount-${index}`}
                     type="number"
                     placeholder="Discount %"
                     value={item.discount}

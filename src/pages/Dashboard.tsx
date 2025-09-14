@@ -1,15 +1,18 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -22,7 +25,15 @@ import {
   Eye,
   PenSquare,
   Calendar,
+  Plus,
+  Edit,
 } from "lucide-react";
+import {
+  ApplicationsCardSkeleton,
+  CrecheProfileCardSkeleton,
+  StudentsCardSkeleton,
+  UpcomingEventsCardSkeleton,
+} from "@/components/dashboard/DashboardSkeletons";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -36,6 +47,16 @@ const Dashboard = () => {
     weeklyFee: "",
   });
   const [upcomingEvents, setUpcomingEvents] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isAddEventOpen, setIsAddEventOpen] = useState(false);
+  const [isEditEventOpen, setIsEditEventOpen] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState(null);
+  const [eventForm, setEventForm] = useState({
+    title: "",
+    description: "",
+    start: "",
+    location: "",
+  });
 
   // Load all dashboard data in one function
   const loadDashboardData = async () => {
@@ -85,9 +106,10 @@ const Dashboard = () => {
     } catch (error) {
       console.error("Error loading dashboard data:", error);
       toast({ variant: "destructive", title: "Error", description: "Failed to load dashboard data." });
+    } finally {
+      setIsLoading(false);
     }
   };
-
 
   // Load data on component mount
   useEffect(() => {
@@ -153,6 +175,121 @@ const Dashboard = () => {
     });
   };
 
+  // Handle adding a new event
+  const handleAddEvent = async () => {
+    try {
+      if (!crecheData) return;
+
+      const startDate = new Date(eventForm.start);
+      const endTime = new Date(startDate);
+      endTime.setHours(startDate.getHours() + 1);
+
+      const { error } = await supabase
+        .from('events')
+        .insert([
+          {
+            title: eventForm.title,
+            description: eventForm.description,
+            start: startDate.toISOString(),
+            end_time: endTime.toISOString(),
+            location: eventForm.location,
+            creche_id: crecheData.id,
+            all_day: false,
+            color_code: "#2563eb"
+          }
+        ]);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Event created successfully",
+      });
+      setIsAddEventOpen(false);
+      setEventForm({
+        title: "",
+        description: "",
+        start: "",
+        location: "",
+      });
+      
+      // Reload events
+      loadDashboardData();
+    } catch (error) {
+      console.error('Error creating event:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to create event",
+      });
+    }
+  };
+
+  // Handle editing an event
+  const handleEditEvent = async () => {
+    try {
+      if (!crecheData || !selectedEvent) return;
+
+      const startDate = new Date(eventForm.start);
+      const endTime = new Date(startDate);
+      endTime.setHours(startDate.getHours() + 1);
+
+      const { error } = await supabase
+        .from('events')
+        .update({
+          title: eventForm.title,
+          description: eventForm.description,
+          start: startDate.toISOString(),
+          end_time: endTime.toISOString(),
+          location: eventForm.location,
+        })
+        .eq('id', selectedEvent.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Event updated successfully",
+      });
+      setIsEditEventOpen(false);
+      setSelectedEvent(null);
+      setEventForm({
+        title: "",
+        description: "",
+        start: "",
+        location: "",
+      });
+      
+      // Reload events
+      loadDashboardData();
+    } catch (error) {
+      console.error('Error updating event:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to update event",
+      });
+    }
+  };
+
+  // Open edit event dialog with selected event data
+  const openEditEventDialog = (event) => {
+    setSelectedEvent(event);
+    
+    // Format datetime string for datetime-local input
+    const startDateTime = new Date(event.start);
+    const formattedStart = startDateTime.toISOString().slice(0, 16);
+    
+    setEventForm({
+      title: event.title,
+      description: event.description || "",
+      start: formattedStart,
+      location: event.location || "",
+    });
+    
+    setIsEditEventOpen(true);
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -162,7 +299,7 @@ const Dashboard = () => {
           alt="Creche Logo"
           className="w-16 h-16"
         />
-        <h1 className="text-3xl font-bold 0">
+        <h1 className="text-3xl font-bold">
           {crecheData?.name || "Loading..."}
         </h1>
       </div>
@@ -170,49 +307,54 @@ const Dashboard = () => {
       {/* Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
         {/* Applications Card */}
-        <Card className="border-2 border-secondary/20">
-          <CardHeader className="flex flex-row items-center justify-between">
-
-            <CardTitle className="text-lg md:text-xl text-secondary">
-              My Applications
-            </CardTitle>
-            <div className="flex gap-2">
-            <Button
+        {isLoading ? (
+          <ApplicationsCardSkeleton />
+        ) : (
+          <Card className="border-2 border-secondary/20">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle className="text-lg md:text-xl text-secondary">
+                My Applications
+              </CardTitle>
+              <div className="flex gap-2">
+                <Button
                   variant="ghost"
                   size="icon"
                   onClick={() => navigate(`/dashboard/applications`)}
                 >
                   <Eye className="h-4 w-4" />
-            </Button>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="flex items-center gap-2 text-sm md:text-base">
-                <Mail className="h-4 w-4" />
-                Received
-              </span>
-              <span className="font-bold">5</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="flex items-center gap-2 text-sm md:text-base">
-                <Clock className="h-4 w-4" />
-                Pending
-              </span>
-              <span className="font-bold">10</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="flex items-center gap-2 text-sm md:text-base">
-                <Users className="h-4 w-4" />
-                To be contacted
-              </span>
-              <span className="font-bold">3</span>
-            </div>
-          </CardContent>
-        </Card>
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="flex items-center gap-2 text-sm md:text-base">
+                  <Mail className="h-4 w-4" />
+                  Received
+                </span>
+                <span className="font-bold">5</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="flex items-center gap-2 text-sm md:text-base">
+                  <Clock className="h-4 w-4" />
+                  Pending
+                </span>
+                <span className="font-bold">10</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="flex items-center gap-2 text-sm md:text-base">
+                  <Users className="h-4 w-4" />
+                  To be contacted
+                </span>
+                <span className="font-bold">3</span>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Creche Profile Card */}
-        {crecheData && (
+        {isLoading ? (
+          <CrecheProfileCardSkeleton />
+        ) : crecheData ? (
           <Card className="border-2 border-primary/20">
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="text-lg md:text-xl text-primary">
@@ -295,91 +437,217 @@ const Dashboard = () => {
               </div>
             </CardContent>
           </Card>
-        )}
+        ) : null}
 
         {/* Students Card */}
-        <Card className="border-2 border-accent/20">
-          <CardHeader  className="flex flex-row items-center justify-between">
-            <CardTitle className="text-lg md:text-xl text-accent">My Students</CardTitle>
-            <div className="flex gap-2">
-            <Button
+        {isLoading ? (
+          <StudentsCardSkeleton />
+        ) : (
+          <Card className="border-2 border-accent/20">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle className="text-lg md:text-xl text-accent">My Students</CardTitle>
+              <div className="flex gap-2">
+                <Button
                   variant="ghost"
                   size="icon"
                   onClick={() => navigate(`/dashboard/students`)}
                 >
                   <Eye className="h-4 w-4" />
-            </Button>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="flex items-center gap-2 text-sm md:text-base">
-                <GraduationCap className="h-4 w-4" />
-                Grade R
-              </span>
-              <span className="font-bold">15</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="flex items-center gap-2 text-sm md:text-base">
-                <Building2 className="h-4 w-4" />
-                Grade 0
-              </span>
-              <span className="font-bold">12</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="flex items-center gap-2 text-sm md:text-base">
-                <Clock className="h-4 w-4" />
-                After-care
-              </span>
-              <span className="font-bold">20</span>
-            </div>
-          </CardContent>
-        </Card>
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="flex items-center gap-2 text-sm md:text-base">
+                  <GraduationCap className="h-4 w-4" />
+                  Grade R
+                </span>
+                <span className="font-bold">15</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="flex items-center gap-2 text-sm md:text-base">
+                  <Building2 className="h-4 w-4" />
+                  Grade 0
+                </span>
+                <span className="font-bold">12</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="flex items-center gap-2 text-sm md:text-base">
+                  <Clock className="h-4 w-4" />
+                  After-care
+                </span>
+                <span className="font-bold">20</span>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       {/* Upcoming Events Card */}
-      <Card className="border-2 border-primary/20">
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-lg md:text-xl text-primary flex items-center gap-2">
-            <Calendar className="h-5 w-5" />
-            Upcoming Events
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {upcomingEvents.length > 0 ? (
-              upcomingEvents.map((event) => (
-                <div
-                  key={event.id}
-                  className="flex items-start space-x-4 p-3 hover:bg-gray-50 rounded-lg transition-colors"
-                >
-                  <div className="flex-shrink-0 w-16 text-center">
-                    <div className="text-2xl font-bold text-primary">
-                      {formatEventDate(event.start).split(' ')[1]}
-                    </div>
-                    <div className="text-sm text-gray-500">
-                      {formatEventDate(event.start).split(' ')[0]}
-                    </div>
+      {isLoading ? (
+        <UpcomingEventsCardSkeleton />
+      ) : (
+        <Card className="border-2 border-primary/20">
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className="text-lg md:text-xl text-primary flex items-center gap-2">
+              <Calendar className="h-5 w-5" />
+              Upcoming Events
+            </CardTitle>
+            <Dialog open={isAddEventOpen} onOpenChange={setIsAddEventOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <Plus className="h-4 w-4 mr-1" />
+                  Add Event
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Add New Event</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4 mt-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="event-title">Event Title</Label>
+                    <Input
+                      id="event-title"
+                      value={eventForm.title}
+                      onChange={(e) => setEventForm(prev => ({ ...prev, title: e.target.value }))}
+                      placeholder="Enter event title"
+                    />
                   </div>
-                  <div className="flex-1">
-                    <h4 className="font-semibold">{event.title}</h4>
-                    <p className="text-sm text-gray-500">{event.description}</p>
-                    {event.location && (
-                      <p className="text-sm text-gray-500 mt-1">
-                        📍 {event.location}
-                      </p>
-                    )}
+                  <div className="space-y-2">
+                    <Label htmlFor="event-description">Description</Label>
+                    <Textarea
+                      id="event-description"
+                      value={eventForm.description}
+                      onChange={(e) => setEventForm(prev => ({ ...prev, description: e.target.value }))}
+                      placeholder="Enter event description"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="event-date">Date & Time</Label>
+                    <Input
+                      id="event-date"
+                      type="datetime-local"
+                      value={eventForm.start}
+                      onChange={(e) => setEventForm(prev => ({ ...prev, start: e.target.value }))}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="event-location">Location (Optional)</Label>
+                    <Input
+                      id="event-location"
+                      value={eventForm.location}
+                      onChange={(e) => setEventForm(prev => ({ ...prev, location: e.target.value }))}
+                      placeholder="Enter event location"
+                    />
                   </div>
                 </div>
-              ))
-            ) : (
-              <div className="text-center text-gray-500">
-                No upcoming events scheduled
-              </div>
-            )}
+                <DialogFooter className="mt-4">
+                  <Button variant="outline" onClick={() => setIsAddEventOpen(false)}>Cancel</Button>
+                  <Button onClick={handleAddEvent} disabled={!eventForm.title || !eventForm.start}>
+                    Add Event
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {upcomingEvents.length > 0 ? (
+                upcomingEvents.map((event) => (
+                  <div
+                    key={event.id}
+                    className="flex items-start space-x-4 p-3 hover:bg-gray-50 rounded-lg transition-colors relative group"
+                  >
+                    <div className="flex-shrink-0 w-16 text-center">
+                      <div className="text-2xl font-bold text-primary">
+                        {formatEventDate(event.start).split(' ')[1]}
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        {formatEventDate(event.start).split(' ')[0]}
+                      </div>
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-semibold">{event.title}</h4>
+                      <p className="text-sm text-gray-500">{event.description}</p>
+                      {event.location && (
+                        <p className="text-sm text-gray-500 mt-1">
+                          📍 {event.location}
+                        </p>
+                      )}
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="opacity-0 group-hover:opacity-100 transition-opacity absolute top-3 right-3"
+                      onClick={() => openEditEventDialog(event)}
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center text-gray-500">
+                  No upcoming events scheduled
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Edit Event Dialog */}
+      <Dialog open={isEditEventOpen} onOpenChange={setIsEditEventOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Event</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 mt-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-event-title">Event Title</Label>
+              <Input
+                id="edit-event-title"
+                value={eventForm.title}
+                onChange={(e) => setEventForm(prev => ({ ...prev, title: e.target.value }))}
+                placeholder="Enter event title"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-event-description">Description</Label>
+              <Textarea
+                id="edit-event-description"
+                value={eventForm.description}
+                onChange={(e) => setEventForm(prev => ({ ...prev, description: e.target.value }))}
+                placeholder="Enter event description"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-event-date">Date & Time</Label>
+              <Input
+                id="edit-event-date"
+                type="datetime-local"
+                value={eventForm.start}
+                onChange={(e) => setEventForm(prev => ({ ...prev, start: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-event-location">Location (Optional)</Label>
+              <Input
+                id="edit-event-location"
+                value={eventForm.location}
+                onChange={(e) => setEventForm(prev => ({ ...prev, location: e.target.value }))}
+                placeholder="Enter event location"
+              />
+            </div>
           </div>
-        </CardContent>
-      </Card>
+          <DialogFooter className="mt-4">
+            <Button variant="outline" onClick={() => setIsEditEventOpen(false)}>Cancel</Button>
+            <Button onClick={handleEditEvent} disabled={!eventForm.title || !eventForm.start}>
+              Update Event
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

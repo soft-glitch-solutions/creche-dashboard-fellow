@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Search, Download, Plus, Users, Filter , BadgeCheck } from "lucide-react";
+import { Search, Download, Plus, Users, Filter, BadgeCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
@@ -13,6 +13,7 @@ import { ManageClassesDialog } from "@/components/students/ManageClassesDialog";
 import { AttendanceSheet } from "@/components/students/AttendanceSheet";
 import * as XLSX from 'xlsx';
 import { ManageAttendanceDialog } from "@/components/students/ManageAttendanceDialog";
+import { StudentListSkeleton } from "@/components/students/StudentListSkeleton";
 
 interface Student {
   id: string;
@@ -283,9 +284,7 @@ const Students = () => {
         </div>
 
         {isLoading ? (
-          <Card className="p-6">
-            <div className="text-center">Loading students...</div>
-          </Card>
+          <StudentListSkeleton />
         ) : (
           <StudentList
             students={filteredStudents}

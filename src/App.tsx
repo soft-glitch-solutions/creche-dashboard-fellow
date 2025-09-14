@@ -1,111 +1,164 @@
 
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
+import { useState, useEffect } from "react";
+import { BrowserRouter, Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { ThemeProvider } from "./contexts/ThemeContext";
-import { LanguageProvider } from "./contexts/LanguageContext";
-import Login from "./pages/Login";
-import Dashboard from "./pages/Dashboard";
-import Applications from "./pages/Applications";
-import Students from "./pages/Students";
-import Finance from "./pages/Finance";
-import Settings from "./pages/Settings";
-import Help from "./pages/Help";
-import Reports from "./pages/Reports";
-import DashboardLayout from "./components/DashboardLayout";
-import UserManagement from "./pages/settings/UserManagement";
-import CrecheManagement from "./pages/admin/CrecheManagement";
-import CrecheDetails from "./pages/admin/CrecheDetails";
-import Integrations from "./pages/admin/Integrations";
-import Profile from "./pages/dashboard/Profile";
-import ViewInvoice from "./pages/finance/ViewInvoice";
-import PrintInvoice from "./pages/finance/PrintInvoice";
-import CreateInvoice from "./pages/finance/CreateInvoice";
-import Calender from "./pages/Calendar";
-import CrecheProfile from "./pages/CrecheProfile";
-import EditInvoice from "./pages/finance/EditInvoice";
-import Tutorials from "./pages/help/Tutorials";
-import SupportChat from "./pages/help/Support-Chat";
-import Documentation from "./pages/help/Documentation";
-import Faqs from "./pages/help/Faqs";
-import Social from "./pages/Social";
-import CreateContent from "./pages/help/CreateContent";
-import ResetPassword from "./pages/ResetPassword";
-import NotFound from "./pages/NotFound";
-import ViewContent from "./pages/help/ViewContent";
-import EditContent from "./pages/help/EditContent";
-import PhotoBook from "./pages/Photobook";
-import StudentProfile from "./pages/students/StudentProfile";
-import ApplicantProfile from "./pages/applications/ApplicantProfile";
-import Lessons from "./pages/Lessons";
-import AdminUserManagement from "./pages/admin/AdminUserManagement";
-import CompleteProfile from "./pages/CompleteProfile";
-import ForgotPassword from "./pages/ForgotPassword";
-import UserProfile from "./pages/admin/UserProfile";
+import { ThemeProvider } from "@/contexts/ThemeContext";
+import { LanguageProvider } from "@/contexts/LanguageContext";
+import { supabase } from "@/integrations/supabase/client";
+import DashboardLayout from "@/components/DashboardLayout";
+import Dashboard from "@/pages/Dashboard";
+import Applications from "@/pages/Applications";
+import ApplicantProfile from "@/pages/applications/ApplicantProfile";
+import Students from "@/pages/Students";
+import StudentProfile from "@/pages/students/StudentProfile";
+import CrecheProfile from "@/pages/CrecheProfile";
+import Login from "@/pages/Login";
+import Auth from "@/pages/Auth";
+import Index from "@/pages/Index";
+import NotFound from "@/pages/NotFound";
+import AdminUserManagement from "@/pages/admin/AdminUserManagement";
+import CompleteProfile from "@/pages/CompleteProfile";
+import Calendar from "@/pages/Calendar";
+import Finance from "@/pages/Finance";
+import CreateInvoice from "@/pages/finance/CreateInvoice";
+import ViewInvoice from "@/pages/finance/ViewInvoice";
+import EditInvoice from "@/pages/finance/EditInvoice";
+import PrintInvoice from "@/pages/finance/PrintInvoice";
+import Settings from "@/pages/Settings";
+import UserManagement from "@/pages/settings/UserManagement";
+import { AdminRoute } from "@/components/AdminRoute";
+import UserProfile from "@/pages/admin/UserProfile";
+import CrecheManagement from "@/pages/admin/CrecheManagement";
+import CrecheDetails from "@/pages/admin/CrecheDetails";
+import Reports from "@/pages/Reports";
+import ForgotPassword from "@/pages/ForgotPassword";
+import ResetPassword from "@/pages/ResetPassword";
+import Lessons from "@/pages/Lessons";
+import Photobook from "@/pages/Photobook";
+import Social from "@/pages/Social";
+import ArticleDetail from "@/pages/social/ArticleDetail";
+import Integrations from "@/pages/admin/Integrations";
+import Profile from "@/pages/dashboard/Profile";
+import Help from "@/pages/Help";
+import Faqs from "@/pages/help/Faqs";
+import Documentation from "@/pages/help/Documentation";
+import Tutorials from "@/pages/help/Tutorials";
+import SupportChat from "@/pages/help/Support-Chat";
+import ViewContent from "@/pages/help/ViewContent";
+import CreateContent from "@/pages/help/CreateContent";
+import EditContent from "@/pages/help/EditContent";
+import SupportRequestDetail from "@/pages/help/SupportRequestDetail";
+import { Toaster } from "@/components/ui/sonner";
+import SocialProfile from "./pages/social/SocialProfile";
+import NotificationsSettings from "@/pages/settings/Notifications";
+import FeaturesSettings from "@/pages/settings/Features";
+import PaymentsSettings from "@/pages/settings/Payments";
 
+// Create a client
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <ThemeProvider>
-      <LanguageProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
+const App = () => {
+  return (
+    <BrowserRouter>
+      <ThemeProvider>
+        <LanguageProvider>
+          <QueryClientProvider client={queryClient}>
             <Routes>
-              <Route path="/" element={<Navigate to="/login" replace />} />
+              {/* Landing/Auth Routes */}
+              <Route path="/" element={<Auth />} />
               <Route path="/login" element={<Login />} />
-              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/auth" element={<Auth />} />
               <Route path="/reset-password" element={<ResetPassword />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/complete-profile" element={<CompleteProfile />} />
+
+              {/* Dashboard Routes */}
               <Route path="/dashboard" element={<DashboardLayout />}>
                 <Route index element={<Dashboard />} />
-                <Route path="profile" element={<Profile />} />
-                <Route path="creche/:id" element={<CrecheProfile />} />
-                <Route path="applications" element={<Applications />} />
-                <Route path="applications/:id" element={<ApplicantProfile />} />
+
+                {/* Students */}
                 <Route path="students" element={<Students />} />
                 <Route path="students/:id" element={<StudentProfile />} />
-                <Route path="lessons" element={<Lessons />} />
-                <Route path="photobook" element={<PhotoBook />} />
+
+                {/* Applications */}
+                <Route path="applications" element={<Applications />} />
+                <Route path="applications/:id" element={<ApplicantProfile />} />
+
+                {/* Calendar */}
+                <Route path="calendar" element={<Calendar />} />
+
+                {/* Creche Management */}
+                <Route path="creche/:id" element={<CrecheProfile />} />
+
+                {/* Finance */}
                 <Route path="finance" element={<Finance />} />
                 <Route path="finance/create-invoice" element={<CreateInvoice />} />
                 <Route path="finance/invoice/:id" element={<ViewInvoice />} />
                 <Route path="finance/invoice/edit/:id" element={<EditInvoice />} />
                 <Route path="finance/invoice/:id/pdf" element={<PrintInvoice />} />
-                <Route path="calendar" element={<Calender />} />
-                <Route path="social" element={<Social />} />
+
+                {/* Lessons */}
+                <Route path="lessons" element={<Lessons />} />
+
+                {/* Reports */}
                 <Route path="reports" element={<Reports />} />
-                <Route path="settings" element={<Settings />} />
-                <Route path="settings/creche/:id" element={<CrecheProfile />} />
-                <Route path="settings/integrations" element={<Integrations />} />
-                <Route path="settings/users" element={<UserManagement />} />
+
+                {/* Photobook */}
+                <Route path="photobook" element={<Photobook />} />
+
+                {/* Social */}
+                <Route path="social" element={<Social />} />
+                <Route path="social/:id" element={<ArticleDetail />} />
+                <Route path="social/profile/:id" element={<SocialProfile />} />
+
+                {/* Profile */}
+                <Route path="profile" element={<Profile />} />
+
+                {/* Help Center */}
                 <Route path="help" element={<Help />} />
+                <Route path="help/faqs" element={<Faqs />} />
+                <Route path="help/faqs/new" element={<CreateContent />} />
+                <Route path="help/faqs/edit/:id" element={<EditContent />} />
+                <Route path="help/faqs/view/:id" element={<ViewContent />} />
                 <Route path="help/documentation" element={<Documentation />} />
                 <Route path="help/documentation/new" element={<CreateContent />} />
-                <Route path="help/documentation/view/:id" element={<ViewContent />} />
                 <Route path="help/documentation/edit/:id" element={<EditContent />} />
+                <Route path="help/documentation/view/:id" element={<ViewContent />} />
                 <Route path="help/tutorials" element={<Tutorials />} />
                 <Route path="help/tutorials/new" element={<CreateContent />} />
-                <Route path="help/tutorials/view/:id" element={<ViewContent />} />
                 <Route path="help/tutorials/edit/:id" element={<EditContent />} />
+                <Route path="help/tutorials/view/:id" element={<ViewContent />} />
                 <Route path="help/support-chat" element={<SupportChat />} />
-                <Route path="help/faqs" element={<Faqs />} />
-                <Route path="admin/users" element={<AdminUserManagement />} />
-                <Route path="admin/creches" element={<CrecheManagement />} />
-                <Route path="admin/creches/:id" element={<CrecheDetails />} />
-                <Route path="admin/users/:id" element={<UserProfile />} />
+                <Route path="help/support-request/:id" element={<SupportRequestDetail />} />
+
+                {/* Settings */}
+                <Route path="settings" element={<Settings />} />
+                <Route path="settings/users" element={<UserManagement />} />
+                <Route path="settings/creche/:id" element={<CrecheProfile />} />
+                <Route path="settings/integrations" element={<Integrations />} />
+                <Route path="settings/payments" element={<PaymentsSettings />} />
+                <Route path="settings/notifications" element={<NotificationsSettings />} />
+                <Route path="settings/features" element={<FeaturesSettings />} />
+
+                {/* Admin Routes */}
+                <Route path="admin" element={<AdminRoute />}>
+                  <Route path="user-management" element={<AdminUserManagement />} />
+                  <Route path="user/:id" element={<UserProfile />} />
+                  <Route path="creche-management" element={<CrecheManagement />} />
+                  <Route path="creche/:id" element={<CrecheDetails />} />
+                  <Route path="integrations" element={<Integrations />} />
+                </Route>
               </Route>
+
+              {/* 404 */}
               <Route path="*" element={<NotFound />} />
             </Routes>
-          </BrowserRouter>
-        </TooltipProvider>
-      </LanguageProvider>
-    </ThemeProvider>
-  </QueryClientProvider>
-);
+            <Toaster />
+          </QueryClientProvider>
+        </LanguageProvider>
+      </ThemeProvider>
+    </BrowserRouter>
+  );
+};
 
 export default App;

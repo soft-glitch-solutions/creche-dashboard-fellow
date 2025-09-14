@@ -1,3 +1,4 @@
+
 export type CrechePlan = 'free' | 'basic' | 'pro';
 
 export interface CrecheFeatures {
@@ -7,6 +8,30 @@ export interface CrecheFeatures {
   financial_tracking: boolean;
   attendance_tracking: boolean;
   parent_communication: boolean;
+}
+
+export interface CrecheServices {
+  full_time_care: boolean;
+  part_time_care: boolean;
+  after_school_care: boolean;
+  meals_provided: boolean;
+  transportation: boolean;
+  special_education: boolean;
+}
+
+export interface CrecheFacilities {
+  teachers: boolean;
+  classrooms: boolean;
+  toilets: boolean;
+  playground: boolean;
+  kitchen: boolean;
+  parking: boolean;
+  teachers_count: number;
+  classrooms_count: number;
+  toilets_count: number;
+  playground_count: number;
+  kitchen_count: number;
+  parking_count: number;
 }
 
 export interface Creche {
@@ -38,4 +63,15 @@ export interface Creche {
   weekly_price: number | null;
   plan: CrechePlan;
   features: CrecheFeatures;
+  
+  // Banking details
+  bank_name?: string | null;
+  account_holder?: string | null;
+  account_number?: string | null;
+  branch_code?: string | null;
+  account_type?: string | null;
+  
+  // Additional properties
+  services: CrecheServices;
+  facilities: CrecheFacilities;
 }

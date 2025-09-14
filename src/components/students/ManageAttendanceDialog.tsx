@@ -133,7 +133,7 @@ export const ManageAttendanceDialog = ({ open, onOpenChange }: ManageAttendanceD
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => updateAttendance(student.id, "present")}
+                            onClick={() => console.log("Update attendance:", student.id, "present")}
                             disabled={studentAttendance?.status === "present"}
                           >
                             Present
@@ -141,7 +141,7 @@ export const ManageAttendanceDialog = ({ open, onOpenChange }: ManageAttendanceD
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => updateAttendance(student.id, "late")}
+                            onClick={() => console.log("Update attendance:", student.id, "late")}
                             disabled={studentAttendance?.status === "late"}
                           >
                             Late
@@ -149,7 +149,7 @@ export const ManageAttendanceDialog = ({ open, onOpenChange }: ManageAttendanceD
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => updateAttendance(student.id, "absent")}
+                            onClick={() => console.log("Update attendance:", student.id, "absent")}
                             disabled={studentAttendance?.status === "absent"}
                           >
                             Absent

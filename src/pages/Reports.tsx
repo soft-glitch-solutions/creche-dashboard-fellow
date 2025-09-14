@@ -1,4 +1,5 @@
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -11,18 +12,64 @@ import {
   ChartLine,
   Calendar,
   Banknote,
+  FileCheck,
+  GraduationCap,
+  UserCheck,
+  Apple,
+  AlertTriangle,
+  Package,
 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { useTranslation } from "@/hooks/useTranslation";
 import AttendanceReport from "./reports/AttendanceReport";
 import EnrollmentReport from "./reports/EnrollmentReport";
 import FinanceReport from "./reports/FinanceReport";
+import ComplianceReport from "./reports/ComplianceReport";
+import StaffTrainingReport from "./reports/StaffTrainingReport";
+import HealthNutritionReport from "./reports/HealthNutritionReport";
+import IncidentReport from "./reports/IncidentReport";
+import InventoryReport from "./reports/InventoryReport";
 
 const Reports = () => {
   const [selectedReport, setSelectedReport] = useState<string>("attendance");
+  const [currentCrecheId, setCurrentCrecheId] = useState<string | null>(null);
+  const { toast } = useToast();
+  const { t } = useTranslation();
+
+  // Fetch current user's creche
+  useEffect(() => {
+    const fetchUserCreche = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        const { data: userCreche } = await supabase
+          .from('user_creche')
+          .select('creche_id')
+          .eq('user_id', user.id)
+          .single();
+
+        if (userCreche) {
+          setCurrentCrecheId(userCreche.creche_id);
+        }
+      } catch (error) {
+        console.error('Error fetching user creche:', error);
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Unable to fetch creche data. Please try again later."
+        });
+      }
+    };
+
+    fetchUserCreche();
+  }, [toast]);
 
   const reports = [
     {
       id: "attendance",
-      title: "Attendance Report",
+      title: t("attendanceReport"),
       description: "Daily and monthly attendance tracking",
       icon: Calendar,
       component: AttendanceReport,
@@ -36,10 +83,45 @@ const Reports = () => {
     },
     {
       id: "finance",
-      title: "Finance Report",
-      description: "Current and historical enrollment data",
+      title: t("financeReport"),
+      description: "Financial statements and funding utilization",
       icon: Banknote,
       component: FinanceReport,
+    },
+    {
+      id: "compliance",
+      title: "Compliance Reports",
+      description: "Registration and regulatory compliance",
+      icon: FileCheck,
+      component: ComplianceReport,
+    },
+    {
+      id: "staff",
+      title: "Staff & Training",
+      description: "Qualifications and training records",
+      icon: UserCheck,
+      component: StaffTrainingReport,
+    },
+    {
+      id: "health",
+      title: "Health & Nutrition",
+      description: "Medical records and nutrition programs",
+      icon: Apple,
+      component: HealthNutritionReport,
+    },
+    {
+      id: "incidents",
+      title: "Incident Reports",
+      description: "Safety incidents and emergency reports",
+      icon: AlertTriangle,
+      component: IncidentReport,
+    },
+    {
+      id: "inventory",
+      title: "Inventory & Supply",
+      description: "Stock tracking and restock alerts",
+      icon: Package,
+      component: InventoryReport,
     },
   ];
 
@@ -67,7 +149,7 @@ const Reports = () => {
         ))}
       </div>
 
-      {ReportComponent && <ReportComponent />}
+      {ReportComponent && <ReportComponent crecheId={currentCrecheId} />}
     </div>
   );
 };

@@ -35,10 +35,11 @@ export const TopNav = ({ user }: TopNavProps) => {
             { code: "en", label: "English" },
             { code: "af", label: "Afrikaans" },
             { code: "xh", label: "Xhosa" },
+            { code: "zu", label: "Zulu" },
           ].map((lang) => (
             <DropdownMenuItem
               key={lang.code}
-              onClick={() => setLanguage(lang.code as "en" | "af" | "xh")}
+              onClick={() => setLanguage(lang.code as "en" | "af" | "xh" | "zu")}
               className={cn(
                 "cursor-pointer",
                 language === lang.code && "bg-accent"
@@ -61,7 +62,7 @@ export const TopNav = ({ user }: TopNavProps) => {
 
       <NotificationsMenu />
       <SupportDialog />
-      <UserMenu user={user} />
+      <UserMenu />
     </div>
   );
 };

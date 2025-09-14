@@ -9,6 +9,15 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -18,7 +27,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ChartContainer } from "@/components/ui/chart";
-import { Download, Printer } from "lucide-react";
+import { Download, Printer, Filter } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts";
 import { format } from "date-fns";
 import * as XLSX from "xlsx";
@@ -26,19 +35,48 @@ import { useToast } from "@/hooks/use-toast";
 
 const AttendanceReport = () => {
   const { toast } = useToast();
-  const [selectedMonth, setSelectedMonth] = useState(new Date());
+  const [selectedClass, setSelectedClass] = useState<string>("all");
+  const [startDate, setStartDate] = useState<string>("");
+  const [endDate, setEndDate] = useState<string>("");
 
-  const { data: attendanceData, isLoading } = useQuery({
-    queryKey: ["attendance-report"],
+  // Fetch classes for filter dropdown
+  const { data: classes } = useQuery({
+    queryKey: ["creche-classes"],
     queryFn: async () => {
       const { data, error } = await supabase
+        .from("creche_classes")
+        .select("id, name")
+        .order("name");
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: attendanceData, isLoading } = useQuery({
+    queryKey: ["attendance-report", selectedClass, startDate, endDate],
+    queryFn: async () => {
+      let query = supabase
         .from("attendance_students")
         .select(`
           *,
-          student:students(name)
+          student:students(name, class)
         `)
         .order("attendance_date", { ascending: false });
 
+      // Apply class filter
+      if (selectedClass && selectedClass !== "all") {
+        query = query.eq("student.class", selectedClass);
+      }
+
+      // Apply date range filter
+      if (startDate) {
+        query = query.gte("attendance_date", startDate);
+      }
+      if (endDate) {
+        query = query.lte("attendance_date", endDate);
+      }
+
+      const { data, error } = await query;
       if (error) throw error;
       return data;
     },
@@ -99,6 +137,54 @@ const AttendanceReport = () => {
         </div>
       </div>
 
+      {/* Filters */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Filter className="h-5 w-5" />
+            Filters
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="class-filter">Class/Grade</Label>
+              <Select value={selectedClass} onValueChange={setSelectedClass}>
+                <SelectTrigger>
+                  <SelectValue placeholder="All classes" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All classes</SelectItem>
+                  {classes?.map((cls) => (
+                    <SelectItem key={cls.id} value={cls.name}>
+                      {cls.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="start-date">Start Date</Label>
+              <Input
+                id="start-date"
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="end-date">End Date</Label>
+              <Input
+                id="end-date"
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       <Card>
         <CardHeader>
           <CardTitle>Attendance Overview</CardTitle>
@@ -134,6 +220,7 @@ const AttendanceReport = () => {
               <TableRow>
                 <TableHead>Date</TableHead>
                 <TableHead>Student</TableHead>
+                <TableHead>Class</TableHead>
                 <TableHead>Status</TableHead>
               </TableRow>
             </TableHeader>
@@ -144,7 +231,16 @@ const AttendanceReport = () => {
                     {format(new Date(record.attendance_date), "MMM dd, yyyy")}
                   </TableCell>
                   <TableCell>{record.student?.name}</TableCell>
-                  <TableCell>{record.status}</TableCell>
+                  <TableCell>{record.student?.class || "N/A"}</TableCell>
+                  <TableCell>
+                    <span className={`px-2 py-1 rounded-full text-xs ${
+                      record.status === 'present' ? 'bg-green-100 text-green-800' :
+                      record.status === 'absent' ? 'bg-red-100 text-red-800' :
+                      'bg-yellow-100 text-yellow-800'
+                    }`}>
+                      {record.status}
+                    </span>
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>

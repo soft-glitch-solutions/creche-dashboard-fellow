@@ -1,7 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Upload, Loader2 } from "lucide-react";
@@ -11,9 +11,13 @@ interface StudentDocumentUploadProps {
   onUploadComplete: () => void;
 }
 
-export const StudentDocumentUpload = ({ studentId, onUploadComplete }: StudentDocumentUploadProps) => {
+export const StudentDocumentUpload = ({ 
+  studentId, 
+  onUploadComplete 
+}: StudentDocumentUploadProps) => {
   const [isUploading, setIsUploading] = useState(false);
   const { toast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -70,6 +74,7 @@ export const StudentDocumentUpload = ({ studentId, onUploadComplete }: StudentDo
     <div className="flex items-center gap-4">
       <Input
         type="file"
+        ref={fileInputRef}
         onChange={handleFileUpload}
         disabled={isUploading}
         className="max-w-xs"
@@ -80,7 +85,7 @@ export const StudentDocumentUpload = ({ studentId, onUploadComplete }: StudentDo
           Uploading...
         </Button>
       ) : (
-        <Button onClick={() => document.querySelector('input[type="file"]')?.click()}>
+        <Button onClick={() => fileInputRef.current?.click()}>
           <Upload className="h-4 w-4 mr-2" />
           Upload Document
         </Button>

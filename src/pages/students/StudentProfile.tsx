@@ -273,7 +273,9 @@ const StudentProfile = () => {
     }
     return { "data-tooltip": `${value.date}: ${value.status}` };
   }}
+
 />
+
 
 
 

@@ -23,16 +23,35 @@ import {
   SelectValue 
 } from "@/components/ui/select";
 
-export const SupportDialog = () => {
+interface SupportDialogProps {
+  isOpen?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  onSuccess?: () => void;
+}
+
+export const SupportDialog = ({ isOpen, onOpenChange, onSuccess }: SupportDialogProps) => {
   const [supportTitle, setSupportTitle] = useState("");
   const [supportMessage, setSupportMessage] = useState("");
   const [category, setCategory] = useState("general");
-  const [isOpen, setIsOpen] = useState(false);
+  const [priority, setPriority] = useState("medium");
+  const [localIsOpen, setLocalIsOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
   const { t } = useLanguage();
 
+  // Use provided isOpen state if available, otherwise use local state
+  const dialogIsOpen = isOpen !== undefined ? isOpen : localIsOpen;
+  const setDialogIsOpen = (open: boolean) => {
+    if (onOpenChange) {
+      onOpenChange(open);
+    } else {
+      setLocalIsOpen(open);
+    }
+  };
+
   const handleSupportSubmit = async () => {
     try {
+      setIsSubmitting(true);
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) {
@@ -51,7 +70,9 @@ export const SupportDialog = () => {
             user_id: user.id,
             title: supportTitle,
             category,
+            priority,
             message: supportMessage,
+            status: 'open'
           }
         ]);
 
@@ -65,7 +86,12 @@ export const SupportDialog = () => {
       setSupportTitle("");
       setSupportMessage("");
       setCategory("general");
-      setIsOpen(false);
+      setPriority("medium");
+      setDialogIsOpen(false);
+      
+      if (onSuccess) {
+        onSuccess();
+      }
     } catch (error) {
       console.error('Error submitting support request:', error);
       toast({
@@ -73,11 +99,13 @@ export const SupportDialog = () => {
         description: "Failed to submit support request",
         variant: "destructive"
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    <Dialog open={dialogIsOpen} onOpenChange={setDialogIsOpen}>
       <DialogTrigger asChild>
         <Button variant="ghost" size="icon">
           <LifeBuoy className="h-5 w-5" />
@@ -112,6 +140,19 @@ export const SupportDialog = () => {
             </Select>
           </div>
           <div className="space-y-2">
+            <Label htmlFor="priority">{t("priority")}</Label>
+            <Select value={priority} onValueChange={setPriority}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select priority" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="low">Low</SelectItem>
+                <SelectItem value="medium">Medium</SelectItem>
+                <SelectItem value="high">High</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
             <Label htmlFor="message">{t("message")}</Label>
             <Textarea
               id="message"
@@ -121,8 +162,12 @@ export const SupportDialog = () => {
               className="min-h-[100px]"
             />
           </div>
-          <Button onClick={handleSupportSubmit} className="w-full">
-            {t("submit")}
+          <Button 
+            onClick={handleSupportSubmit} 
+            className="w-full"
+            disabled={isSubmitting || !supportTitle || !supportMessage}
+          >
+            {isSubmitting ? "Submitting..." : t("submit")}
           </Button>
         </div>
       </DialogContent>

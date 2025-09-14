@@ -7,6 +7,11 @@ export type Json =
   | Json[]
 
 export type Database = {
+  // Allows to automatically instanciate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "12.2.3 (519615d)"
+  }
   public: {
     Tables: {
       application_documents: {
@@ -103,6 +108,7 @@ export type Database = {
       applications: {
         Row: {
           application_status: string | null
+          child_id: string | null
           created_at: string | null
           creche_id: string | null
           id: string
@@ -120,6 +126,7 @@ export type Database = {
         }
         Insert: {
           application_status?: string | null
+          child_id?: string | null
           created_at?: string | null
           creche_id?: string | null
           id?: string
@@ -137,6 +144,7 @@ export type Database = {
         }
         Update: {
           application_status?: string | null
+          child_id?: string | null
           created_at?: string | null
           creche_id?: string | null
           id?: string
@@ -154,6 +162,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "applications_child_id_fkey"
+            columns: ["child_id"]
+            isOneToOne: false
+            referencedRelation: "children"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "applications_creche_id_fkey"
             columns: ["creche_id"]
             isOneToOne: false
@@ -169,11 +184,51 @@ export type Database = {
           },
         ]
       }
+      article_comments: {
+        Row: {
+          article_id: string
+          content: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          article_id: string
+          content: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          article_id?: string
+          content?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "article_comments_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "article_with_details"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "article_comments_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "articles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       articles: {
         Row: {
           author_id: string | null
           content: string
           created_at: string | null
+          creche_id: string | null
           hearts: number | null
           id: string
           latitude: number
@@ -186,6 +241,7 @@ export type Database = {
           author_id?: string | null
           content: string
           created_at?: string | null
+          creche_id?: string | null
           hearts?: number | null
           id?: string
           latitude: number
@@ -198,6 +254,7 @@ export type Database = {
           author_id?: string | null
           content?: string
           created_at?: string | null
+          creche_id?: string | null
           hearts?: number | null
           id?: string
           latitude?: number
@@ -212,6 +269,13 @@ export type Database = {
             columns: ["author_id"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "articles_creche_id_fkey"
+            columns: ["creche_id"]
+            isOneToOne: false
+            referencedRelation: "creches"
             referencedColumns: ["id"]
           },
         ]
@@ -279,6 +343,110 @@ export type Database = {
             columns: ["student_id"]
             isOneToOne: false
             referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      children: {
+        Row: {
+          created_at: string | null
+          creche_id: string | null
+          date_of_birth: string | null
+          first_name: string
+          gender: string | null
+          id: string
+          last_name: string
+          profile_picture_url: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          creche_id?: string | null
+          date_of_birth?: string | null
+          first_name: string
+          gender?: string | null
+          id?: string
+          last_name: string
+          profile_picture_url?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          creche_id?: string | null
+          date_of_birth?: string | null
+          first_name?: string
+          gender?: string | null
+          id?: string
+          last_name?: string
+          profile_picture_url?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "children_creche_id_fkey"
+            columns: ["creche_id"]
+            isOneToOne: true
+            referencedRelation: "creches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "children_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      compliance_documents: {
+        Row: {
+          created_at: string | null
+          creche_id: string
+          document_name: string
+          document_type: string
+          expiry_date: string | null
+          file_url: string | null
+          id: string
+          notes: string | null
+          status: string
+          submission_date: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          creche_id: string
+          document_name: string
+          document_type: string
+          expiry_date?: string | null
+          file_url?: string | null
+          id?: string
+          notes?: string | null
+          status: string
+          submission_date?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          creche_id?: string
+          document_name?: string
+          document_type?: string
+          expiry_date?: string | null
+          file_url?: string | null
+          id?: string
+          notes?: string | null
+          status?: string
+          submission_date?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "compliance_documents_creche_id_fkey"
+            columns: ["creche_id"]
+            isOneToOne: false
+            referencedRelation: "creches"
             referencedColumns: ["id"]
           },
         ]
@@ -401,6 +569,56 @@ export type Database = {
           },
         ]
       }
+      creche_policies: {
+        Row: {
+          created_at: string | null
+          creche_id: string
+          file_url: string | null
+          id: string
+          last_updated: string
+          notes: string | null
+          policy_name: string
+          policy_type: string
+          review_due: string
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          creche_id: string
+          file_url?: string | null
+          id?: string
+          last_updated: string
+          notes?: string | null
+          policy_name: string
+          policy_type: string
+          review_due: string
+          status: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          creche_id?: string
+          file_url?: string | null
+          id?: string
+          last_updated?: string
+          notes?: string | null
+          policy_name?: string
+          policy_type?: string
+          review_due?: string
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "creche_policies_creche_id_fkey"
+            columns: ["creche_id"]
+            isOneToOne: false
+            referencedRelation: "creches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       creche_users: {
         Row: {
           creche_id: number
@@ -432,6 +650,7 @@ export type Database = {
           description: string | null
           email: string | null
           facebook_url: string | null
+          facilities: Json | null
           features: Json | null
           header_image: string | null
           id: string
@@ -447,7 +666,10 @@ export type Database = {
           phone_number: string | null
           plan: string | null
           price: number | null
+          province: string | null
           registered: boolean | null
+          services: Json | null
+          suburb: string | null
           telegram_number: string | null
           twitter_url: string | null
           updated_at: string | null
@@ -468,6 +690,7 @@ export type Database = {
           description?: string | null
           email?: string | null
           facebook_url?: string | null
+          facilities?: Json | null
           features?: Json | null
           header_image?: string | null
           id?: string
@@ -483,7 +706,10 @@ export type Database = {
           phone_number?: string | null
           plan?: string | null
           price?: number | null
+          province?: string | null
           registered?: boolean | null
+          services?: Json | null
+          suburb?: string | null
           telegram_number?: string | null
           twitter_url?: string | null
           updated_at?: string | null
@@ -504,6 +730,7 @@ export type Database = {
           description?: string | null
           email?: string | null
           facebook_url?: string | null
+          facilities?: Json | null
           features?: Json | null
           header_image?: string | null
           id?: string
@@ -519,7 +746,10 @@ export type Database = {
           phone_number?: string | null
           plan?: string | null
           price?: number | null
+          province?: string | null
           registered?: boolean | null
+          services?: Json | null
+          suburb?: string | null
           telegram_number?: string | null
           twitter_url?: string | null
           updated_at?: string | null
@@ -649,6 +879,161 @@ export type Database = {
           updated_by?: string | null
         }
         Relationships: []
+      }
+      http_log: {
+        Row: {
+          duration: number | null
+          error: string | null
+          id: string
+          ip_address: string | null
+          method: string | null
+          path: string | null
+          request_id: string | null
+          request_time: string | null
+          status: number | null
+          user_agent: string | null
+        }
+        Insert: {
+          duration?: number | null
+          error?: string | null
+          id?: string
+          ip_address?: string | null
+          method?: string | null
+          path?: string | null
+          request_id?: string | null
+          request_time?: string | null
+          status?: number | null
+          user_agent?: string | null
+        }
+        Update: {
+          duration?: number | null
+          error?: string | null
+          id?: string
+          ip_address?: string | null
+          method?: string | null
+          path?: string | null
+          request_id?: string | null
+          request_time?: string | null
+          status?: number | null
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
+      incident_reports: {
+        Row: {
+          action_taken: string
+          created_at: string | null
+          creche_id: string
+          description: string
+          id: string
+          incident_date: string
+          incident_time: string
+          incident_type: string
+          location: string
+          reported_by: string | null
+          severity: string
+          student_id: string | null
+          updated_at: string | null
+          witness: string | null
+        }
+        Insert: {
+          action_taken: string
+          created_at?: string | null
+          creche_id: string
+          description: string
+          id?: string
+          incident_date: string
+          incident_time: string
+          incident_type: string
+          location: string
+          reported_by?: string | null
+          severity: string
+          student_id?: string | null
+          updated_at?: string | null
+          witness?: string | null
+        }
+        Update: {
+          action_taken?: string
+          created_at?: string | null
+          creche_id?: string
+          description?: string
+          id?: string
+          incident_date?: string
+          incident_time?: string
+          incident_type?: string
+          location?: string
+          reported_by?: string | null
+          severity?: string
+          student_id?: string | null
+          updated_at?: string | null
+          witness?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "incident_reports_creche_id_fkey"
+            columns: ["creche_id"]
+            isOneToOne: false
+            referencedRelation: "creches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incident_reports_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inventory_items: {
+        Row: {
+          category: string
+          created_at: string | null
+          creche_id: string
+          current_quantity: number
+          id: string
+          last_restocked: string | null
+          minimum_threshold: number
+          name: string
+          notes: string | null
+          unit: string
+          updated_at: string | null
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          creche_id: string
+          current_quantity: number
+          id?: string
+          last_restocked?: string | null
+          minimum_threshold: number
+          name: string
+          notes?: string | null
+          unit: string
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          creche_id?: string
+          current_quantity?: number
+          id?: string
+          last_restocked?: string | null
+          minimum_threshold?: number
+          name?: string
+          notes?: string | null
+          unit?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_items_creche_id_fkey"
+            columns: ["creche_id"]
+            isOneToOne: false
+            referencedRelation: "creches"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       invoice_items: {
         Row: {
@@ -896,6 +1281,33 @@ export type Database = {
           },
         ]
       }
+      notification_settings: {
+        Row: {
+          created_at: string
+          enabled: boolean
+          id: string
+          type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string | null
@@ -940,6 +1352,56 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      nutrition_meal_plans: {
+        Row: {
+          created_at: string | null
+          creche_id: string
+          friday_menu: string | null
+          id: string
+          meal_type: string
+          monday_menu: string | null
+          thursday_menu: string | null
+          tuesday_menu: string | null
+          updated_at: string | null
+          wednesday_menu: string | null
+          week_starting: string
+        }
+        Insert: {
+          created_at?: string | null
+          creche_id: string
+          friday_menu?: string | null
+          id?: string
+          meal_type: string
+          monday_menu?: string | null
+          thursday_menu?: string | null
+          tuesday_menu?: string | null
+          updated_at?: string | null
+          wednesday_menu?: string | null
+          week_starting: string
+        }
+        Update: {
+          created_at?: string | null
+          creche_id?: string
+          friday_menu?: string | null
+          id?: string
+          meal_type?: string
+          monday_menu?: string | null
+          thursday_menu?: string | null
+          tuesday_menu?: string | null
+          updated_at?: string | null
+          wednesday_menu?: string | null
+          week_starting?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nutrition_meal_plans_creche_id_fkey"
+            columns: ["creche_id"]
+            isOneToOne: false
+            referencedRelation: "creches"
             referencedColumns: ["id"]
           },
         ]
@@ -1113,6 +1575,63 @@ export type Database = {
         }
         Relationships: []
       }
+      safeguarding_concerns: {
+        Row: {
+          action_taken: string
+          concern_date: string
+          concern_type: string
+          created_at: string | null
+          creche_id: string
+          description: string
+          id: string
+          reported_by: string | null
+          status: string
+          student_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          action_taken: string
+          concern_date: string
+          concern_type: string
+          created_at?: string | null
+          creche_id: string
+          description: string
+          id?: string
+          reported_by?: string | null
+          status: string
+          student_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          action_taken?: string
+          concern_date?: string
+          concern_type?: string
+          created_at?: string | null
+          creche_id?: string
+          description?: string
+          id?: string
+          reported_by?: string | null
+          status?: string
+          student_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "safeguarding_concerns_creche_id_fkey"
+            columns: ["creche_id"]
+            isOneToOne: false
+            referencedRelation: "creches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "safeguarding_concerns_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       staff: {
         Row: {
           created_at: string | null
@@ -1160,6 +1679,66 @@ export type Database = {
           },
         ]
       }
+      staff_training: {
+        Row: {
+          certification_url: string | null
+          completion_date: string | null
+          created_at: string | null
+          creche_id: string
+          expiry_date: string | null
+          id: string
+          notes: string | null
+          staff_id: string | null
+          status: string
+          training_name: string
+          training_type: string
+          updated_at: string | null
+        }
+        Insert: {
+          certification_url?: string | null
+          completion_date?: string | null
+          created_at?: string | null
+          creche_id: string
+          expiry_date?: string | null
+          id?: string
+          notes?: string | null
+          staff_id?: string | null
+          status: string
+          training_name: string
+          training_type: string
+          updated_at?: string | null
+        }
+        Update: {
+          certification_url?: string | null
+          completion_date?: string | null
+          created_at?: string | null
+          creche_id?: string
+          expiry_date?: string | null
+          id?: string
+          notes?: string | null
+          staff_id?: string | null
+          status?: string
+          training_name?: string
+          training_type?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "staff_training_creche_id_fkey"
+            columns: ["creche_id"]
+            isOneToOne: false
+            referencedRelation: "creches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "staff_training_staff_id_fkey"
+            columns: ["staff_id"]
+            isOneToOne: false
+            referencedRelation: "staff"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       student_documents: {
         Row: {
           file_name: string
@@ -1198,6 +1777,60 @@ export type Database = {
           },
         ]
       }
+      student_medical_records: {
+        Row: {
+          allergies: string | null
+          created_at: string | null
+          creche_id: string
+          id: string
+          immunization_status: string
+          last_checkup: string | null
+          medical_notes: string | null
+          next_checkup: string | null
+          student_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          allergies?: string | null
+          created_at?: string | null
+          creche_id: string
+          id?: string
+          immunization_status: string
+          last_checkup?: string | null
+          medical_notes?: string | null
+          next_checkup?: string | null
+          student_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          allergies?: string | null
+          created_at?: string | null
+          creche_id?: string
+          id?: string
+          immunization_status?: string
+          last_checkup?: string | null
+          medical_notes?: string | null
+          next_checkup?: string | null
+          student_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_medical_records_creche_id_fkey"
+            columns: ["creche_id"]
+            isOneToOne: false
+            referencedRelation: "creches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "student_medical_records_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       students: {
         Row: {
           address: string | null
@@ -1216,6 +1849,7 @@ export type Database = {
           parent_name: string | null
           parent_phone_number: string | null
           parent_whatsapp: string | null
+          profile_picture: string | null
           user_id: string | null
         }
         Insert: {
@@ -1235,6 +1869,7 @@ export type Database = {
           parent_name?: string | null
           parent_phone_number?: string | null
           parent_whatsapp?: string | null
+          profile_picture?: string | null
           user_id?: string | null
         }
         Update: {
@@ -1254,6 +1889,7 @@ export type Database = {
           parent_name?: string | null
           parent_phone_number?: string | null
           parent_whatsapp?: string | null
+          profile_picture?: string | null
           user_id?: string | null
         }
         Relationships: [
@@ -1283,35 +1919,72 @@ export type Database = {
       support_requests: {
         Row: {
           category: string
+          converted_at: string | null
+          converted_ticket_id: string | null
           created_at: string | null
+          creche_id: string | null
           id: string
           message: string
-          status: string | null
+          priority: string | null
+          resolved_at: string | null
+          status: Database["public"]["Enums"]["support_request_status"] | null
           title: string
           updated_at: string | null
           user_id: string | null
         }
         Insert: {
           category: string
+          converted_at?: string | null
+          converted_ticket_id?: string | null
           created_at?: string | null
+          creche_id?: string | null
           id?: string
           message: string
-          status?: string | null
+          priority?: string | null
+          resolved_at?: string | null
+          status?: Database["public"]["Enums"]["support_request_status"] | null
           title: string
           updated_at?: string | null
           user_id?: string | null
         }
         Update: {
           category?: string
+          converted_at?: string | null
+          converted_ticket_id?: string | null
           created_at?: string | null
+          creche_id?: string | null
           id?: string
           message?: string
-          status?: string | null
+          priority?: string | null
+          resolved_at?: string | null
+          status?: Database["public"]["Enums"]["support_request_status"] | null
           title?: string
           updated_at?: string | null
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fk_support_requests_user"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "support_requests_converted_ticket_id_fkey"
+            columns: ["converted_ticket_id"]
+            isOneToOne: false
+            referencedRelation: "support_tickets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "support_requests_creche_id_fkey"
+            columns: ["creche_id"]
+            isOneToOne: false
+            referencedRelation: "creches"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       support_tickets: {
         Row: {
@@ -1324,6 +1997,7 @@ export type Database = {
           organization_id: string | null
           priority: string
           resolved_at: string | null
+          source: string | null
           status_id: string | null
           title: string
           updated_at: string | null
@@ -1338,6 +2012,7 @@ export type Database = {
           organization_id?: string | null
           priority?: string
           resolved_at?: string | null
+          source?: string | null
           status_id?: string | null
           title: string
           updated_at?: string | null
@@ -1352,11 +2027,19 @@ export type Database = {
           organization_id?: string | null
           priority?: string
           resolved_at?: string | null
+          source?: string | null
           status_id?: string | null
           title?: string
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "support_tickets_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "support_tickets_creche_id_fkey"
             columns: ["creche_id"]
@@ -1408,6 +2091,48 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "ticket_comments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ticket_notes: {
+        Row: {
+          created_at: string | null
+          id: string
+          note: string
+          ticket_id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          note: string
+          ticket_id: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          note?: string
+          ticket_id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ticket_notes_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "support_tickets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ticket_notes_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "users"
@@ -1474,6 +2199,39 @@ export type Database = {
           },
         ]
       }
+      user_activity_logs: {
+        Row: {
+          created_at: string | null
+          event_details: Json | null
+          event_type: string
+          id: string
+          ip_address: string | null
+          session_id: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          event_details?: Json | null
+          event_type: string
+          id?: string
+          ip_address?: string | null
+          session_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          event_details?: Json | null
+          event_type?: string
+          id?: string
+          ip_address?: string | null
+          session_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       user_creche: {
         Row: {
           creche_id: string
@@ -1525,6 +2283,13 @@ export type Database = {
             foreignKeyName: "user_likes_article_id_fkey"
             columns: ["article_id"]
             isOneToOne: false
+            referencedRelation: "article_with_details"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_likes_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
             referencedRelation: "articles"
             referencedColumns: ["id"]
           },
@@ -1550,6 +2315,7 @@ export type Database = {
           last_name: string | null
           latitude: string | null
           longitude: string | null
+          payment_score: number | null
           phone_number: string | null
           price: string | null
           profile_picture_url: string | null
@@ -1570,6 +2336,7 @@ export type Database = {
           last_name?: string | null
           latitude?: string | null
           longitude?: string | null
+          payment_score?: number | null
           phone_number?: string | null
           price?: string | null
           profile_picture_url?: string | null
@@ -1590,6 +2357,7 @@ export type Database = {
           last_name?: string | null
           latitude?: string | null
           longitude?: string | null
+          payment_score?: number | null
           phone_number?: string | null
           price?: string | null
           profile_picture_url?: string | null
@@ -1608,18 +2376,167 @@ export type Database = {
           },
         ]
       }
+      webhook_configurations: {
+        Row: {
+          created_at: string | null
+          creche_id: string | null
+          enabled: boolean | null
+          fields_mapping: Json | null
+          id: string
+          last_used_at: string | null
+          name: string
+          source: string | null
+          status: string | null
+          target_table: string | null
+          updated_at: string | null
+          webhook_key: string
+        }
+        Insert: {
+          created_at?: string | null
+          creche_id?: string | null
+          enabled?: boolean | null
+          fields_mapping?: Json | null
+          id?: string
+          last_used_at?: string | null
+          name: string
+          source?: string | null
+          status?: string | null
+          target_table?: string | null
+          updated_at?: string | null
+          webhook_key?: string
+        }
+        Update: {
+          created_at?: string | null
+          creche_id?: string | null
+          enabled?: boolean | null
+          fields_mapping?: Json | null
+          id?: string
+          last_used_at?: string | null
+          name?: string
+          source?: string | null
+          status?: string | null
+          target_table?: string | null
+          updated_at?: string | null
+          webhook_key?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "webhook_configurations_creche_id_fkey"
+            columns: ["creche_id"]
+            isOneToOne: false
+            referencedRelation: "creches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      webhook_logs: {
+        Row: {
+          created_at: string | null
+          error_message: string | null
+          id: string
+          ip_address: string | null
+          payload: Json | null
+          status: string | null
+          user_agent: string | null
+          webhook_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          ip_address?: string | null
+          payload?: Json | null
+          status?: string | null
+          user_agent?: string | null
+          webhook_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          ip_address?: string | null
+          payload?: Json | null
+          status?: string | null
+          user_agent?: string | null
+          webhook_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "webhook_logs_webhook_id_fkey"
+            columns: ["webhook_id"]
+            isOneToOne: false
+            referencedRelation: "webhook_configurations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
-      [_ in never]: never
+      article_with_details: {
+        Row: {
+          author_id: string | null
+          author_name: string | null
+          author_picture: string | null
+          comment_count: number | null
+          content: string | null
+          created_at: string | null
+          creche_id: string | null
+          creche_logo: string | null
+          creche_name: string | null
+          hearts: number | null
+          id: string | null
+          latitude: number | null
+          longitude: number | null
+          title: string | null
+          type: string | null
+          updated_at: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "articles_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "articles_creche_id_fkey"
+            columns: ["creche_id"]
+            isOneToOne: false
+            referencedRelation: "creches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       generate_monthly_invoices: {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      is_notification_enabled: {
+        Args: { _user_id: string; _type: string }
+        Returns: boolean
+      }
+      notify_creche_users: {
+        Args: {
+          _creche_id: string
+          _title: string
+          _message: string
+          _type: string
+          _sender: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       help_category: "documentation" | "faq" | "tutorial"
+      support_request_status:
+        | "open"
+        | "in_progress"
+        | "on_hold"
+        | "resolved"
+        | "closed"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1627,27 +2544,33 @@ export type Database = {
   }
 }
 
-type PublicSchema = Database[Extract<keyof Database, "public">]
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
 
 export type Tables<
-  PublicTableNameOrOptions extends
-    | keyof (PublicSchema["Tables"] & PublicSchema["Views"])
-    | { schema: keyof Database },
-  TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
-    ? keyof (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
-        Database[PublicTableNameOrOptions["schema"]]["Views"])
+  DefaultSchemaTableNameOrOptions extends
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
     : never = never,
-> = PublicTableNameOrOptions extends { schema: keyof Database }
-  ? (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
-      Database[PublicTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
       Row: infer R
     }
     ? R
     : never
-  : PublicTableNameOrOptions extends keyof (PublicSchema["Tables"] &
-        PublicSchema["Views"])
-    ? (PublicSchema["Tables"] &
-        PublicSchema["Views"])[PublicTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
         Row: infer R
       }
       ? R
@@ -1655,20 +2578,24 @@ export type Tables<
     : never
 
 export type TablesInsert<
-  PublicTableNameOrOptions extends
-    | keyof PublicSchema["Tables"]
-    | { schema: keyof Database },
-  TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
-    ? keyof Database[PublicTableNameOrOptions["schema"]]["Tables"]
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
-> = PublicTableNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Insert: infer I
     }
     ? I
     : never
-  : PublicTableNameOrOptions extends keyof PublicSchema["Tables"]
-    ? PublicSchema["Tables"][PublicTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
         Insert: infer I
       }
       ? I
@@ -1676,20 +2603,24 @@ export type TablesInsert<
     : never
 
 export type TablesUpdate<
-  PublicTableNameOrOptions extends
-    | keyof PublicSchema["Tables"]
-    | { schema: keyof Database },
-  TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
-    ? keyof Database[PublicTableNameOrOptions["schema"]]["Tables"]
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
-> = PublicTableNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Update: infer U
     }
     ? U
     : never
-  : PublicTableNameOrOptions extends keyof PublicSchema["Tables"]
-    ? PublicSchema["Tables"][PublicTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
         Update: infer U
       }
       ? U
@@ -1697,29 +2628,50 @@ export type TablesUpdate<
     : never
 
 export type Enums<
-  PublicEnumNameOrOptions extends
-    | keyof PublicSchema["Enums"]
-    | { schema: keyof Database },
-  EnumName extends PublicEnumNameOrOptions extends { schema: keyof Database }
-    ? keyof Database[PublicEnumNameOrOptions["schema"]]["Enums"]
+  DefaultSchemaEnumNameOrOptions extends
+    | keyof DefaultSchema["Enums"]
+    | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
     : never = never,
-> = PublicEnumNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicEnumNameOrOptions["schema"]]["Enums"][EnumName]
-  : PublicEnumNameOrOptions extends keyof PublicSchema["Enums"]
-    ? PublicSchema["Enums"][PublicEnumNameOrOptions]
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
     : never
 
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
-    | keyof PublicSchema["CompositeTypes"]
-    | { schema: keyof Database },
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof DatabaseWithoutInternals },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
     : never = never,
-> = PublicCompositeTypeNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
-  : PublicCompositeTypeNameOrOptions extends keyof PublicSchema["CompositeTypes"]
-    ? PublicSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never
+
+export const Constants = {
+  public: {
+    Enums: {
+      help_category: ["documentation", "faq", "tutorial"],
+      support_request_status: [
+        "open",
+        "in_progress",
+        "on_hold",
+        "resolved",
+        "closed",
+      ],
+    },
+  },
+} as const

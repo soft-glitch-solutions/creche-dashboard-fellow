@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
+import { StatsCardSkeleton, InvoicesTableSkeleton } from "@/components/finance/FinanceSkeletons";
 
 interface Invoice {
   id: string;
@@ -108,20 +109,26 @@ const Finance = () => {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {stats.map((stat) => (
-          <Card key={stat.title} className="p-6">
-            <div className="flex items-center gap-4">
-              <stat.icon className="h-8 w-8 text-primary" />
-              <div>
-                <h3 className="text-2xl font-bold">{stat.value}</h3>
-                <p className="text-sm text-muted-foreground">{stat.title}</p>
-                <p className="text-xs text-muted-foreground">
-                  {stat.description}
-                </p>
+        {isLoading ? (
+          Array.from({ length: 3 }).map((_, index) => (
+            <StatsCardSkeleton key={index} />
+          ))
+        ) : (
+          stats.map((stat) => (
+            <Card key={stat.title} className="p-6">
+              <div className="flex items-center gap-4">
+                <stat.icon className="h-8 w-8 text-primary" />
+                <div>
+                  <h3 className="text-2xl font-bold">{stat.value}</h3>
+                  <p className="text-sm text-muted-foreground">{stat.title}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {stat.description}
+                  </p>
+                </div>
               </div>
-            </div>
-          </Card>
-        ))}
+            </Card>
+          ))
+        )}
       </div>
 
       <div className="space-y-4">
@@ -136,23 +143,25 @@ const Finance = () => {
           </Button>
         </div>
 
-        <Card className="p-6">
-          <div className="space-y-4">
-            <div className="grid grid-cols-6 gap-4 font-semibold text-sm text-gray-500">
-              <div>Invoice #</div>
-              <div>Parent</div>
-              <div>Amount</div>
-              <div>Date</div>
-              <div>Status</div>
-              <div>Actions</div>
-            </div>
+        {isLoading ? (
+          <InvoicesTableSkeleton />
+        ) : invoices.length === 0 ? (
+          <Card className="p-6">
+              <InvoicesTableSkeleton />
+          </Card>
+        ) : (
+          <Card className="p-6">
+            <div className="space-y-4">
+              <div className="grid grid-cols-6 gap-4 font-semibold text-sm text-gray-500">
+                <div>Invoice #</div>
+                <div>Parent</div>
+                <div>Amount</div>
+                <div>Date</div>
+                <div>Status</div>
+                <div>Actions</div>
+              </div>
 
-            {isLoading ? (
-              <div className="text-center py-4">Loading invoices...</div>
-            ) : invoices.length === 0 ? (
-              <div className="text-center py-4">No invoices found</div>
-            ) : (
-              invoices.map((invoice) => (
+              {invoices.map((invoice) => (
                 <div key={invoice.id} className="grid grid-cols-6 gap-4 py-3 border-b text-sm">
                   <div className="font-medium">{invoice.id.slice(0, 8)}</div>
                   <div>{invoice.prepared_for}</div>
@@ -180,10 +189,10 @@ const Finance = () => {
                     </Button>
                   </div>
                 </div>
-              ))
-            )}
-          </div>
-        </Card>
+              ))}
+            </div>
+          </Card>
+        )}
       </div>
     </div>
   );

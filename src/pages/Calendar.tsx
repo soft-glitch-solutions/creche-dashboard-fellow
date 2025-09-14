@@ -177,6 +177,19 @@ const CalendarPage = () => {
     }
   };
 
+  const handleDaySelect = (selectedDate: Date | undefined) => {
+    if (selectedDate) {
+      setDate(selectedDate);
+      setNewEvent(prev => ({ 
+        ...prev, 
+        date: selectedDate,
+        start_time: "09:00",
+        end_time: "10:00" 
+      }));
+      setIsCreateEventOpen(true);
+    }
+  };
+
   const renderWeekView = () => {
     const weekStart = startOfWeek(date);
     const weekEnd = endOfWeek(date);
@@ -185,7 +198,11 @@ const CalendarPage = () => {
     return (
       <div className="grid grid-cols-7 gap-2">
         {days.map((day) => (
-          <div key={day.toISOString()} className="min-h-[200px] border rounded-lg p-2">
+          <div 
+            key={day.toISOString()} 
+            className="min-h-[200px] border rounded-lg p-2 cursor-pointer"
+            onClick={() => handleDaySelect(day)}
+          >
             <h3 className="text-sm font-medium mb-2">{format(day, 'EEE d')}</h3>
             <div className="space-y-1">
               {events
@@ -309,7 +326,7 @@ const CalendarPage = () => {
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
               <DialogHeader>
-                <DialogTitle>Create Event</DialogTitle>
+                <DialogTitle>Create Event for {format(newEvent.date, 'MMMM dd, yyyy')}</DialogTitle>
               </DialogHeader>
               <div className="space-y-4 mt-4">
                 <div className="space-y-2">
@@ -501,7 +518,7 @@ const CalendarPage = () => {
                 <Calendar
                   mode="single"
                   selected={date}
-                  onSelect={(newDate) => newDate && setDate(newDate)}
+                  onSelect={handleDaySelect}
                   className="rounded-md border"
                 />
               )}

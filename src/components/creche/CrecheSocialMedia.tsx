@@ -47,7 +47,7 @@ export const SocialMediaCard = ({
                 <label className="text-sm text-gray-500 flex items-center gap-2">{icon} {label}</label>
                 <Input
                   value={crecheData[field] || ""}
-                  onChange={(e) => onInputChange(field, e.target.value)}
+                  onChange={(e) => onInputChange(field as keyof Creche, e.target.value)}
                   placeholder={`${label}`}
                 />
               </div>

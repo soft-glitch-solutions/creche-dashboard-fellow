@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Printer, ArrowLeft } from "lucide-react";
 
+// Interfaces
 interface Invoice {
   id: string;
   title: string;
@@ -25,33 +26,124 @@ interface InvoiceItem {
   total_price: number;
 }
 
+// Skeleton Loading Component
+const SkeletonLoading = () => {
+  return (
+    <div className="max-w-4xl mx-auto p-8 animate-pulse">
+      {/* Back & Print Buttons Skeleton */}
+      <div className="mb-8 flex justify-between">
+        <div className="h-10 w-24 bg-gray-200 rounded"></div>
+        <div className="h-10 w-24 bg-gray-200 rounded"></div>
+      </div>
+
+      {/* Header Skeleton */}
+      <div className="flex justify-between items-start mb-8">
+        <div className="space-y-4">
+          <div className="h-16 w-16 bg-gray-200 rounded"></div>
+          <div className="h-6 w-48 bg-gray-200 rounded"></div>
+          <div className="h-4 w-64 bg-gray-200 rounded"></div>
+          <div className="h-4 w-56 bg-gray-200 rounded"></div>
+          <div className="h-4 w-52 bg-gray-200 rounded"></div>
+        </div>
+        <div className="space-y-4">
+          <div className="h-8 w-32 bg-gray-200 rounded"></div>
+          <div className="h-4 w-24 bg-gray-200 rounded"></div>
+          <div className="h-4 w-36 bg-gray-200 rounded"></div>
+        </div>
+      </div>
+
+      {/* Bill To Skeleton */}
+      <div className="border-t border-b py-4 mb-8">
+        <div className="h-6 w-24 bg-gray-200 rounded mb-2"></div>
+        <div className="h-4 w-48 bg-gray-200 rounded"></div>
+      </div>
+
+      {/* Items Table Skeleton */}
+      <table className="w-full mb-8">
+        <thead>
+          <tr className="border-b">
+            <th className="text-left py-2"><div className="h-4 w-32 bg-gray-200 rounded"></div></th>
+            <th className="text-right py-2"><div className="h-4 w-24 bg-gray-200 rounded"></div></th>
+            <th className="text-right py-2"><div className="h-4 w-24 bg-gray-200 rounded"></div></th>
+            <th className="text-right py-2"><div className="h-4 w-24 bg-gray-200 rounded"></div></th>
+            <th className="text-right py-2"><div className="h-4 w-24 bg-gray-200 rounded"></div></th>
+          </tr>
+        </thead>
+        <tbody>
+          {[...Array(3)].map((_, index) => (
+            <tr key={index} className="border-b">
+              <td className="py-2"><div className="h-4 w-48 bg-gray-200 rounded"></div></td>
+              <td className="text-right py-2"><div className="h-4 w-16 bg-gray-200 rounded"></div></td>
+              <td className="text-right py-2"><div className="h-4 w-16 bg-gray-200 rounded"></div></td>
+              <td className="text-right py-2"><div className="h-4 w-16 bg-gray-200 rounded"></div></td>
+              <td className="text-right py-2"><div className="h-4 w-16 bg-gray-200 rounded"></div></td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      {/* Summary Skeleton */}
+      <div className="space-y-2 mb-8">
+        <div className="flex justify-between">
+          <div className="h-4 w-24 bg-gray-200 rounded"></div>
+          <div className="h-4 w-16 bg-gray-200 rounded"></div>
+        </div>
+        <div className="flex justify-between">
+          <div className="h-4 w-24 bg-gray-200 rounded"></div>
+          <div className="h-4 w-16 bg-gray-200 rounded"></div>
+        </div>
+        <div className="flex justify-between">
+          <div className="h-4 w-24 bg-gray-200 rounded"></div>
+          <div className="h-4 w-16 bg-gray-200 rounded"></div>
+        </div>
+      </div>
+
+      {/* Footer Skeleton */}
+      <div className="border-t pt-8 text-center">
+        <div className="h-4 w-48 bg-gray-200 rounded mx-auto mb-2"></div>
+        <div className="h-4 w-32 bg-gray-200 rounded mx-auto mb-2"></div>
+        <div className="h-4 w-24 bg-gray-200 rounded mx-auto"></div>
+      </div>
+    </div>
+  );
+};
+
+// Main Component
 const PrintInvoice = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [invoice, setInvoice] = useState<Invoice | null>(null);
   const [items, setItems] = useState<InvoiceItem[]>([]);
   const [creche, setCreche] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
-      const { data: invoiceData } = await supabase
-        .from("invoices")
-        .select("*, creche:creches(*)")
-        .eq("id", id)
-        .single();
+      setIsLoading(true);
+      try {
+        const { data: invoiceData } = await supabase
+          .from("invoices")
+          .select("*, creche:creches(*)")
+          .eq("id", id)
+          .single();
 
-      if (invoiceData) {
-        setInvoice(invoiceData);
-        setCreche(invoiceData.creche);
-      }
+        if (invoiceData) {
+          setInvoice(invoiceData);
+          setCreche(invoiceData.creche);
+        }
 
-      const { data: itemsData } = await supabase
-        .from("invoice_items")
-        .select("*")
-        .eq("invoice_id", id);
+        const { data: itemsData } = await supabase
+          .from("invoice_items")
+          .select("*")
+          .eq("invoice_id", id);
 
-      if (itemsData) {
-        setItems(itemsData);
+        if (itemsData) {
+          setItems(itemsData);
+        }
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -70,10 +162,12 @@ const PrintInvoice = () => {
     }
   };
 
-  if (!invoice || !creche) {
-    return <div>Loading...</div>;
+  // Skeleton Loading State
+  if (isLoading) {
+    return <SkeletonLoading />;
   }
 
+  // Render Invoice Content
   return (
     <div className="max-w-4xl mx-auto p-8">
       {/* Back & Print Buttons (Hidden when printing) */}

@@ -8,9 +8,9 @@ import { BasicInfoCard } from "@/components/creche/CrecheBasicInfo";
 import { FinancialInfoCard } from "@/components/creche/CrecheFinancialInfo";
 import { SocialMediaCard } from "@/components/creche/CrecheSocialMedia";
 import { StudentsCard } from "@/components/creche/CrecheStudents";
-import type { Creche } from "@/types/creche";
+import type { Creche, CrechePlan } from "@/types/creche";
 import { FacilitiesCard } from "@/components/creche/CrecheFacilitiesCard";
-import { ServicesCard } from "@/components/creche/CrecheServicesCard"; // Import the new ServicesCard
+import { ServicesCard } from "@/components/creche/CrecheServicesCard";
 
 const defaultCreche: Creche = {
   id: "",
@@ -39,7 +39,7 @@ const defaultCreche: Creche = {
   longitude: null,
   monthly_price: null,
   weekly_price: null,
-  plan: "free",
+  plan: "free" as CrechePlan,
   features: {
     event_calendar: false,
     staff_management: false,
@@ -56,6 +56,64 @@ const defaultCreche: Creche = {
     transportation: false,
     special_education: false,
   },
+  facilities: {
+    teachers: false,
+    classrooms: false,
+    toilets: false,
+    playground: false,
+    kitchen: false,
+    parking: false,
+    teachers_count: 0,
+    classrooms_count: 0,
+    toilets_count: 0,
+    playground_count: 0,
+    kitchen_count: 0,
+    parking_count: 0,
+  },
+  bank_name: null,
+  account_holder: null,
+  account_number: null,
+  branch_code: null,
+  account_type: null,
+};
+
+// Skeleton Loading Component
+const SkeletonLoading = () => {
+  return (
+    <div className="space-y-6 animate-pulse">
+      {/* Header Skeleton */}
+      <div className="flex items-center space-x-4">
+        <div className="h-24 w-24 bg-gray-200 rounded-full"></div>
+        <div className="space-y-2">
+          <div className="h-6 w-48 bg-gray-200 rounded"></div>
+          <div className="h-4 w-64 bg-gray-200 rounded"></div>
+          <div className="h-4 w-56 bg-gray-200 rounded"></div>
+        </div>
+      </div>
+
+      {/* Tabs Skeleton */}
+      <div className="flex space-x-4 border-b">
+        {[...Array(5)].map((_, index) => (
+          <div key={index} className="h-10 w-24 bg-gray-200 rounded"></div>
+        ))}
+      </div>
+
+      {/* Tab Content Skeleton */}
+      <div className="mt-6 space-y-6">
+        <div className="space-y-4">
+          <div className="h-6 w-32 bg-gray-200 rounded"></div>
+          <div className="h-4 w-64 bg-gray-200 rounded"></div>
+          <div className="h-4 w-56 bg-gray-200 rounded"></div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          {[...Array(4)].map((_, index) => (
+            <div key={index} className="h-32 bg-gray-200 rounded"></div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export const CrecheProfile = () => {
@@ -69,6 +127,7 @@ export const CrecheProfile = () => {
     social: false,
   });
   const [activeTab, setActiveTab] = useState("basic"); // State for active tab
+  const [isLoading, setIsLoading] = useState(true); // Loading state
   const { id } = useParams();
   const { toast } = useToast();
 
@@ -77,16 +136,52 @@ export const CrecheProfile = () => {
   }, [id]);
 
   const loadCrecheDetails = async () => {
+    setIsLoading(true);
     try {
+      // Get the current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error("User not authenticated");
+      }
+
+      let crecheId = id;
+      
+      // If no ID is provided in the URL, get the user's assigned creche
+      if (!id) {
+        const { data: userCreche, error: ucError } = await supabase
+          .from("user_creche")
+          .select("creche_id")
+          .eq("user_id", user.id)
+          .maybeSingle();
+
+        if (ucError) throw ucError;
+        if (!userCreche?.creche_id) {
+          throw new Error("No creche assigned to this user");
+        }
+        crecheId = userCreche.creche_id;
+      }
+
       const { data: creche, error } = await supabase
         .from("creches")
         .select("*")
-        .eq("id", id)
+        .eq("id", crecheId)
         .maybeSingle();
 
       if (error) throw error;
       if (creche) {
-        setCrecheData(creche);
+        // Ensure the data conforms to our Creche type
+        const typedCreche: Creche = {
+          ...defaultCreche,
+          ...creche,
+          plan: (creche.plan || 'free') as CrechePlan,
+          features: (typeof creche.features === 'object' && creche.features !== null) ? 
+            creche.features as any : defaultCreche.features,
+          services: (typeof creche.services === 'object' && creche.services !== null) ? 
+            creche.services as any : defaultCreche.services,
+          facilities: (typeof creche.facilities === 'object' && creche.facilities !== null) ? 
+            creche.facilities as any : defaultCreche.facilities,
+        };
+        setCrecheData(typedCreche);
       }
     } catch (error) {
       console.error("Error loading creche:", error);
@@ -95,15 +190,43 @@ export const CrecheProfile = () => {
         title: "Error",
         description: "Failed to load creche details",
       });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleInputChange = (field: string, value: any) => {
+    if (field.includes('.')) {
+      // Handle nested properties like 'services.full_time_care'
+      const [parentField, childField] = field.split('.');
+      setCrecheData(prev => ({
+        ...prev,
+        [parentField]: {
+          ...(prev[parentField as keyof Creche] as any),
+          [childField]: value
+        }
+      }));
+    } else {
+      // Handle top-level properties
+      setCrecheData(prev => ({
+        ...prev,
+        [field]: value
+      }));
     }
   };
 
   const handleUpdate = async (section: keyof typeof editMode) => {
     try {
+      const updateData = {
+        ...crecheData,
+        features: crecheData.features as any,
+        services: crecheData.services as any,
+        facilities: crecheData.facilities as any,
+      };
       const { error } = await supabase
         .from("creches")
-        .update(crecheData)
-        .eq("id", id);
+        .update(updateData)
+        .eq("id", crecheData.id);
 
       if (error) throw error;
 
@@ -122,14 +245,10 @@ export const CrecheProfile = () => {
     }
   };
 
-  const handleInputChange = (field: keyof Creche, value: string | number | boolean) => {
-    setCrecheData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
-  };
-
-  if (!crecheData) return <div>Loading...</div>;
+  // Skeleton Loading State
+  if (isLoading) {
+    return <SkeletonLoading />;
+  }
 
   // Define tabs
   const tabs = [
@@ -182,7 +301,7 @@ export const CrecheProfile = () => {
         {activeTab === "services" && (
           <ServicesCard
             crecheData={crecheData}
-            editMode={editMode.services} // Update to control services edit mode
+            editMode={editMode.services}
             onEditToggle={() => setEditMode((prev) => ({ ...prev, services: !prev.services }))}
             onUpdate={() => handleUpdate("services")}
             onInputChange={handleInputChange}
@@ -221,7 +340,7 @@ export const CrecheProfile = () => {
 
         {activeTab === "students" && <StudentsCard />}
 
-        {activeTab === "gallery" && <CrecheGallery crecheId={id} />}
+        {activeTab === "gallery" && <CrecheGallery crecheId={crecheData.id} />}
       </div>
     </div>
   );

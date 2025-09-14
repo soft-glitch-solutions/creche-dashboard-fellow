@@ -5,7 +5,8 @@ import { Card } from '@/components/ui/card';
 import { Avatar } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Student } from '@/types/student';
-import { useNavigate } from 'react-router-dom'; // 🔥 Import React Router's useNavigate
+import { useNavigate } from 'react-router-dom';
+import { useTranslation } from '@/hooks/useTranslation';
 
 interface StudentListProps {
   students: Student[];
@@ -13,18 +14,19 @@ interface StudentListProps {
 }
 
 export const StudentList = ({ students, onEdit }: StudentListProps) => {
-  const navigate = useNavigate(); // 🔥 Initialize React Router's navigation
+  const navigate = useNavigate();
+  const { t } = useTranslation();
 
   return (
     <Card className="p-6">
       <div className="space-y-4">
         <div className="grid grid-cols-6 gap-4 text-sm font-medium text-muted-foreground">
-          <div>Student</div>
-          <div>Class</div>
-          <div>Parent</div>
-          <div>Contact</div>
-          <div>Status</div>
-          <div>Actions</div>
+          <div>{t("studentName")}</div>
+          <div>{t("className")}</div>
+          <div>{t("parentName")}</div>
+          <div>{t("phone")}</div>
+          <div>{t("status")}</div>
+          <div>{t("actions")}</div>
         </div>
 
         {students.map((student) => (
@@ -41,12 +43,12 @@ export const StudentList = ({ students, onEdit }: StudentListProps) => {
               <span className="font-medium">{student.name}</span>
             </div>
             <div>
-              <Badge variant="outline">{student.class || 'Unassigned'}</Badge>
+              <Badge variant="outline">{student.class || t("unassigned")}</Badge>
             </div>
-            <div>{student.parent_name || 'Not specified'}</div>
-            <div>{student.parent_phone_number || 'Not provided'}</div>
+            <div>{student.parent_name || t("notSpecified")}</div>
+            <div>{student.parent_phone_number || t("notProvided")}</div>
             <div>
-              <Badge variant="secondary">Active</Badge>
+              <Badge variant="secondary">{t("active")}</Badge>
             </div>
             <div className="flex items-center gap-2">
               {/* 🔥 Updated Eye Button: Navigates to /dashboard/student/{id} */}
