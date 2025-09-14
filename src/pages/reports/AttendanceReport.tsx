@@ -35,7 +35,7 @@ import { useToast } from "@/hooks/use-toast";
 
 const AttendanceReport = () => {
   const { toast } = useToast();
-  const [selectedClass, setSelectedClass] = useState<string>("");
+  const [selectedClass, setSelectedClass] = useState<string>("all");
   const [startDate, setStartDate] = useState<string>("");
   const [endDate, setEndDate] = useState<string>("");
 
@@ -64,7 +64,7 @@ const AttendanceReport = () => {
         .order("attendance_date", { ascending: false });
 
       // Apply class filter
-      if (selectedClass) {
+      if (selectedClass && selectedClass !== "all") {
         query = query.eq("student.class", selectedClass);
       }
 
@@ -154,7 +154,7 @@ const AttendanceReport = () => {
                   <SelectValue placeholder="All classes" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All classes</SelectItem>
+                  <SelectItem value="all">All classes</SelectItem>
                   {classes?.map((cls) => (
                     <SelectItem key={cls.id} value={cls.name}>
                       {cls.name}
