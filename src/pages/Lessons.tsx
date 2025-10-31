@@ -116,7 +116,7 @@ const Lessons = () => {
         </TabsContent>
 
         <TabsContent value="month">
-          <MonthView />
+          <MonthView lessons={lessons} />
         </TabsContent>
       </Tabs>
     </div>

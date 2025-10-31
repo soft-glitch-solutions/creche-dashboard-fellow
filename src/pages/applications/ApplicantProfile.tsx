@@ -5,7 +5,7 @@ import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
-import { Pencil, ArrowLeft, Trash2, FileText, UserCheck } from "lucide-react";
+import { Pencil, ArrowLeft, Trash2, FileText, UserCheck, Plus } from "lucide-react";
 import { ApplicationDocumentUpload } from "@/components/applications/ApplicationDocumentUpload";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -36,9 +36,11 @@ export default function ApplicantProfile() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [application, setApplication] = useState<any>(null);
+  const [child, setChild] = useState<any>(null);
   const [documents, setDocuments] = useState<ApplicationDocument[]>([]);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [isEditing, setIsEditing] = useState(false);
+  const [isEditingChild, setIsEditingChild] = useState(false);
   const [editForm, setEditForm] = useState({
     parent_name: "",
     parent_email: "",
@@ -46,6 +48,12 @@ export default function ApplicantProfile() {
     parent_whatsapp: "",
     parent_address: "",
     message: "",
+  });
+  const [childForm, setChildForm] = useState({
+    first_name: "",
+    last_name: "",
+    date_of_birth: "",
+    gender: "",
   });
   const [applicationNotes, setApplicationNotes] = useState([]);
 
@@ -122,7 +130,7 @@ export default function ApplicantProfile() {
     if (!id) return;
 
     // Fetch application details
-    const { data: applicationData, error: applicationError } = await supabase
+    const { data: applicationData, error: applicationError} = await supabase
       .from("applications")
       .select("*")
       .eq("id", id)
@@ -142,6 +150,25 @@ export default function ApplicantProfile() {
       parent_address: applicationData.parent_address || "",
       message: applicationData.message,
     });
+
+    // Fetch child details if child_id exists
+    if (applicationData.child_id) {
+      const { data: childData, error: childError } = await supabase
+        .from("children")
+        .select("*")
+        .eq("id", applicationData.child_id)
+        .single();
+
+      if (!childError && childData) {
+        setChild(childData);
+        setChildForm({
+          first_name: childData.first_name || "",
+          last_name: childData.last_name || "",
+          date_of_birth: childData.date_of_birth || "",
+          gender: childData.gender || "",
+        });
+      }
+    }
 
     // Fetch documents
     const { data: documentsData, error: documentsError } = await supabase
@@ -227,15 +254,82 @@ export default function ApplicantProfile() {
     }
   };
 
-  const handleCreateStudent = async () => {
+  const handleSaveChild = async () => {
     if (!application) return;
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
+      if (child) {
+        // Update existing child
+        const { error } = await supabase
+          .from("children")
+          .update(childForm)
+          .eq("id", child.id);
+
+        if (error) throw error;
+      } else {
+        // Create new child and link to application
+        const { data: newChild, error: childError } = await supabase
+          .from("children")
+          .insert([
+            {
+              ...childForm,
+              user_id: user.id,
+              creche_id: application.creche_id,
+            },
+          ])
+          .select()
+          .single();
+
+        if (childError) throw childError;
+
+        // Update application with child_id
+        const { error: updateError } = await supabase
+          .from("applications")
+          .update({ child_id: newChild.id })
+          .eq("id", application.id);
+
+        if (updateError) throw updateError;
+
+        setChild(newChild);
+      }
+
+      toast({
+        title: "Success",
+        description: child ? "Child information updated" : "Child information added",
+      });
+
+      setIsEditingChild(false);
+      fetchApplicationData();
+    } catch (error) {
+      console.error("Error saving child:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to save child information",
+      });
+    }
+  };
+
+  const handleCreateStudent = async () => {
+    if (!application || !child) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Child information is required to create a student",
+      });
+      return;
+    }
 
     try {
       const { data: student, error: studentError } = await supabase
         .from("students")
         .insert([
           {
-            name: `Child of ${application.parent_name}`,
+            name: `${child.first_name} ${child.last_name}`,
+            dob: child.date_of_birth,
             parent_name: application.parent_name,
             parent_email: application.parent_email,
             parent_phone_number: application.parent_phone_number,
@@ -424,8 +518,9 @@ export default function ApplicantProfile() {
       </Dialog>
 
       <Tabs defaultValue="info">
-        <TabsList className="grid grid-cols-4 bg-muted p-1 rounded-lg">
+        <TabsList className="grid grid-cols-5 bg-muted p-1 rounded-lg">
           <TabsTrigger value="info">Parent Info</TabsTrigger>
+          <TabsTrigger value="child">Child Info</TabsTrigger>
           <TabsTrigger value="documents">Documents</TabsTrigger>
           <TabsTrigger value="financial">Financial</TabsTrigger>
           <TabsTrigger value="notes">Notes</TabsTrigger>
@@ -441,6 +536,93 @@ export default function ApplicantProfile() {
             <div><strong>Message:</strong> {application.message}</div>
           </Card>
         </TabsContent>
+
+        <TabsContent value="child">
+          <Card className="p-6 space-y-4">
+            {child ? (
+              <>
+                <div className="flex justify-between items-start">
+                  <div className="space-y-4 flex-1">
+                    <div><strong>First Name:</strong> {child.first_name}</div>
+                    <div><strong>Last Name:</strong> {child.last_name}</div>
+                    <div><strong>Date of Birth:</strong> {child.date_of_birth ? new Date(child.date_of_birth).toLocaleDateString() : "Not provided"}</div>
+                    <div><strong>Gender:</strong> {child.gender || "Not specified"}</div>
+                  </div>
+                  <Button variant="outline" onClick={() => setIsEditingChild(true)}>
+                    <Pencil className="h-4 w-4 mr-2" />
+                    Edit
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <div className="text-center space-y-4">
+                <p className="text-muted-foreground">No child information added yet.</p>
+                <Button onClick={() => setIsEditingChild(true)}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Child Information
+                </Button>
+              </div>
+            )}
+          </Card>
+        </TabsContent>
+
+        <Dialog open={isEditingChild} onOpenChange={setIsEditingChild}>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>{child ? "Edit Child Information" : "Add Child Information"}</DialogTitle>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <Label htmlFor="first_name">First Name</Label>
+                <Input
+                  id="first_name"
+                  value={childForm.first_name}
+                  onChange={(e) =>
+                    setChildForm((prev) => ({ ...prev, first_name: e.target.value }))
+                  }
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="last_name">Last Name</Label>
+                <Input
+                  id="last_name"
+                  value={childForm.last_name}
+                  onChange={(e) =>
+                    setChildForm((prev) => ({ ...prev, last_name: e.target.value }))
+                  }
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="date_of_birth">Date of Birth</Label>
+                <Input
+                  id="date_of_birth"
+                  type="date"
+                  value={childForm.date_of_birth}
+                  onChange={(e) =>
+                    setChildForm((prev) => ({ ...prev, date_of_birth: e.target.value }))
+                  }
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="gender">Gender</Label>
+                <Input
+                  id="gender"
+                  value={childForm.gender}
+                  onChange={(e) =>
+                    setChildForm((prev) => ({ ...prev, gender: e.target.value }))
+                  }
+                  placeholder="e.g., Male, Female"
+                />
+              </div>
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setIsEditingChild(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleSaveChild}>Save Child Information</Button>
+            </div>
+          </DialogContent>
+        </Dialog>
 
         <TabsContent value="documents">
           <Card className="p-6 space-y-4">

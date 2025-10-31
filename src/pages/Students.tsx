@@ -19,7 +19,6 @@ interface Student {
   id: string;
   name: string;
   class: string | null;
-  classColor: string | null;
   parent_name: string | null;
   disabilities_allergies: string | null;
   parent_email: string | null;

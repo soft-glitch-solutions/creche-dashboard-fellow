@@ -121,11 +121,15 @@ const Social = () => {
           
         if (fallbackError) throw fallbackError;
         
-        // Transform data to have creche_name directly
+        // Transform data to have all required fields
         data = fallbackData.map(article => ({
           ...article,
-          creche_name: article.creche?.name,
-          creche_id: article.creche?.id,
+          creche_name: article.creche?.name || '',
+          creche_id: article.creche?.id || '',
+          author_name: article.author?.display_name || '',
+          author_picture: article.author?.profile_picture_url || '',
+          creche_logo: article.creche?.logo || '',
+          comment_count: 0,
         }));
       }
 
