@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.3 (519615d)"
@@ -216,6 +216,42 @@ export type Database = {
           },
           {
             foreignKeyName: "article_comments_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "articles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      article_likes: {
+        Row: {
+          article_id: string
+          created_at: string | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          article_id: string
+          created_at?: string | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          article_id?: string
+          created_at?: string | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "article_likes_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "article_with_details"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "article_likes_article_id_fkey"
             columns: ["article_id"]
             isOneToOne: false
             referencedRelation: "articles"
@@ -447,6 +483,112 @@ export type Database = {
             columns: ["creche_id"]
             isOneToOne: false
             referencedRelation: "creches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contest_participants: {
+        Row: {
+          created_at: string | null
+          email: string
+          id: string
+          name: string
+          newsletter_joined: boolean | null
+          total_points: number | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          id?: string
+          name: string
+          newsletter_joined?: boolean | null
+          total_points?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          id?: string
+          name?: string
+          newsletter_joined?: boolean | null
+          total_points?: number | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      contest_referrals: {
+        Row: {
+          accepted: boolean | null
+          created_at: string | null
+          id: string
+          points_earned: number | null
+          referee_email: string
+          referrer_id: string | null
+        }
+        Insert: {
+          accepted?: boolean | null
+          created_at?: string | null
+          id?: string
+          points_earned?: number | null
+          referee_email: string
+          referrer_id?: string | null
+        }
+        Update: {
+          accepted?: boolean | null
+          created_at?: string | null
+          id?: string
+          points_earned?: number | null
+          referee_email?: string
+          referrer_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contest_referrals_referrer_id_fkey"
+            columns: ["referrer_id"]
+            isOneToOne: false
+            referencedRelation: "contest_participants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contest_social_actions: {
+        Row: {
+          created_at: string | null
+          followed: boolean | null
+          id: string
+          participant_id: string | null
+          platform: string
+          points: number | null
+          shared: boolean | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          followed?: boolean | null
+          id?: string
+          participant_id?: string | null
+          platform: string
+          points?: number | null
+          shared?: boolean | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          followed?: boolean | null
+          id?: string
+          participant_id?: string | null
+          platform?: string
+          points?: number | null
+          shared?: boolean | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contest_social_actions_participant_id_fkey"
+            columns: ["participant_id"]
+            isOneToOne: false
+            referencedRelation: "contest_participants"
             referencedColumns: ["id"]
           },
         ]
@@ -2262,6 +2404,42 @@ export type Database = {
           },
         ]
       }
+      user_favorites: {
+        Row: {
+          created_at: string | null
+          creche_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          creche_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          creche_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_favorites_creche_id_fkey"
+            columns: ["creche_id"]
+            isOneToOne: false
+            referencedRelation: "creches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_favorites_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_likes: {
         Row: {
           article_id: string | null
@@ -2510,22 +2688,23 @@ export type Database = {
       }
     }
     Functions: {
-      generate_monthly_invoices: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      generate_monthly_invoices: { Args: never; Returns: undefined }
       is_notification_enabled: {
-        Args: { _user_id: string; _type: string }
+        Args: { _type: string; _user_id: string }
         Returns: boolean
       }
       notify_creche_users: {
         Args: {
           _creche_id: string
-          _title: string
           _message: string
-          _type: string
           _sender: string
+          _title: string
+          _type: string
         }
+        Returns: undefined
+      }
+      update_contest_participant_total_points: {
+        Args: { participant_uuid: string }
         Returns: undefined
       }
     }
