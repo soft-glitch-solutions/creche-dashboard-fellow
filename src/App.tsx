@@ -53,6 +53,7 @@ import SocialProfile from "./pages/social/SocialProfile";
 import NotificationsSettings from "@/pages/settings/Notifications";
 import FeaturesSettings from "@/pages/settings/Features";
 import PaymentsSettings from "@/pages/settings/Payments";
+import DeleteAccount from "@/pages/DeleteAccount";
 
 // Create a client
 const queryClient = new QueryClient();
@@ -71,6 +72,7 @@ const App = () => {
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/complete-profile" element={<CompleteProfile />} />
+              <Route path="/delete-account" element={<DeleteAccount />} />
 
               {/* Dashboard Routes */}
               <Route path="/dashboard" element={<DashboardLayout />}>
