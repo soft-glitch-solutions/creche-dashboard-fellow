@@ -52,6 +52,59 @@ export type Database = {
           },
         ]
       }
+      application_form_config: {
+        Row: {
+          created_at: string
+          creche_id: string
+          display_order: number
+          field_label: string
+          field_name: string
+          field_options: Json | null
+          field_type: string
+          id: string
+          is_enabled: boolean
+          is_required: boolean
+          section: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          creche_id: string
+          display_order?: number
+          field_label: string
+          field_name: string
+          field_options?: Json | null
+          field_type?: string
+          id?: string
+          is_enabled?: boolean
+          is_required?: boolean
+          section?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          creche_id?: string
+          display_order?: number
+          field_label?: string
+          field_name?: string
+          field_options?: Json | null
+          field_type?: string
+          id?: string
+          is_enabled?: boolean
+          is_required?: boolean
+          section?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "application_form_config_creche_id_fkey"
+            columns: ["creche_id"]
+            isOneToOne: false
+            referencedRelation: "creches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       application_notes: {
         Row: {
           application_id: string

@@ -14,6 +14,7 @@ import NotificationsSettings from "./Notifications";
 import Payments from "./Payments";
 import UserManagement from "./UserManagement";
 import CrecheProfile from "../CrecheProfile";
+import ApplicationFormSettings from "./ApplicationFormSettings";
 
 export const Settings = () => {
   const { tab, id } = useParams();
@@ -81,12 +82,13 @@ export const Settings = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={(value) => navigate(`/dashboard/settings/${value}`)}>
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="features">Features</TabsTrigger>
           <TabsTrigger value="notifications">Notifications</TabsTrigger>
           <TabsTrigger value="payments">Payments</TabsTrigger>
-          <TabsTrigger value="users">User Management</TabsTrigger>
-          <TabsTrigger value="creche">Creche Profile</TabsTrigger>
+          <TabsTrigger value="users">Users</TabsTrigger>
+          <TabsTrigger value="applications">Applications</TabsTrigger>
+          <TabsTrigger value="creche">Creche</TabsTrigger>
         </TabsList>
 
         <TabsContent value="features" className="space-y-6">
@@ -103,6 +105,10 @@ export const Settings = () => {
 
         <TabsContent value="users" className="space-y-6">
           <UserManagement />
+        </TabsContent>
+
+        <TabsContent value="applications" className="space-y-6">
+          <ApplicationFormSettings />
         </TabsContent>
 
         <TabsContent value="creche" className="space-y-6">
