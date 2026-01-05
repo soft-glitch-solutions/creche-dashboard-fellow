@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label";
 import { ApplicationLifecycle } from "@/components/applications/ApplicationLifecycle";
 import { ApplicationNotes } from "@/components/applications/ApplicationNotes";
 import { Badge } from "@/components/ui/badge";
+import { ApplicationProfileSkeleton } from "@/components/applications/ApplicationProfileSkeleton";
 
 interface ApplicationDocument {
   id: string;
@@ -39,6 +40,7 @@ export default function ApplicantProfile() {
   const [child, setChild] = useState<any>(null);
   const [documents, setDocuments] = useState<ApplicationDocument[]>([]);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [isEditingChild, setIsEditingChild] = useState(false);
   const [editForm, setEditForm] = useState({
@@ -128,13 +130,15 @@ export default function ApplicantProfile() {
 
   const fetchApplicationData = async () => {
     if (!id) return;
+    setIsLoading(true);
 
-    // Fetch application details
-    const { data: applicationData, error: applicationError} = await supabase
-      .from("applications")
-      .select("*")
-      .eq("id", id)
-      .single();
+    try {
+      // Fetch application details
+      const { data: applicationData, error: applicationError} = await supabase
+        .from("applications")
+        .select("*")
+        .eq("id", id)
+        .single();
 
     if (applicationError) {
       console.error("Error fetching application:", applicationError);
@@ -190,10 +194,15 @@ export default function ApplicantProfile() {
       .eq("application_id", id)
       .order("created_at", { ascending: false });
 
-    if (invoicesError) {
-      console.error("Error fetching invoices:", invoicesError);
-    } else {
-      setInvoices(invoicesData);
+      if (invoicesError) {
+        console.error("Error fetching invoices:", invoicesError);
+      } else {
+        setInvoices(invoicesData);
+      }
+    } catch (error) {
+      console.error("Error fetching application data:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -368,8 +377,12 @@ export default function ApplicantProfile() {
     }
   }, [id]);
 
+  if (isLoading) {
+    return <ApplicationProfileSkeleton />;
+  }
+
   if (!application) {
-    return <div className="text-center p-6">Loading application data...</div>;
+    return <div className="text-center p-6">Application not found</div>;
   }
 
   return (

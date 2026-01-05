@@ -6,7 +6,7 @@ import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
-import { Pencil, ArrowLeft, Trash2, Download, Calendar, Loader2 } from "lucide-react";
+import { Pencil, ArrowLeft, Trash2, Download, Calendar } from "lucide-react";
 import { Student, StudentDocument } from "@/types/student";
 import { StudentDocumentUpload } from "@/components/students/StudentDocumentUpload";
 import { useToast } from "@/hooks/use-toast";
@@ -14,6 +14,7 @@ import { StudentProfileDrawer } from "@/components/students/StudentProfileDrawer
 import { format } from "date-fns";
 import CalendarHeatmap from "react-calendar-heatmap";
 import "./heatmapStyles.css";
+import { StudentProfileSkeleton } from "@/components/students/StudentProfileSkeleton";
 
 
 const StudentProfile = () => {
@@ -145,11 +146,7 @@ const StudentProfile = () => {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    );
+    return <StudentProfileSkeleton />;
   }
 
   if (!student) {
