@@ -9,11 +9,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowLeft } from "lucide-react";
 
 // Import existing settings components
-import { Features } from "./Features";
-import { NotificationsSettings } from "./Notifications";
-import { PaymentsSettings } from "./Payments";
-import { UserManagementSettings } from "./UserManagement";
-import { CrecheProfile } from "../CrecheProfile";
+import FeaturesSettings from "./Features";
+import NotificationsSettings from "./Notifications";
+import Payments from "./Payments";
+import UserManagement from "./UserManagement";
+import CrecheProfile from "../CrecheProfile";
 
 export const Settings = () => {
   const { tab, id } = useParams();
@@ -90,7 +90,7 @@ export const Settings = () => {
         </TabsList>
 
         <TabsContent value="features" className="space-y-6">
-          <Features />
+          <FeaturesSettings />
         </TabsContent>
 
         <TabsContent value="notifications" className="space-y-6">
@@ -98,11 +98,11 @@ export const Settings = () => {
         </TabsContent>
 
         <TabsContent value="payments" className="space-y-6">
-          <PaymentsSettings />
+          <Payments />
         </TabsContent>
 
         <TabsContent value="users" className="space-y-6">
-          <UserManagementSettings />
+          <UserManagement />
         </TabsContent>
 
         <TabsContent value="creche" className="space-y-6">

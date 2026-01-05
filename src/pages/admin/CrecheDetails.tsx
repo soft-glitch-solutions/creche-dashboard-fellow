@@ -9,18 +9,42 @@ import { supabase } from "@/integrations/supabase/client";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Settings, Users, DollarSign, Edit, Save, CheckSquare, Square } from "lucide-react";
-import type { Creche } from "@/types/creche";
+import type { Creche, CrechePlan, CrecheFeatures, CrecheServices, CrecheFacilities } from "@/types/creche";
 import BasicInformationCard from "@/components/admin/BasicInformationCard";
 import AdditionalInformationCard from "@/components/admin/AdditionalInformationCard";
 import PlanAndFeaturesCard from "@/components/admin/PlanAndFeaturesCard";
 
-const defaultFeatures = {
+const defaultFeatures: CrecheFeatures = {
   staff_management: false,
   attendance_tracking: false,
   parent_communication: false,
   event_calendar: false,
   financial_tracking: false,
   reports_analytics: false,
+};
+
+const defaultServices: CrecheServices = {
+  full_time_care: false,
+  part_time_care: false,
+  after_school_care: false,
+  meals_provided: false,
+  transportation: false,
+  special_education: false,
+};
+
+const defaultFacilities: CrecheFacilities = {
+  teachers: false,
+  classrooms: false,
+  toilets: false,
+  playground: false,
+  kitchen: false,
+  parking: false,
+  teachers_count: 0,
+  classrooms_count: 0,
+  toilets_count: 0,
+  playground_count: 0,
+  kitchen_count: 0,
+  parking_count: 0,
 };
 
 const CrecheDetails = () => {
@@ -39,6 +63,8 @@ const CrecheDetails = () => {
     description: "",
     plan: "free" as CrechePlan,
     features: defaultFeatures,
+    services: defaultServices,
+    facilities: defaultFacilities,
     registered: false,
     facebook_url: null,
     twitter_url: null,
@@ -103,7 +129,9 @@ const CrecheDetails = () => {
       const typedCreche: Creche = {
         ...creche,
         plan: (creche.plan || 'free') as CrechePlan,
-        features: creche.features as CrecheFeatures || defaultFeatures
+        features: (creche.features as unknown as CrecheFeatures) || defaultFeatures,
+        services: (creche.services as unknown as CrecheServices) || defaultServices,
+        facilities: (creche.facilities as unknown as CrecheFacilities) || defaultFacilities,
       };
 
       setCrecheData(typedCreche);
@@ -193,7 +221,7 @@ const CrecheDetails = () => {
         .from('creches')
         .update({
           plan: editForm.plan,
-          features: editForm.features,
+          features: JSON.parse(JSON.stringify(editForm.features)),
         })
         .eq('id', crecheData.id);
 
@@ -250,8 +278,8 @@ const CrecheDetails = () => {
           onChange={(field, value) => setEditForm({ ...editForm, [field]: value })}
         />
         <PlanAndFeaturesCard
-          crecheData={crecheData}
-          editForm={editForm}
+          crecheData={{ plan: crecheData.plan, features: crecheData.features as unknown as Record<string, boolean> }}
+          editForm={{ plan: editForm.plan, features: editForm.features as unknown as Record<string, boolean> }}
           isEditing={isEditingPlan}
           onToggleEdit={() => setIsEditingPlan(!isEditingPlan)}
           onSave={handleSavePlan}
