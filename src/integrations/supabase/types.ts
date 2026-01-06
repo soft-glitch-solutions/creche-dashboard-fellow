@@ -105,6 +105,44 @@ export type Database = {
           },
         ]
       }
+      application_lifecycle_stages: {
+        Row: {
+          created_at: string
+          creche_id: string
+          display_order: number
+          id: string
+          is_active: boolean
+          stage_name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          creche_id: string
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          stage_name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          creche_id?: string
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          stage_name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "application_lifecycle_stages_creche_id_fkey"
+            columns: ["creche_id"]
+            isOneToOne: false
+            referencedRelation: "creches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       application_notes: {
         Row: {
           application_id: string

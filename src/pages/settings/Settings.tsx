@@ -108,6 +108,22 @@ export const Settings = () => {
         </TabsContent>
 
         <TabsContent value="applications" className="space-y-6">
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle>Lifecycle Stages</CardTitle>
+              <CardDescription>
+                Customize the stages applicants go through in your application process
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button 
+                onClick={() => navigate("/dashboard/settings/lifecycle-stages")}
+                variant="outline"
+              >
+                Manage Lifecycle Stages
+              </Button>
+            </CardContent>
+          </Card>
           <ApplicationFormSettings />
         </TabsContent>
 
