@@ -53,7 +53,7 @@ interface Application {
   number_of_children: number | null;
   parent_address: string | null;
   parent_whatsapp: string | null;
-  lifecycle_stage: ApplicationLifecycleStage;
+  lifecycle_stage: string;
   user_id: string;
 }
 

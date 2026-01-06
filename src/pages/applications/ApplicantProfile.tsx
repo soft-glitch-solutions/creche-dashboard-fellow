@@ -5,16 +5,17 @@ import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
-import { Pencil, ArrowLeft, Trash2, FileText, UserCheck, Plus } from "lucide-react";
+import { Pencil, ArrowLeft, Trash2, FileText, UserCheck, Plus, Settings } from "lucide-react";
 import { ApplicationDocumentUpload } from "@/components/applications/ApplicationDocumentUpload";
 import { useToast } from "@/hooks/use-toast";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ApplicationLifecycle } from "@/components/applications/ApplicationLifecycle";
 import { ApplicationNotes } from "@/components/applications/ApplicationNotes";
 import { Badge } from "@/components/ui/badge";
 import { ApplicationProfileSkeleton } from "@/components/applications/ApplicationProfileSkeleton";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface ApplicationDocument {
   id: string;
@@ -31,6 +32,22 @@ interface Invoice {
   status: string;
   created_at: string;
 }
+
+const APPLICATION_STATUSES = ["New", "Pending", "Approved", "Declined"] as const;
+type ApplicationStatus = typeof APPLICATION_STATUSES[number];
+
+const getStatusBadgeClass = (status: string) => {
+  switch (status) {
+    case "Approved":
+      return "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400";
+    case "Declined":
+      return "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400";
+    case "Pending":
+      return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400";
+    default:
+      return "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400";
+  }
+};
 
 export default function ApplicantProfile() {
   const { id } = useParams();
@@ -125,7 +142,10 @@ export default function ApplicantProfile() {
   };
 
   useEffect(() => {
-    fetchApplicationData();
+    if (id) {
+      fetchApplicationData();
+      fetchApplicationNotes(id);
+    }
   }, [id]);
 
   const fetchApplicationData = async () => {
@@ -134,65 +154,65 @@ export default function ApplicantProfile() {
 
     try {
       // Fetch application details
-      const { data: applicationData, error: applicationError} = await supabase
+      const { data: applicationData, error: applicationError } = await supabase
         .from("applications")
         .select("*")
         .eq("id", id)
         .single();
 
-    if (applicationError) {
-      console.error("Error fetching application:", applicationError);
-      return;
-    }
-
-    setApplication(applicationData);
-    setEditForm({
-      parent_name: applicationData.parent_name,
-      parent_email: applicationData.parent_email,
-      parent_phone_number: applicationData.parent_phone_number,
-      parent_whatsapp: applicationData.parent_whatsapp || "",
-      parent_address: applicationData.parent_address || "",
-      message: applicationData.message,
-    });
-
-    // Fetch child details if child_id exists
-    if (applicationData.child_id) {
-      const { data: childData, error: childError } = await supabase
-        .from("children")
-        .select("*")
-        .eq("id", applicationData.child_id)
-        .single();
-
-      if (!childError && childData) {
-        setChild(childData);
-        setChildForm({
-          first_name: childData.first_name || "",
-          last_name: childData.last_name || "",
-          date_of_birth: childData.date_of_birth || "",
-          gender: childData.gender || "",
-        });
+      if (applicationError) {
+        console.error("Error fetching application:", applicationError);
+        return;
       }
-    }
 
-    // Fetch documents
-    const { data: documentsData, error: documentsError } = await supabase
-      .from("application_documents")
-      .select("*")
-      .eq("application_id", id)
-      .order("uploaded_at", { ascending: false });
+      setApplication(applicationData);
+      setEditForm({
+        parent_name: applicationData.parent_name,
+        parent_email: applicationData.parent_email,
+        parent_phone_number: applicationData.parent_phone_number,
+        parent_whatsapp: applicationData.parent_whatsapp || "",
+        parent_address: applicationData.parent_address || "",
+        message: applicationData.message,
+      });
 
-    if (documentsError) {
-      console.error("Error fetching documents:", documentsError);
-    } else {
-      setDocuments(documentsData);
-    }
+      // Fetch child details if child_id exists
+      if (applicationData.child_id) {
+        const { data: childData, error: childError } = await supabase
+          .from("children")
+          .select("*")
+          .eq("id", applicationData.child_id)
+          .single();
 
-    // Fetch invoices
-    const { data: invoicesData, error: invoicesError } = await supabase
-      .from("invoices")
-      .select("*")
-      .eq("application_id", id)
-      .order("created_at", { ascending: false });
+        if (!childError && childData) {
+          setChild(childData);
+          setChildForm({
+            first_name: childData.first_name || "",
+            last_name: childData.last_name || "",
+            date_of_birth: childData.date_of_birth || "",
+            gender: childData.gender || "",
+          });
+        }
+      }
+
+      // Fetch documents
+      const { data: documentsData, error: documentsError } = await supabase
+        .from("application_documents")
+        .select("*")
+        .eq("application_id", id)
+        .order("uploaded_at", { ascending: false });
+
+      if (documentsError) {
+        console.error("Error fetching documents:", documentsError);
+      } else {
+        setDocuments(documentsData);
+      }
+
+      // Fetch invoices
+      const { data: invoicesData, error: invoicesError } = await supabase
+        .from("invoices")
+        .select("*")
+        .eq("application_id", id)
+        .order("created_at", { ascending: false });
 
       if (invoicesError) {
         console.error("Error fetching invoices:", invoicesError);
@@ -225,6 +245,29 @@ export default function ApplicantProfile() {
       });
       setIsEditing(false);
       fetchApplicationData();
+    }
+  };
+
+  const handleStatusChange = async (newStatus: string) => {
+    if (!application) return;
+
+    const { error } = await supabase
+      .from("applications")
+      .update({ application_status: newStatus })
+      .eq("id", application.id);
+
+    if (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to update application status",
+      });
+    } else {
+      setApplication({ ...application, application_status: newStatus });
+      toast({
+        title: "Success",
+        description: `Application status updated to ${newStatus}`,
+      });
     }
   };
 
@@ -332,6 +375,15 @@ export default function ApplicantProfile() {
       return;
     }
 
+    if (application.application_status !== "Approved") {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Application must be Approved before creating a student",
+      });
+      return;
+    }
+
     try {
       const { data: student, error: studentError } = await supabase
         .from("students")
@@ -369,14 +421,6 @@ export default function ApplicantProfile() {
     }
   };
 
-  // Update useEffect to fetch notes when component mounts
-  useEffect(() => {
-    if (id) {
-      fetchApplicationData();
-      fetchApplicationNotes(id);
-    }
-  }, [id]);
-
   if (isLoading) {
     return <ApplicationProfileSkeleton />;
   }
@@ -410,7 +454,7 @@ export default function ApplicantProfile() {
               <Pencil className="h-4 w-4 mr-2" />
               Edit
             </Button>
-            {application.lifecycle_stage === "Documents Received" && (
+            {application.application_status === "Approved" && child && (
               <Button onClick={handleCreateStudent}>
                 <UserCheck className="h-4 w-4 mr-2" />
                 Create Student
@@ -419,8 +463,42 @@ export default function ApplicantProfile() {
           </div>
         </div>
 
+        {/* Application Status Section */}
+        <div className="mb-6 p-4 border rounded-lg bg-muted/30">
+          <div className="flex items-center justify-between">
+            <div>
+              <Label className="text-sm font-medium">Application Status</Label>
+              <p className="text-xs text-muted-foreground">
+                Set to "Approved" to enable student creation
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              <Badge className={getStatusBadgeClass(application.application_status || "New")}>
+                {application.application_status || "New"}
+              </Badge>
+              <Select
+                value={application.application_status || "New"}
+                onValueChange={handleStatusChange}
+              >
+                <SelectTrigger className="w-[140px]">
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  {APPLICATION_STATUSES.map((status) => (
+                    <SelectItem key={status} value={status}>
+                      {status}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </div>
+
+        {/* Lifecycle Progress */}
         <ApplicationLifecycle
           currentStage={application.lifecycle_stage || "New"}
+          crecheId={application.creche_id}
           onStageChange={async (stage) => {
             const { error } = await supabase
               .from("applications")
@@ -442,6 +520,18 @@ export default function ApplicantProfile() {
             }
           }}
         />
+
+        <div className="mt-4 pt-4 border-t">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-muted-foreground"
+            onClick={() => navigate("/dashboard/settings/application-form")}
+          >
+            <Settings className="h-4 w-4 mr-2" />
+            Customize Lifecycle Stages
+          </Button>
+        </div>
       </Card>
 
       <Dialog open={isEditing} onOpenChange={setIsEditing}>

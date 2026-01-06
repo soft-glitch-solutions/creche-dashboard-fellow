@@ -53,6 +53,8 @@ import SocialProfile from "./pages/social/SocialProfile";
 import NotificationsSettings from "@/pages/settings/Notifications";
 import FeaturesSettings from "@/pages/settings/Features";
 import PaymentsSettings from "@/pages/settings/Payments";
+import ApplicationFormSettings from "@/pages/settings/ApplicationFormSettings";
+import LifecycleStagesSettings from "@/pages/settings/LifecycleStagesSettings";
 import DeleteAccount from "@/pages/DeleteAccount";
 
 // Create a client
@@ -141,6 +143,8 @@ const App = () => {
                 <Route path="settings/payments" element={<PaymentsSettings />} />
                 <Route path="settings/notifications" element={<NotificationsSettings />} />
                 <Route path="settings/features" element={<FeaturesSettings />} />
+                <Route path="settings/application-form" element={<ApplicationFormSettings />} />
+                <Route path="settings/lifecycle-stages" element={<LifecycleStagesSettings />} />
 
                 {/* Admin Routes */}
                 <Route path="admin" element={<AdminRoute />}>
