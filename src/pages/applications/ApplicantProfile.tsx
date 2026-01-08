@@ -526,7 +526,7 @@ export default function ApplicantProfile() {
             variant="ghost"
             size="sm"
             className="text-muted-foreground"
-            onClick={() => navigate("/dashboard/settings/application-form")}
+            onClick={() => navigate("/dashboard/settings/lifecycle-stages")}
           >
             <Settings className="h-4 w-4 mr-2" />
             Customize Lifecycle Stages
