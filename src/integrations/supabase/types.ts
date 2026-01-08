@@ -474,6 +474,131 @@ export type Database = {
           },
         ]
       }
+      child_invites: {
+        Row: {
+          child_id: string
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          invitee_email: string
+          invitee_user_id: string | null
+          inviter_id: string
+          relationship: string | null
+          share_code: string
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          child_id: string
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          invitee_email: string
+          invitee_user_id?: string | null
+          inviter_id: string
+          relationship?: string | null
+          share_code: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          child_id?: string
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          invitee_email?: string
+          invitee_user_id?: string | null
+          inviter_id?: string
+          relationship?: string | null
+          share_code?: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "child_invites_child_id_fkey"
+            columns: ["child_id"]
+            isOneToOne: false
+            referencedRelation: "children"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "child_invites_invitee_user_id_fkey"
+            columns: ["invitee_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "child_invites_inviter_id_fkey"
+            columns: ["inviter_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      child_parents: {
+        Row: {
+          child_id: string
+          created_at: string | null
+          id: string
+          invitation_id: string | null
+          invited_by: string | null
+          is_verified: boolean | null
+          permissions: Json | null
+          relationship: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          child_id: string
+          created_at?: string | null
+          id?: string
+          invitation_id?: string | null
+          invited_by?: string | null
+          is_verified?: boolean | null
+          permissions?: Json | null
+          relationship?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          child_id?: string
+          created_at?: string | null
+          id?: string
+          invitation_id?: string | null
+          invited_by?: string | null
+          is_verified?: boolean | null
+          permissions?: Json | null
+          relationship?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "child_parents_child_id_fkey"
+            columns: ["child_id"]
+            isOneToOne: false
+            referencedRelation: "children"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "child_parents_invited_by_fkey"
+            columns: ["invited_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "child_parents_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       children: {
         Row: {
           created_at: string | null
@@ -484,6 +609,7 @@ export type Database = {
           id: string
           last_name: string
           profile_picture_url: string | null
+          share_code: string | null
           updated_at: string | null
           user_id: string
         }
@@ -496,6 +622,7 @@ export type Database = {
           id?: string
           last_name: string
           profile_picture_url?: string | null
+          share_code?: string | null
           updated_at?: string | null
           user_id: string
         }
@@ -508,6 +635,7 @@ export type Database = {
           id?: string
           last_name?: string
           profile_picture_url?: string | null
+          share_code?: string | null
           updated_at?: string | null
           user_id?: string
         }
@@ -1309,6 +1437,7 @@ export type Database = {
       invoices: {
         Row: {
           application_id: string | null
+          child_id: string | null
           created_at: string | null
           creche_id: string | null
           id: string
@@ -1325,6 +1454,7 @@ export type Database = {
         }
         Insert: {
           application_id?: string | null
+          child_id?: string | null
           created_at?: string | null
           creche_id?: string | null
           id?: string
@@ -1341,6 +1471,7 @@ export type Database = {
         }
         Update: {
           application_id?: string | null
+          child_id?: string | null
           created_at?: string | null
           creche_id?: string | null
           id?: string
@@ -1361,6 +1492,13 @@ export type Database = {
             columns: ["application_id"]
             isOneToOne: false
             referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_child_id_fkey"
+            columns: ["child_id"]
+            isOneToOne: false
+            referencedRelation: "children"
             referencedColumns: ["id"]
           },
           {
@@ -2069,6 +2207,7 @@ export type Database = {
           address: string | null
           age: number | null
           application_id: string | null
+          child_id: string | null
           class: string | null
           created_at: string | null
           creche_id: string | null
@@ -2089,6 +2228,7 @@ export type Database = {
           address?: string | null
           age?: number | null
           application_id?: string | null
+          child_id?: string | null
           class?: string | null
           created_at?: string | null
           creche_id?: string | null
@@ -2109,6 +2249,7 @@ export type Database = {
           address?: string | null
           age?: number | null
           application_id?: string | null
+          child_id?: string | null
           class?: string | null
           created_at?: string | null
           creche_id?: string | null
@@ -2131,6 +2272,13 @@ export type Database = {
             columns: ["application_id"]
             isOneToOne: false
             referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "students_child_id_fkey"
+            columns: ["child_id"]
+            isOneToOne: false
+            referencedRelation: "children"
             referencedColumns: ["id"]
           },
           {
@@ -2779,7 +2927,58 @@ export type Database = {
       }
     }
     Functions: {
+      accept_child_invitation: {
+        Args: { p_invitation_id: string; p_user_id: string }
+        Returns: Json
+      }
+      check_child_permission: {
+        Args: { p_action: string; p_child_id: string; p_user_id: string }
+        Returns: boolean
+      }
+      create_child_invitation: {
+        Args: {
+          p_child_id: string
+          p_invitee_email: string
+          p_inviter_id: string
+          p_relationship?: string
+        }
+        Returns: Json
+      }
       generate_monthly_invoices: { Args: never; Returns: undefined }
+      generate_share_code: { Args: never; Returns: string }
+      get_child_parents: {
+        Args: { p_child_id: string }
+        Returns: {
+          email: string
+          first_name: string
+          invited_by: string
+          is_primary: boolean
+          is_verified: boolean
+          joined_at: string
+          last_name: string
+          permissions: Json
+          phone_number: string
+          relationship: string
+          user_id: string
+        }[]
+      }
+      get_user_children: {
+        Args: { p_user_id: string }
+        Returns: {
+          can_edit: boolean
+          can_manage: boolean
+          child_id: string
+          creche_id: string
+          date_of_birth: string
+          first_name: string
+          gender: string
+          is_primary: boolean
+          last_name: string
+          permissions: Json
+          profile_picture_url: string
+          relationship: string
+        }[]
+      }
       is_notification_enabled: {
         Args: { _type: string; _user_id: string }
         Returns: boolean
