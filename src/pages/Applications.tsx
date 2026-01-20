@@ -56,6 +56,14 @@ interface Application {
   lifecycle_stage: string;
   user_id: string;
   class_id: string | null;
+  class?: {
+    id: string;
+    name: string;
+    color: string;
+    capacity: number;
+    min_age_months: number;
+    max_age_months: number;
+  } | null;
 }
 
 interface CrecheClass {
@@ -157,12 +165,22 @@ const Applications = () => {
     setClasses(classesWithCounts);
   };
 
-  // Fetch applications with caching
+  // Fetch applications with caching and class information
   const fetchApplications = async () => {
     try {
       const { data: rawData, error } = await supabase
         .from("applications")
-        .select("*")
+        .select(`
+          *,
+          creche_classes:class_id (
+            id,
+            name,
+            color,
+            capacity,
+            min_age_months,
+            max_age_months
+          )
+        `)
         .eq('creche_id', userCreche)
         .order("created_at", { ascending: false });
 
@@ -173,7 +191,15 @@ const Applications = () => {
         // Transform the data to ensure lifecycle_stage is of type ApplicationLifecycleStage
         const transformedData: Application[] = rawData.map(app => ({
           ...app,
-          lifecycle_stage: (app.lifecycle_stage || "New") as ApplicationLifecycleStage
+          lifecycle_stage: (app.lifecycle_stage || "New") as ApplicationLifecycleStage,
+          class: app.creche_classes ? {
+            id: app.creche_classes.id,
+            name: app.creche_classes.name,
+            color: app.creche_classes.color,
+            capacity: app.creche_classes.capacity,
+            min_age_months: app.creche_classes.min_age_months,
+            max_age_months: app.creche_classes.max_age_months
+          } : null
         }));
         setApplications(transformedData);
         localStorage.setItem("applications", JSON.stringify(transformedData));
@@ -182,6 +208,41 @@ const Applications = () => {
       console.error("Error fetching applications:", error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Handle deleting an application
+  const handleDeleteApplication = async (applicationId: string) => {
+    if (!confirm("Are you sure you want to delete this application? This action cannot be undone.")) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from("applications")
+        .delete()
+        .eq("id", applicationId);
+
+      if (error) throw error;
+
+      // Update local state
+      setApplications((prev) => prev.filter((app) => app.id !== applicationId));
+      localStorage.setItem(
+        "applications",
+        JSON.stringify(applications.filter((app) => app.id !== applicationId))
+      );
+
+      toast({
+        title: "Success",
+        description: "Application deleted successfully",
+      });
+    } catch (error) {
+      console.error("Error deleting application:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to delete application",
+      });
     }
   };
 
@@ -199,10 +260,11 @@ const Applications = () => {
       // Update local state with proper typing
       const transformedData = {
         ...data,
-        lifecycle_stage: (data.lifecycle_stage || "New") as ApplicationLifecycleStage
+        lifecycle_stage: (data.lifecycle_stage || "New") as ApplicationLifecycleStage,
+        class: null
       };
       setApplications((prev) => [transformedData, ...prev]);
-      localStorage.setItem("applications", JSON.stringify([data, ...applications]));
+      localStorage.setItem("applications", JSON.stringify([transformedData, ...applications]));
 
       toast({
         title: "Success",
@@ -302,6 +364,43 @@ const Applications = () => {
     }
   };
 
+  // Handle class assignment
+  const handleClassAssignment = async (applicationId: string, classId: string | null) => {
+    try {
+      const { error } = await supabase
+        .from("applications")
+        .update({ class_id: classId })
+        .eq("id", applicationId);
+
+      if (error) throw error;
+
+      // Update local state
+      setApplications(prev =>
+        prev.map(app =>
+          app.id === applicationId
+            ? {
+                ...app,
+                class_id: classId,
+                class: classId ? classes.find(c => c.id === classId) || null : null
+              }
+            : app
+        )
+      );
+
+      toast({
+        title: "Success",
+        description: classId ? "Class assigned successfully" : "Class removed successfully",
+      });
+    } catch (error) {
+      console.error("Error assigning class:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to assign class",
+      });
+    }
+  };
+
   // Debounced search
   const debouncedSearch = debounce((term: string) => {
     setSearchTerm(term);
@@ -311,7 +410,8 @@ const Applications = () => {
   const filteredApplications = applications.filter(
     (app) =>
       app.parent_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      app.parent_email.toLowerCase().includes(searchTerm.toLowerCase())
+      app.parent_email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (app.class?.name?.toLowerCase() || "").includes(searchTerm.toLowerCase())
   );
 
   // Get status badge styles
@@ -340,6 +440,7 @@ const Applications = () => {
           <TableHead>Parent Name</TableHead>
           <TableHead>Email</TableHead>
           <TableHead>Phone</TableHead>
+          <TableHead>Class</TableHead>
           <TableHead>Status</TableHead>
           <TableHead className="text-right">Actions</TableHead>
         </TableRow>
@@ -365,8 +466,12 @@ const Applications = () => {
             <TableCell>
               <Skeleton className="h-4 w-20" />
             </TableCell>
+            <TableCell>
+              <Skeleton className="h-4 w-20" />
+            </TableCell>
             <TableCell className="text-right">
               <div className="flex justify-end gap-2">
+                <Skeleton className="h-8 w-8 rounded-md" />
                 <Skeleton className="h-8 w-8 rounded-md" />
                 <Skeleton className="h-8 w-8 rounded-md" />
                 <Skeleton className="h-8 w-8 rounded-md" />
@@ -555,7 +660,7 @@ const Applications = () => {
             <ListSkeleton />
           ) : paginatedApplications.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={5} className="text-center">
+              <TableCell colSpan={7} className="text-center py-8 text-gray-500">
                 No applications found
               </TableCell>
             </TableRow>
@@ -567,6 +672,7 @@ const Applications = () => {
                   <TableHead>Parent Name</TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead>Phone</TableHead>
+                  <TableHead>Class</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
@@ -588,6 +694,22 @@ const Applications = () => {
                     <TableCell>{application.parent_email}</TableCell>
                     <TableCell>{application.parent_phone_number}</TableCell>
                     <TableCell>
+                      {application.class ? (
+                        <Badge 
+                          style={{ 
+                            backgroundColor: `${application.class.color}20`,
+                            color: application.class.color,
+                            borderColor: application.class.color
+                          }}
+                          className="border"
+                        >
+                          {application.class.name}
+                        </Badge>
+                      ) : (
+                        <span className="text-gray-400 text-sm">Not assigned</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
                       <Badge className={getStatusBadge(application.lifecycle_stage)}>
                         {application.lifecycle_stage}
                       </Badge>
@@ -604,7 +726,7 @@ const Applications = () => {
                               <Edit className="h-4 w-4" />
                             </Button>
                           </SheetTrigger>
-                          <SheetContent className="w-[1800px] sm:w-[840px]">
+                          <SheetContent className="w-[1800px] sm:w-[840px] overflow-y-auto">
                             <SheetHeader>
                               <SheetTitle className="flex justify-between">
                                 Application Details
@@ -656,15 +778,58 @@ const Applications = () => {
                               </div>
 
                               <div className="space-y-2">
+                                <h3 className="text-sm font-medium">Assign Class</h3>
+                                <Select 
+                                  value={selectedApplication?.class_id || ""}
+                                  onValueChange={(classId) => {
+                                    if (selectedApplication) {
+                                      handleClassAssignment(selectedApplication.id, classId || null);
+                                    }
+                                  }}
+                                >
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select a class" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="">No class</SelectItem>
+                                    {classes.map((cls) => (
+                                      <SelectItem key={cls.id} value={cls.id}>
+                                        {cls.name} ({cls.enrolled_count || 0}/{cls.capacity})
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+
+                              <div className="space-y-2">
+                                <h3 className="text-sm font-medium">Class Information</h3>
+                                <div className="bg-muted p-4 rounded-lg space-y-2">
+                                  {selectedApplication?.class ? (
+                                    <>
+                                      <div className="flex items-center gap-2">
+                                        <div 
+                                          className="w-3 h-3 rounded-full" 
+                                          style={{ backgroundColor: selectedApplication.class.color }}
+                                        />
+                                        <p>Class: {selectedApplication.class.name}</p>
+                                      </div>
+                                      <p>Age Range: {selectedApplication.class.min_age_months} - {selectedApplication.class.max_age_months} months</p>
+                                      <p>Capacity: {selectedApplication.class.capacity} students</p>
+                                    </>
+                                  ) : (
+                                    <p className="text-gray-400">No class assigned</p>
+                                  )}
+                                </div>
+                              </div>
+
+                              <div className="space-y-2">
                                 <h3 className="text-sm font-medium">Parent Information</h3>
                                 <div className="bg-muted p-4 rounded-lg space-y-2">
                                   <p>Name: {selectedApplication?.parent_name}</p>
                                   <p>Email: {selectedApplication?.parent_email}</p>
                                   <p>Phone: {selectedApplication?.parent_phone_number}</p>
                                   <p>Address: {selectedApplication?.parent_address || "Not provided"}</p>
-                                  <p>
-                                    Number of Children: {selectedApplication?.number_of_children || "Not specified"}
-                                  </p>
+  
                                 </div>
                               </div>
 
@@ -742,7 +907,12 @@ const Applications = () => {
                         <Button variant="ghost" size="icon" onClick={() => navigate(`/dashboard/applications/${application.id}`)}>
                           <Eye className="h-4 w-4" />
                         </Button>
-                        <Button variant="ghost" size="icon">
+                        <Button 
+                          variant="ghost" 
+                          size="icon"
+                          onClick={() => handleDeleteApplication(application.id)}
+                          title="Delete Application"
+                        >
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
@@ -779,84 +949,143 @@ const Applications = () => {
           {isLoading ? (
             <GridSkeleton />
           ) : paginatedApplications.length === 0 ? (
-            <div className="col-span-full text-center">No applications found</div>
+            <div className="col-span-full text-center py-12 text-gray-500">
+              No applications found
+            </div>
           ) : (
             paginatedApplications.map((application) => (
               <Card key={application.id} className="border-2 border-primary/20">
                 <CardHeader>
-                  <CardTitle className="text-xl text-purple-600">
-                    {application.application_status}
-                  </CardTitle>
+                  <div className="flex justify-between items-start">
+                    <CardTitle className="text-xl text-purple-600">
+                      {application.application_status}
+                    </CardTitle>
+                    <Badge className={getStatusBadge(application.lifecycle_stage)}>
+                      {application.lifecycle_stage}
+                    </Badge>
+                  </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="bg-blue-100 p-4 rounded-lg space-y-2">
                     <p className="text-gray-700">Parent: {application.parent_name}</p>
                     <p className="text-gray-700">Email: {application.parent_email}</p>
                     <p className="text-gray-700">Phone: {application.parent_phone_number}</p>
-                    <Sheet>
-                      <SheetTrigger asChild>
-                        <Button 
-                          variant="ghost" 
-                          className="p-0 h-auto hover:bg-transparent hover:text-purple-700"
-                          onClick={() => setSelectedApplication(application)}
-                        >
-                          <span className="text-purple-600 underline flex items-center gap-2">
+                    {application.class && (
+                      <div className="flex items-center gap-2 mt-2">
+                        <div 
+                          className="w-3 h-3 rounded-full" 
+                          style={{ backgroundColor: application.class.color }}
+                        />
+                        <span className="text-gray-700 font-medium">
+                          Class: {application.class.name}
+                        </span>
+                      </div>
+                    )}
+                    <div className="flex gap-2 mt-4">
+                      <Sheet>
+                        <SheetTrigger asChild>
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            className="flex-1 hover:bg-blue-200"
+                            onClick={() => setSelectedApplication(application)}
+                          >
+                            <Eye className="h-4 w-4 mr-2" />
                             View Details
-                            <Eye className="h-4 w-4" />
-                          </span>
-                        </Button>
-                      </SheetTrigger>
-                      <SheetContent className="w-[400px] sm:w-[880px]">
-                        <SheetHeader>
-                          <SheetTitle className="flex justify-between">
-                            Application Details
-                            <Button 
-                              variant="ghost" 
-                              size="icon"
-                              onClick={() => setSelectedApplication(null)}
-                            >
-                              <X className="h-4 w-4" />
-                            </Button>
-                          </SheetTitle>
-                        </SheetHeader>
-                        <div className="mt-6 space-y-6">
-                          <div className="space-y-2">
-                            <h3 className="text-sm font-medium">Application Status</h3>
-                            <Select 
-                              onValueChange={handleStatusChange} 
-                              defaultValue={application.application_status}
-                            >
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select status" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="New">New</SelectItem>
-                                <SelectItem value="Pending documents">Pending documents</SelectItem>
-                                <SelectItem value="Approved">Approved</SelectItem>
-                                <SelectItem value="Rejected">Rejected</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          
-                          <div className="space-y-2">
-                            <h3 className="text-sm font-medium">Parent Information</h3>
-                            <div className="bg-muted p-4 rounded-lg space-y-2">
-                              <p>Name: {application.parent_name}</p>
-                              <p>Email: {application.parent_email}</p>
-                              <p>Phone: {application.parent_phone_number}</p>
-                              <p>Address: {application.parent_address || 'Not provided'}</p>
-                              <p>Number of Children: {application.number_of_children || 'Not specified'}</p>
+                          </Button>
+                        </SheetTrigger>
+                        <SheetContent className="w-[400px] sm:w-[880px]">
+                          <SheetHeader>
+                            <SheetTitle className="flex justify-between">
+                              Application Details
+                              <Button 
+                                variant="ghost" 
+                                size="icon"
+                                onClick={() => setSelectedApplication(null)}
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                            </SheetTitle>
+                          </SheetHeader>
+                          <div className="mt-6 space-y-6">
+                            <div className="space-y-2">
+                              <h3 className="text-sm font-medium">Application Status</h3>
+                              <Select 
+                                onValueChange={handleStatusChange} 
+                                defaultValue={application.application_status}
+                              >
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select status" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="New">New</SelectItem>
+                                  <SelectItem value="Pending documents">Pending documents</SelectItem>
+                                  <SelectItem value="Approved">Approved</SelectItem>
+                                  <SelectItem value="Rejected">Rejected</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            
+                            <div className="space-y-2">
+                              <h3 className="text-sm font-medium">Class Information</h3>
+                              <div className="bg-muted p-4 rounded-lg space-y-2">
+                                {application.class ? (
+                                  <>
+                                    <div className="flex items-center gap-2">
+                                      <div 
+                                        className="w-3 h-3 rounded-full" 
+                                        style={{ backgroundColor: application.class.color }}
+                                      />
+                                      <p>Class: {application.class.name}</p>
+                                    </div>
+                                    <p>Age Range: {application.class.min_age_months} - {application.class.max_age_months} months</p>
+                                    <p>Capacity: {application.class.capacity} students</p>
+                                  </>
+                                ) : (
+                                  <p className="text-gray-400">No class assigned</p>
+                                )}
+                              </div>
+                            </div>
+
+                            <div className="space-y-2">
+                              <h3 className="text-sm font-medium">Parent Information</h3>
+                              <div className="bg-muted p-4 rounded-lg space-y-2">
+                                <p>Name: {application.parent_name}</p>
+                                <p>Email: {application.parent_email}</p>
+                                <p>Phone: {application.parent_phone_number}</p>
+                                <p>Address: {application.parent_address || 'Not provided'}</p>
+                              </div>
+                            </div>
+
+                            <div className="space-y-2">
+                              <h3 className="text-sm font-medium">Message</h3>
+                              <p className="bg-muted p-4 rounded-lg">{application.message}</p>
+                            </div>
+
+                            <div className="flex gap-2">
+                              {application.application_status === "Approved" && (
+                                <Button
+                                  variant="outline"
+                                  className="flex-1"
+                                  onClick={() => handleMakeStudent(application)}
+                                >
+                                  <UserCheck className="h-4 w-4 mr-2" />
+                                  Create Student
+                                </Button>
+                              )}
+                              <Button 
+                                variant="destructive"
+                                className="flex-1"
+                                onClick={() => handleDeleteApplication(application.id)}
+                              >
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Delete
+                              </Button>
                             </div>
                           </div>
-
-                          <div className="space-y-2">
-                            <h3 className="text-sm font-medium">Message</h3>
-                            <p className="bg-muted p-4 rounded-lg">{application.message}</p>
-                          </div>
-
-                        </div>
-                      </SheetContent>
-                    </Sheet>
+                        </SheetContent>
+                      </Sheet>
+                    </div>
                   </div>
                 </CardContent>
               </Card>

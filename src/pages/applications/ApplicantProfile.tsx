@@ -33,7 +33,7 @@ interface Invoice {
   created_at: string;
 }
 
-const APPLICATION_STATUSES = ["New", "Pending", "Approved", "Declined"] as const;
+const APPLICATION_STATUSES = ["New", "Pending","Offer Made" , "Approved", "Declined"] as const;
 type ApplicationStatus = typeof APPLICATION_STATUSES[number];
 
 const getStatusBadgeClass = (status: string) => {
@@ -42,6 +42,8 @@ const getStatusBadgeClass = (status: string) => {
       return "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400";
     case "Declined":
       return "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400";
+    case "Offer Made":
+      return "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400";
     case "Pending":
       return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400";
     default:
@@ -733,7 +735,6 @@ export default function ApplicantProfile() {
             <div><strong>Phone:</strong> {application.parent_phone_number}</div>
             <div><strong>WhatsApp:</strong> {application.parent_whatsapp || "Not provided"}</div>
             <div><strong>Address:</strong> {application.parent_address || "Not provided"}</div>
-            <div><strong>Number of Children:</strong> {application.number_of_children || "Not specified"}</div>
             <div><strong>Message:</strong> {application.message}</div>
           </Card>
         </TabsContent>
