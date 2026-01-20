@@ -55,6 +55,17 @@ interface Application {
   parent_whatsapp: string | null;
   lifecycle_stage: string;
   user_id: string;
+  class_id: string | null;
+}
+
+interface CrecheClass {
+  id: string;
+  name: string;
+  color: string;
+  capacity: number;
+  min_age_months: number;
+  max_age_months: number;
+  enrolled_count?: number;
 }
 
 const ITEMS_PER_PAGE = 10;
@@ -70,6 +81,7 @@ const Applications = () => {
   const { toast } = useToast();
   const [applicationNotes, setApplicationNotes] = useState<ApplicationNote[]>([]);
   const [userCreche, setUserCreche] = useState<string | null>(null);
+  const [classes, setClasses] = useState<CrecheClass[]>([]);
   const navigate = useNavigate();
   const { t } = useTranslation();
 
@@ -106,10 +118,44 @@ const Applications = () => {
     getUserCreche();
   }, []);
 
-  // Fetch applications on component mount
+  // Fetch applications and classes on component mount
   useEffect(() => {
-    fetchApplications();
+    if (userCreche) {
+      fetchApplications();
+      fetchClasses();
+    }
   }, [userCreche]);
+
+  const fetchClasses = async () => {
+    if (!userCreche) return;
+
+    const { data: classesData, error } = await supabase
+      .from("creche_classes")
+      .select("*")
+      .eq("creche_id", userCreche);
+
+    if (error) {
+      console.error("Error fetching classes:", error);
+      return;
+    }
+
+    // Get enrollment counts
+    const classesWithCounts = await Promise.all(
+      (classesData || []).map(async (cls) => {
+        const { count } = await supabase
+          .from("students")
+          .select("*", { count: "exact", head: true })
+          .eq("class_id", cls.id);
+
+        return {
+          ...cls,
+          enrolled_count: count || 0,
+        };
+      })
+    );
+
+    setClasses(classesWithCounts);
+  };
 
   // Fetch applications with caching
   const fetchApplications = async () => {
@@ -359,6 +405,10 @@ const Applications = () => {
       <div className="flex justify-between items-center">
         <h1 className="text-4xl font-bold text-primary">{t("applications")}</h1>
         <div className="flex gap-4">
+          <Button variant="outline" onClick={() => navigate("/dashboard/applications/waiting-list")} className="gap-2">
+            <UserPlus className="h-4 w-4" />
+            Waiting List
+          </Button>
           <Dialog>
             <DialogTrigger asChild>
               <Button className="gap-2">

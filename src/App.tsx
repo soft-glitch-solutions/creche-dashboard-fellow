@@ -9,6 +9,7 @@ import DashboardLayout from "@/components/DashboardLayout";
 import Dashboard from "@/pages/Dashboard";
 import Applications from "@/pages/Applications";
 import ApplicantProfile from "@/pages/applications/ApplicantProfile";
+import WaitingList from "@/pages/applications/WaitingList";
 import Students from "@/pages/Students";
 import StudentProfile from "@/pages/students/StudentProfile";
 import CrecheProfile from "@/pages/CrecheProfile";
@@ -87,6 +88,7 @@ const App = () => {
                 {/* Applications */}
                 <Route path="applications" element={<Applications />} />
                 <Route path="applications/:id" element={<ApplicantProfile />} />
+                <Route path="applications/waiting-list" element={<WaitingList />} />
 
                 {/* Calendar */}
                 <Route path="calendar" element={<Calendar />} />

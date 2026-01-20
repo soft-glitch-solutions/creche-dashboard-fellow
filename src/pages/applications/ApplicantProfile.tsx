@@ -57,6 +57,7 @@ export default function ApplicantProfile() {
   const [child, setChild] = useState<any>(null);
   const [documents, setDocuments] = useState<ApplicationDocument[]>([]);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [classes, setClasses] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [isEditingChild, setIsEditingChild] = useState(false);
@@ -148,6 +149,98 @@ export default function ApplicantProfile() {
     }
   }, [id]);
 
+  const fetchClasses = async (crecheId: string) => {
+    const { data: classesData, error } = await supabase
+      .from("creche_classes")
+      .select("*")
+      .eq("creche_id", crecheId);
+
+    if (error) {
+      console.error("Error fetching classes:", error);
+      return;
+    }
+
+    // Get enrollment counts
+    const classesWithCounts = await Promise.all(
+      (classesData || []).map(async (cls) => {
+        const { count } = await supabase
+          .from("students")
+          .select("*", { count: "exact", head: true })
+          .eq("class_id", cls.id);
+
+        return {
+          ...cls,
+          enrolled_count: count || 0,
+        };
+      })
+    );
+
+    setClasses(classesWithCounts);
+  };
+
+  const handleClassChange = async (classId: string) => {
+    if (!application) return;
+
+    const selectedClass = classes.find(c => c.id === classId);
+    if (!selectedClass) return;
+
+    // Check if class is at capacity
+    if (selectedClass.enrolled_count >= selectedClass.capacity) {
+      // Add to waiting list
+      try {
+        const { data: existingWaiting } = await supabase
+          .from("application_waiting_list")
+          .select("id")
+          .eq("application_id", application.id)
+          .eq("class_id", classId)
+          .single();
+
+        if (!existingWaiting) {
+          // Get next position
+          const { count } = await supabase
+            .from("application_waiting_list")
+            .select("*", { count: "exact", head: true })
+            .eq("class_id", classId)
+            .eq("status", "waiting");
+
+          await supabase.from("application_waiting_list").insert({
+            application_id: application.id,
+            class_id: classId,
+            creche_id: application.creche_id,
+            position: (count || 0) + 1,
+          });
+
+          toast({
+            title: "Added to Waiting List",
+            description: `${selectedClass.name} is at full capacity. Application has been added to the waiting list.`,
+          });
+        }
+      } catch (error) {
+        console.error("Error adding to waiting list:", error);
+      }
+    }
+
+    // Update application with class_id
+    const { error } = await supabase
+      .from("applications")
+      .update({ class_id: classId })
+      .eq("id", application.id);
+
+    if (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to update class",
+      });
+    } else {
+      setApplication({ ...application, class_id: classId });
+      toast({
+        title: "Success",
+        description: `Class updated to ${selectedClass.name}`,
+      });
+    }
+  };
+
   const fetchApplicationData = async () => {
     if (!id) return;
     setIsLoading(true);
@@ -218,6 +311,11 @@ export default function ApplicantProfile() {
         console.error("Error fetching invoices:", invoicesError);
       } else {
         setInvoices(invoicesData);
+      }
+
+      // Fetch classes for the creche
+      if (applicationData.creche_id) {
+        fetchClasses(applicationData.creche_id);
       }
     } catch (error) {
       console.error("Error fetching application data:", error);
