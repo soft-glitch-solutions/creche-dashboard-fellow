@@ -196,10 +196,69 @@ export type Database = {
           },
         ]
       }
+      application_waiting_list: {
+        Row: {
+          application_id: string
+          class_id: string
+          created_at: string | null
+          creche_id: string
+          id: string
+          notes: string | null
+          position: number
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          application_id: string
+          class_id: string
+          created_at?: string | null
+          creche_id: string
+          id?: string
+          notes?: string | null
+          position?: number
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          application_id?: string
+          class_id?: string
+          created_at?: string | null
+          creche_id?: string
+          id?: string
+          notes?: string | null
+          position?: number
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "application_waiting_list_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "application_waiting_list_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "creche_classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "application_waiting_list_creche_id_fkey"
+            columns: ["creche_id"]
+            isOneToOne: false
+            referencedRelation: "creches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       applications: {
         Row: {
           application_status: string | null
           child_id: string | null
+          class_id: string | null
           created_at: string | null
           creche_id: string | null
           id: string
@@ -218,6 +277,7 @@ export type Database = {
         Insert: {
           application_status?: string | null
           child_id?: string | null
+          class_id?: string | null
           created_at?: string | null
           creche_id?: string | null
           id?: string
@@ -236,6 +296,7 @@ export type Database = {
         Update: {
           application_status?: string | null
           child_id?: string | null
+          class_id?: string | null
           created_at?: string | null
           creche_id?: string | null
           id?: string
@@ -257,6 +318,13 @@ export type Database = {
             columns: ["child_id"]
             isOneToOne: false
             referencedRelation: "children"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "applications_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "creche_classes"
             referencedColumns: ["id"]
           },
           {
@@ -890,26 +958,35 @@ export type Database = {
       }
       creche_classes: {
         Row: {
+          capacity: number | null
           color: string
           created_at: string | null
           creche_id: string
           id: string
+          max_age_months: number | null
+          min_age_months: number | null
           name: string
           updated_at: string | null
         }
         Insert: {
+          capacity?: number | null
           color?: string
           created_at?: string | null
           creche_id: string
           id?: string
+          max_age_months?: number | null
+          min_age_months?: number | null
           name: string
           updated_at?: string | null
         }
         Update: {
+          capacity?: number | null
           color?: string
           created_at?: string | null
           creche_id?: string
           id?: string
+          max_age_months?: number | null
+          min_age_months?: number | null
           name?: string
           updated_at?: string | null
         }
@@ -2240,6 +2317,7 @@ export type Database = {
           application_id: string | null
           child_id: string | null
           class: string | null
+          class_id: string | null
           created_at: string | null
           creche_id: string | null
           disabilities_allergies: string | null
@@ -2261,6 +2339,7 @@ export type Database = {
           application_id?: string | null
           child_id?: string | null
           class?: string | null
+          class_id?: string | null
           created_at?: string | null
           creche_id?: string | null
           disabilities_allergies?: string | null
@@ -2282,6 +2361,7 @@ export type Database = {
           application_id?: string | null
           child_id?: string | null
           class?: string | null
+          class_id?: string | null
           created_at?: string | null
           creche_id?: string | null
           disabilities_allergies?: string | null
@@ -2310,6 +2390,13 @@ export type Database = {
             columns: ["child_id"]
             isOneToOne: false
             referencedRelation: "children"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "students_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "creche_classes"
             referencedColumns: ["id"]
           },
           {
@@ -2997,6 +3084,11 @@ export type Database = {
           user_id: string
         }[]
       }
+      get_class_enrollment_count: {
+        Args: { p_class_id: string }
+        Returns: number
+      }
+      get_class_waiting_count: { Args: { p_class_id: string }; Returns: number }
       get_user_children: {
         Args: { p_user_id: string }
         Returns: {
