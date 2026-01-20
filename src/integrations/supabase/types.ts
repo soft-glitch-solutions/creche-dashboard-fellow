@@ -312,6 +312,13 @@ export type Database = {
             referencedRelation: "articles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "article_comments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
         ]
       }
       article_likes: {
@@ -480,7 +487,7 @@ export type Database = {
           created_at: string | null
           expires_at: string | null
           id: string
-          invitee_email: string
+          invitee_email: string | null
           invitee_user_id: string | null
           inviter_id: string
           relationship: string | null
@@ -493,7 +500,7 @@ export type Database = {
           created_at?: string | null
           expires_at?: string | null
           id?: string
-          invitee_email: string
+          invitee_email?: string | null
           invitee_user_id?: string | null
           inviter_id: string
           relationship?: string | null
@@ -506,7 +513,7 @@ export type Database = {
           created_at?: string | null
           expires_at?: string | null
           id?: string
-          invitee_email?: string
+          invitee_email?: string | null
           invitee_user_id?: string | null
           inviter_id?: string
           relationship?: string | null
@@ -601,41 +608,65 @@ export type Database = {
       }
       children: {
         Row: {
+          additional_notes: string | null
+          allergies: string | null
+          blood_type: string | null
           created_at: string | null
           creche_id: string | null
           date_of_birth: string | null
+          emergency_contact_name: string | null
+          emergency_contact_phone: string | null
+          emergency_contact_relationship: string | null
           first_name: string
           gender: string | null
           id: string
           last_name: string
+          medical_conditions: string | null
           profile_picture_url: string | null
           share_code: string | null
+          special_needs: string | null
           updated_at: string | null
           user_id: string
         }
         Insert: {
+          additional_notes?: string | null
+          allergies?: string | null
+          blood_type?: string | null
           created_at?: string | null
           creche_id?: string | null
           date_of_birth?: string | null
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          emergency_contact_relationship?: string | null
           first_name: string
           gender?: string | null
           id?: string
           last_name: string
+          medical_conditions?: string | null
           profile_picture_url?: string | null
           share_code?: string | null
+          special_needs?: string | null
           updated_at?: string | null
           user_id: string
         }
         Update: {
+          additional_notes?: string | null
+          allergies?: string | null
+          blood_type?: string | null
           created_at?: string | null
           creche_id?: string | null
           date_of_birth?: string | null
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          emergency_contact_relationship?: string | null
           first_name?: string
           gender?: string | null
           id?: string
           last_name?: string
+          medical_conditions?: string | null
           profile_picture_url?: string | null
           share_code?: string | null
+          special_needs?: string | null
           updated_at?: string | null
           user_id?: string
         }
@@ -2934,6 +2965,10 @@ export type Database = {
       check_child_permission: {
         Args: { p_action: string; p_child_id: string; p_user_id: string }
         Returns: boolean
+      }
+      check_rls_access: {
+        Args: { table_name: string; user_id: string }
+        Returns: Json
       }
       create_child_invitation: {
         Args: {
