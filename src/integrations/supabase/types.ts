@@ -264,7 +264,9 @@ export type Database = {
           id: string
           lifecycle_stage: string | null
           message: string
+          notes: string | null
           number_of_children: number | null
+          offer_response: string | null
           parent_address: string | null
           parent_email: string
           parent_name: string
@@ -272,6 +274,7 @@ export type Database = {
           parent_whatsapp: string | null
           source: string
           submitted_at: string | null
+          updated_at: string | null
           user_id: string | null
         }
         Insert: {
@@ -283,7 +286,9 @@ export type Database = {
           id?: string
           lifecycle_stage?: string | null
           message: string
+          notes?: string | null
           number_of_children?: number | null
+          offer_response?: string | null
           parent_address?: string | null
           parent_email: string
           parent_name: string
@@ -291,6 +296,7 @@ export type Database = {
           parent_whatsapp?: string | null
           source: string
           submitted_at?: string | null
+          updated_at?: string | null
           user_id?: string | null
         }
         Update: {
@@ -302,7 +308,9 @@ export type Database = {
           id?: string
           lifecycle_stage?: string | null
           message?: string
+          notes?: string | null
           number_of_children?: number | null
+          offer_response?: string | null
           parent_address?: string | null
           parent_email?: string
           parent_name?: string
@@ -310,6 +318,7 @@ export type Database = {
           parent_whatsapp?: string | null
           source?: string
           submitted_at?: string | null
+          updated_at?: string | null
           user_id?: string | null
         }
         Relationships: [
